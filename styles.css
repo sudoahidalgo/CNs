@@ -1,20 +1,20 @@
 /* styles.css */
 body {
-    background-color: #1a202c; /* Dark gray */
-    color: #ffffff; /* White text */
+    background-color: #1a202c;
+    color: #ffffff;
 }
 
-#decideBtn:active {
+#decideBtn:active, #showResultsBtn:active {
     transform: scale(0.95);
 }
 
 #result.reveal {
     opacity: 1;
     animation: celebrate 1s ease-in-out;
-    background: rgba(72, 187, 120, 0.3); /* Greenish highlight */
+    background: rgba(72, 187, 120, 0.3);
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 2px solid #48bb78; /* Green border */
+    border: 2px solid #48bb78;
 }
 
 @keyframes celebrate {
@@ -25,7 +25,7 @@ body {
 
 #placeList li {
     padding: 0.5rem;
-    background: rgba(72, 187, 120, 0.8); /* Highlighted green by default */
+    background: rgba(72, 187, 120, 0.8);
     border-radius: 0.5rem;
     transition: background 0.3s ease, transform 0.3s ease;
     cursor: pointer;
@@ -35,10 +35,10 @@ body {
     transform: scale(1.05);
 }
 
-#placeList li.deselected {
-    background: rgba(45, 55, 72, 0.8); /* Darker when deselected */
+#placeList li.deselected, #placeList li.voted {
+    background: rgba(45, 55, 72, 0.8);
 }
 
 input[type="text"] {
-    background: #edf2f7; /* Light gray for contrast */
+    background: #edf2f7;
 }
