@@ -19,8 +19,9 @@ let cachedVotes = {}; // Synced with server votes
 async function fetchVotes() {
     try {
         const response = await fetch("/.netlify/functions/vote", { method: "GET" });
-        if (!response.ok) throw new Error("Fetch failed");
+        if (!response.ok) throw new Error("Fetch failed: " + response.status);
         const votes = await response.json();
+        console.log("Fetched votes:", votes); // Debug log
         cachedVotes = votes; // Sync cache with server
         return votes;
     } catch (error) {
@@ -43,9 +44,11 @@ function renderPlaceList(votes = cachedVotes) {
             });
             if (response.ok) {
                 const updatedVotes = await response.json();
+                console.log("Vote recorded, updated votes:", updatedVotes); // Debug log
                 cachedVotes = updatedVotes; // Update cache
                 renderPlaceList(updatedVotes); // Re-render with fresh votes
             } else {
+                console.log("Vote rejected, response:", await response.json()); // Debug log
                 alert("Ya votaste esta semana!");
             }
         });
