@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Donde Vamos a la CN Hoy?</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto text-center p-6 bg-white bg-opacity-90 rounded-xl shadow-2xl">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">¿A dónde vamos a la CN hoy?</h1>
+        <button id="decideBtn" class="px-8 py-4 bg-green-500 text-white text-xl font-semibold rounded-lg shadow-lg hover:bg-green-600 transition-all duration-300">
+            ¡Decide!
+        </button>
+        <div id="result" class="mt-8 text-3xl font-bold text-gray-900 opacity-0 transition-opacity duration-500"></div>
+        <ul id="placeList" class="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg text-gray-700"></ul>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
