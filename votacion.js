@@ -11,6 +11,7 @@ let tempPlaces = [];
 const showResultsBtn = document.getElementById("showResultsBtn");
 const resultDiv = document.getElementById("result");
 const placeList = document.getElementById("placeList");
+const rankingList = document.getElementById("rankingList");
 const newPlaceInput = document.getElementById("newPlaceInput");
 const addPlaceBtn = document.getElementById("addPlaceBtn");
 
@@ -21,47 +22,64 @@ async function fetchVotes() {
         const response = await fetch("/.netlify/functions/vote", { method: "GET" });
         if (!response.ok) throw new Error("Fetch failed: " + response.status);
         const votes = await response.json();
-        console.log("Fetched votes:", votes); // Debug log
-        cachedVotes = votes; // Sync cache with server
+        cachedVotes = votes;
         return votes;
     } catch (error) {
         console.error("Error fetching votes:", error);
-        return cachedVotes; // Fallback to last known votes
+        alert("Error loading votes: " + error.message); // User feedback
+        return cachedVotes;
     }
 }
 
 function renderPlaceList(votes = cachedVotes) {
-    placeList.innerHTML = ""; // Clear the list
-    const allPlaces = [...places, ...tempPlaces]; // Combine base and temp places
+    placeList.innerHTML = ""; // Clear options
+    const allPlaces = [...places, ...tempPlaces];
 
     allPlaces.forEach(place => {
         const li = document.createElement("li");
-        li.textContent = `${place} (${votes[place] || 0} votos)`; // Show vote count
+        li.textContent = place; // Just the name, no votes here
         li.addEventListener("click", async () => {
-            const response = await fetch("/.netlify/functions/vote", {
-                method: "POST",
-                body: JSON.stringify({ place })
-            });
-            if (response.ok) {
-                const updatedVotes = await response.json();
-                console.log("Vote recorded, updated votes:", updatedVotes); // Debug log
-                cachedVotes = updatedVotes; // Update cache
-                renderPlaceList(updatedVotes); // Re-render with fresh votes
-            } else {
-                console.log("Vote rejected, response:", await response.json()); // Debug log
-                alert("Ya votaste esta semana!");
+            try {
+                const response = await fetch("/.netlify/functions/vote", {
+                    method: "POST",
+                    body: JSON.stringify({ place })
+                });
+                if (response.ok) {
+                    const updatedVotes = await response.json();
+                    cachedVotes = updatedVotes;
+                    renderPlaceList(updatedVotes);
+                    renderRanking(updatedVotes); // Update ranking
+                } else {
+                    const error = await response.json();
+                    alert(error.error || "Ya votaste esta semana!");
+                }
+            } catch (error) {
+                console.error("Vote error:", error);
+                alert("Voting failed: " + error.message);
             }
         });
         placeList.appendChild(li);
     });
 }
 
-// Initial render with fallback
+function renderRanking(votes = cachedVotes) {
+    rankingList.innerHTML = ""; // Clear ranking
+    const sortedPlaces = Object.entries(votes).sort((a, b) => b[1] - a[1]);
+    sortedPlaces.forEach(([place, count]) => {
+        const li = document.createElement("li");
+        li.textContent = `${place}: ${count} votos`;
+        rankingList.appendChild(li);
+    });
+}
+
+// Initial render
 renderPlaceList();
+renderRanking();
 
 // Fetch votes and re-render
 fetchVotes().then(votes => {
     renderPlaceList(votes);
+    renderRanking(votes);
 }).catch(() => {
     console.error("Initial fetch failed, using fallback");
 });
@@ -70,9 +88,10 @@ addPlaceBtn.addEventListener("click", () => {
     const newPlace = newPlaceInput.value.trim();
     const allPlaces = [...places, ...tempPlaces];
     if (newPlace && !allPlaces.includes(newPlace)) {
-        tempPlaces.push(newPlace); // Add to temporary list
-        renderPlaceList(cachedVotes); // Re-render with current votes
-        newPlaceInput.value = ""; // Clear input
+        tempPlaces.push(newPlace);
+        renderPlaceList(cachedVotes);
+        renderRanking(cachedVotes);
+        newPlaceInput.value = "";
     }
 });
 
