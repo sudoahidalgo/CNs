@@ -8,14 +8,13 @@ let places = [
 // Temporary places for the session
 let tempPlaces = [];
 
-const showResultsBtn = document.getElementById("showResultsBtn");
 const resultDiv = document.getElementById("result");
 const placeList = document.getElementById("placeList");
 const rankingList = document.getElementById("rankingList");
 const newPlaceInput = document.getElementById("newPlaceInput");
 const addPlaceBtn = document.getElementById("addPlaceBtn");
 
-let cachedVotes = {}; // Synced with server votes
+let cachedVotes = {};
 
 async function fetchVotes() {
     try {
@@ -30,9 +29,9 @@ async function fetchVotes() {
         console.error("Error fetching votes:", error);
         if (error.message.includes("404")) {
             console.log("Function not found - assuming fresh start");
-            return {}; // Assume no votes if function isn’t deployed
+            return {};
         }
-        return cachedVotes; // Fallback to last known votes
+        return cachedVotes;
     }
 }
 
@@ -43,7 +42,7 @@ async function castVote(place) {
             body: JSON.stringify({ place })
         });
         if (!response.ok) {
-            const errorData = await response.text(); // Handle non-JSON responses
+            const errorData = await response.text();
             throw new Error(`Vote failed: ${response.status} ${errorData || "Unknown error"}`);
         }
         const updatedVotes = await response.json();
@@ -63,7 +62,7 @@ async function castVote(place) {
 }
 
 function renderPlaceList(votes = cachedVotes) {
-    placeList.innerHTML = ""; // Clear options
+    placeList.innerHTML = "";
     const allPlaces = [...places, ...tempPlaces];
 
     allPlaces.forEach(place => {
@@ -81,11 +80,14 @@ function renderPlaceList(votes = cachedVotes) {
 }
 
 function renderRanking(votes = cachedVotes) {
-    rankingList.innerHTML = ""; // Clear ranking
+    rankingList.innerHTML = "";
     const sortedPlaces = Object.entries(votes).sort((a, b) => b[1] - a[1]);
-    sortedPlaces.forEach(([place, count]) => {
+    sortedPlaces.forEach(([place, count], index) => {
         const li = document.createElement("li");
         li.textContent = `${place}: ${count} votos`;
+        if (index === 0 && count > 0) { // Highlight top vote
+            li.classList.add("top-voted");
+        }
         rankingList.appendChild(li);
     });
 }
@@ -111,16 +113,4 @@ addPlaceBtn.addEventListener("click", () => {
         renderRanking(cachedVotes);
         newPlaceInput.value = "";
     }
-});
-
-showResultsBtn.addEventListener("click", async () => {
-    const votes = await fetchVotes();
-    const sortedPlaces = Object.entries(votes).sort((a, b) => b[1] - a[1]);
-    if (sortedPlaces.length === 0) {
-        resultDiv.textContent = "No votes yet!";
-    } else {
-        const winner = sortedPlaces[0];
-        resultDiv.textContent = `¡Ganador: ${winner[0]} con ${winner[1]} votos!`;
-    }
-    resultDiv.classList.add("reveal");
 });
