@@ -20,14 +20,45 @@ let cachedVotes = {}; // Synced with server votes
 async function fetchVotes() {
     try {
         const response = await fetch("/.netlify/functions/vote", { method: "GET" });
-        if (!response.ok) throw new Error("Fetch failed: " + response.status);
+        if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+        }
         const votes = await response.json();
         cachedVotes = votes;
         return votes;
     } catch (error) {
         console.error("Error fetching votes:", error);
-        alert("Error loading votes: " + error.message); // User feedback
-        return cachedVotes;
+        if (error.message.includes("404")) {
+            console.log("Function not found - assuming fresh start");
+            return {}; // Assume no votes if function isn’t deployed
+        }
+        return cachedVotes; // Fallback to last known votes
+    }
+}
+
+async function castVote(place) {
+    try {
+        const response = await fetch("/.netlify/functions/vote", {
+            method: "POST",
+            body: JSON.stringify({ place })
+        });
+        if (!response.ok) {
+            const errorData = await response.text(); // Handle non-JSON responses
+            throw new Error(`Vote failed: ${response.status} ${errorData || "Unknown error"}`);
+        }
+        const updatedVotes = await response.json();
+        cachedVotes = updatedVotes;
+        return updatedVotes;
+    } catch (error) {
+        console.error("Vote error:", error);
+        if (error.message.includes("403")) {
+            alert("Ya votaste esta semana!");
+        } else if (error.message.includes("404")) {
+            alert("Voting system not available - function not found!");
+        } else {
+            alert("Voting failed: " + error.message);
+        }
+        return null;
     }
 }
 
@@ -37,25 +68,12 @@ function renderPlaceList(votes = cachedVotes) {
 
     allPlaces.forEach(place => {
         const li = document.createElement("li");
-        li.textContent = place; // Just the name, no votes here
+        li.textContent = place;
         li.addEventListener("click", async () => {
-            try {
-                const response = await fetch("/.netlify/functions/vote", {
-                    method: "POST",
-                    body: JSON.stringify({ place })
-                });
-                if (response.ok) {
-                    const updatedVotes = await response.json();
-                    cachedVotes = updatedVotes;
-                    renderPlaceList(updatedVotes);
-                    renderRanking(updatedVotes); // Update ranking
-                } else {
-                    const error = await response.json();
-                    alert(error.error || "Ya votaste esta semana!");
-                }
-            } catch (error) {
-                console.error("Vote error:", error);
-                alert("Voting failed: " + error.message);
+            const updatedVotes = await castVote(place);
+            if (updatedVotes) {
+                renderPlaceList(updatedVotes);
+                renderRanking(updatedVotes);
             }
         });
         placeList.appendChild(li);
@@ -81,7 +99,7 @@ fetchVotes().then(votes => {
     renderPlaceList(votes);
     renderRanking(votes);
 }).catch(() => {
-    console.error("Initial fetch failed, using fallback");
+    console.error("Initial fetch failed, assuming no votes");
 });
 
 addPlaceBtn.addEventListener("click", () => {
