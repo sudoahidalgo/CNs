@@ -1,22 +1,42 @@
+/* styles.css */
+body {
+    background-color: #1a202c; /* Dark gray */
+    color: #ffffff; /* White text */
+}
+
 #decideBtn:active {
     transform: scale(0.95);
 }
+
 #result.reveal {
     opacity: 1;
     animation: bounce 0.5s ease-in-out;
 }
+
 @keyframes bounce {
     0% { transform: translateY(-20px); }
     50% { transform: translateY(10px); }
     100% { transform: translateY(0); }
 }
+
 #placeList li {
     padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(45, 55, 72, 0.8); /* Darker semi-transparent */
     border-radius: 0.5rem;
     transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
 }
+
 #placeList li:hover {
     transform: scale(1.05);
-    background: rgba(255, 255, 255, 1);
+    background: rgba(45, 55, 72, 1);
+}
+
+input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+#newPlaceInput {
+    background: #edf2f7; /* Light gray for contrast */
 }
