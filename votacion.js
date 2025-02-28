@@ -14,16 +14,18 @@ const placeList = document.getElementById("placeList");
 const newPlaceInput = document.getElementById("newPlaceInput");
 const addPlaceBtn = document.getElementById("addPlaceBtn");
 
-let cachedVotes = {}; // Fallback if fetch fails
+let cachedVotes = {}; // Synced with server votes
 
 async function fetchVotes() {
     try {
         const response = await fetch("/.netlify/functions/vote", { method: "GET" });
         if (!response.ok) throw new Error("Fetch failed");
-        return await response.json();
+        const votes = await response.json();
+        cachedVotes = votes; // Sync cache with server
+        return votes;
     } catch (error) {
         console.error("Error fetching votes:", error);
-        return cachedVotes; // Use cached votes as fallback
+        return cachedVotes; // Fallback to last known votes
     }
 }
 
@@ -42,8 +44,7 @@ function renderPlaceList(votes = cachedVotes) {
             if (response.ok) {
                 const updatedVotes = await response.json();
                 cachedVotes = updatedVotes; // Update cache
-                li.textContent = `${place} (${updatedVotes[place] || 0} votos)`;
-                li.classList.add("voted");
+                renderPlaceList(updatedVotes); // Re-render with fresh votes
             } else {
                 alert("Ya votaste esta semana!");
             }
@@ -53,11 +54,10 @@ function renderPlaceList(votes = cachedVotes) {
 }
 
 // Initial render with fallback
-renderPlaceList(); // Show list immediately with cached votes
+renderPlaceList();
 
 // Fetch votes and re-render
 fetchVotes().then(votes => {
-    cachedVotes = votes;
     renderPlaceList(votes);
 }).catch(() => {
     console.error("Initial fetch failed, using fallback");
@@ -75,7 +75,6 @@ addPlaceBtn.addEventListener("click", () => {
 
 showResultsBtn.addEventListener("click", async () => {
     const votes = await fetchVotes();
-    cachedVotes = votes; // Update cache
     const sortedPlaces = Object.entries(votes).sort((a, b) => b[1] - a[1]);
     if (sortedPlaces.length === 0) {
         resultDiv.textContent = "No votes yet!";
