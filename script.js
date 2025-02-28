@@ -11,18 +11,16 @@ const placeList = document.getElementById("placeList");
 const newPlaceInput = document.getElementById("newPlaceInput");
 const addPlaceBtn = document.getElementById("addPlaceBtn");
 
-// Function to render the list with checkboxes
+// Function to render the list with highlighted boxes
 function renderPlaceList() {
     placeList.innerHTML = ""; // Clear the list
     places.forEach(place => {
         const li = document.createElement("li");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = place;
-        const label = document.createElement("span");
-        label.textContent = place;
-        li.appendChild(checkbox);
-        li.appendChild(label);
+        li.textContent = place;
+        li.classList.add("selected"); // Start highlighted
+        li.addEventListener("click", () => {
+            li.classList.toggle("deselected"); // Toggle deselection
+        });
         placeList.appendChild(li);
     });
 }
@@ -42,11 +40,12 @@ addPlaceBtn.addEventListener("click", () => {
 
 // Randomizer with exclusions
 decideBtn.addEventListener("click", () => {
-    const excluded = Array.from(placeList.querySelectorAll("input[type='checkbox']:checked")).map(cb => cb.value);
-    const availablePlaces = places.filter(place => !excluded.includes(place));
+    const deselected = Array.from(placeList.querySelectorAll("li.deselected")).map(li => li.textContent);
+    const availablePlaces = places.filter(place => !deselected.includes(place));
 
     if (availablePlaces.length === 0) {
         resultDiv.textContent = "No places left to choose!";
+        resultDiv.classList.remove("reveal");
         return;
     }
 

@@ -10,33 +10,35 @@ body {
 
 #result.reveal {
     opacity: 1;
-    animation: bounce 0.5s ease-in-out;
+    animation: celebrate 1s ease-in-out;
+    background: rgba(72, 187, 120, 0.3); /* Greenish highlight */
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid #48bb78; /* Green border */
 }
 
-@keyframes bounce {
-    0% { transform: translateY(-20px); }
-    50% { transform: translateY(10px); }
-    100% { transform: translateY(0); }
+@keyframes celebrate {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 #placeList li {
     padding: 0.5rem;
-    background: rgba(45, 55, 72, 0.8); /* Darker semi-transparent */
+    background: rgba(72, 187, 120, 0.8); /* Highlighted green by default */
     border-radius: 0.5rem;
-    transition: transform 0.3s ease;
-    display: flex;
-    align-items: center;
+    transition: background 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
 }
 
 #placeList li:hover {
     transform: scale(1.05);
-    background: rgba(45, 55, 72, 1);
 }
 
-input[type="checkbox"] {
-    margin-right: 0.5rem;
+#placeList li.deselected {
+    background: rgba(45, 55, 72, 0.8); /* Darker when deselected */
 }
 
-#newPlaceInput {
+input[type="text"] {
     background: #edf2f7; /* Light gray for contrast */
 }
