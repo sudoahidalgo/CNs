@@ -5,6 +5,9 @@ let places = [
     "Rio de J", "THC", "Zompopas", "Casa Adrian", "Casa Nino"
 ];
 
+// Temporary places added for the session (reset on reload)
+let tempPlaces = [];
+
 const showResultsBtn = document.getElementById("showResultsBtn");
 const resultDiv = document.getElementById("result");
 const placeList = document.getElementById("placeList");
@@ -17,41 +20,50 @@ async function fetchVotes() {
 }
 
 async function renderPlaceList() {
-    const votes = await fetchVotes();
-    placeList.innerHTML = "";
-    places.forEach(place => {
-        const li = document.createElement("li");
-        li.textContent = `${place} (${votes[place] || 0})`;
-        li.addEventListener("click", async () => {
-            const today = new Date().getDay();
-            if (today !== 2) { // 2 = Tuesday
-                alert("Voting is only available on Tuesdays!");
-                return;
-            }
-            const response = await fetch("/.netlify/functions/vote", {
-                method: "POST",
-                body: JSON.stringify({ place })
+    try {
+        const votes = await fetchVotes();
+        placeList.innerHTML = ""; // Clear the list
+        const allPlaces = [...places, ...tempPlaces]; // Combine base and temp places
+
+        allPlaces.forEach(place => {
+            const li = document.createElement("li");
+            li.textContent = `${place} (${votes[place] || 0} votos)`; // Show vote count
+            li.addEventListener("click", async () => {
+                const today = new Date().getDay();
+                if (today !== 2) { // 2 = Tuesday
+                    alert("Voting is only available on Tuesdays!");
+                    return;
+                }
+                const response = await fetch("/.netlify/functions/vote", {
+                    method: "POST",
+                    body: JSON.stringify({ place })
+                });
+                if (response.ok) {
+                    const updatedVotes = await response.json();
+                    li.textContent = `${place} (${updatedVotes[place] || 0} votos)`;
+                    li.classList.add("voted");
+                } else {
+                    alert("Ya votaste esta semana!");
+                }
             });
-            if (response.ok) {
-                const updatedVotes = await response.json();
-                li.textContent = `${place} (${updatedVotes[place] || 0})`;
-                li.classList.add("voted");
-            } else {
-                alert("Ya votaste esta semana!");
-            }
+            placeList.appendChild(li);
         });
-        placeList.appendChild(li);
-    });
+    } catch (error) {
+        console.error("Error rendering list:", error);
+        placeList.innerHTML = "<li>Error loading places. Try refreshing.</li>";
+    }
 }
 
+// Initial render
 renderPlaceList();
 
-addPlaceBtn.addEventListener("click", async () => {
+addPlaceBtn.addEventListener("click", () => {
     const newPlace = newPlaceInput.value.trim();
-    if (newPlace && !places.includes(newPlace)) {
-        places.push(newPlace);
-        await renderPlaceList(); // Re-render after adding
-        newPlaceInput.value = "";
+    const allPlaces = [...places, ...tempPlaces];
+    if (newPlace && !allPlaces.includes(newPlace)) {
+        tempPlaces.push(newPlace); // Add to temporary list
+        renderPlaceList(); // Re-render with new place
+        newPlaceInput.value = ""; // Clear input
     }
 });
 
