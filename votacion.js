@@ -46,11 +46,11 @@ async function renderPlaceList() {
 
 renderPlaceList();
 
-addPlaceBtn.addEventListener("click", () => {
+addPlaceBtn.addEventListener("click", async () => {
     const newPlace = newPlaceInput.value.trim();
     if (newPlace && !places.includes(newPlace)) {
         places.push(newPlace);
-        renderPlaceList();
+        await renderPlaceList(); // Re-render after adding
         newPlaceInput.value = "";
     }
 });
