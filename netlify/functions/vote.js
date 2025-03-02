@@ -46,25 +46,29 @@ exports.handler = async (event) => {
       // Verificar si la IP ya votó esta semana
       const { data: existingVotes, error: checkError } = await supabase
         .from('votes')
-        .select('id')
+        .select('id, place')
         .eq('ip', ip)
-        .gte('timestamp', weekStart.toISOString());
+        .gte('timestamp', weekStart.toISOString())
+        .single(); // Obtiene un solo registro (el más reciente)
 
-      if (checkError) throw checkError;
+      if (checkError && checkError.code !== 'PGRST116') throw checkError; // PGRST116 es "no rows found", lo manejamos a continuación
 
-      if (existingVotes.length > 0) {
-        return {
-          statusCode: 403,
-          body: JSON.stringify({ error: "Already voted this week" }),
-        };
+      if (existingVotes) {
+        // Si la IP ya votó, actualiza el voto existente
+        const { error: updateError } = await supabase
+          .from('votes')
+          .update({ place, timestamp: today.toISOString() })
+          .eq('id', existingVotes.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Si no ha votado, crea un nuevo voto
+        const { error: insertError } = await supabase
+          .from('votes')
+          .insert([{ ip, place, timestamp: today.toISOString() }]);
+
+        if (insertError) throw insertError;
       }
-
-      // Grabar el voto
-      const { error: insertError } = await supabase
-        .from('votes')
-        .insert([{ ip, place, timestamp: today.toISOString() }]);
-
-      if (insertError) throw insertError;
 
       // Obtener votos actualizados
       const { data: updatedVotes, error: fetchError } = await supabase
