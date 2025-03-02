@@ -45,11 +45,80 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === "POST") {
         try {
+            console.log("Request body:", event.body);
+            const { place } = JSON.parse(event.body);
+            console.log("Checking database connection and setup...");
+            
+            // Test basic database access
+            try {
+                const collections = await client.query(
+                    q.Paginate(q.Collections())
+                );
+                console.log("Database connection successful. Collections:", collections);
+            } catch (dbErr) {
+                console.error("Database connection error:", dbErr);
+                return {
+                    statusCode: 500,
+                    body: JSON.stringify({ error: "Database connection failed", details: dbErr.message }),
+                };
+            }
+            
+            // Test if the votes collection exists
+            try {
+                await client.query(
+                    q.Get(q.Collection("votes"))
+                );
+                console.log("Votes collection exists");
+            } catch (collErr) {
+                console.error("Collection error:", collErr);
+                
+                // Try to create the collection if it doesn't exist
+                try {
+                    await client.query(
+                        q.CreateCollection({ name: "votes" })
+                    );
+                    console.log("Created votes collection");
+                } catch (createErr) {
+                    console.error("Failed to create collection:", createErr);
+                }
+            }
+            
+            // Test if the index exists
+            try {
+                await client.query(
+                    q.Get(q.Index("votes_by_ip"))
+                );
+                console.log("votes_by_ip index exists");
+            } catch (indexErr) {
+                console.error("Index error:", indexErr);
+                
+                // Try to create the index if it doesn't exist
+                try {
+                    await client.query(
+                        q.CreateIndex({
+                            name: "votes_by_ip",
+                            source: q.Collection("votes"),
+                            terms: [{ field: ["data", "ip"] }],
+                            unique: true
+                        })
+                    );
+                    console.log("Created votes_by_ip index");
+                } catch (createIndexErr) {
+                    console.error("Failed to create index:", createIndexErr);
+                }
+            }
+
             console.log("Checking if IP has voted:", ip);
-            const hasVoted = await client.query(
-                q.Exists(q.Match(q.Index("votes_by_ip"), ip))
-            );
-            console.log("Has voted:", hasVoted);
+            let hasVoted = false;
+            try {
+                hasVoted = await client.query(
+                    q.Exists(q.Match(q.Index("votes_by_ip"), ip))
+                );
+                console.log("Has voted check successful. Result:", hasVoted);
+            } catch (existsErr) {
+                console.error("Error checking if voted:", existsErr);
+                // Continue anyway
+            }
 
             if (hasVoted) {
                 console.log("IP already voted this week:", ip);
@@ -59,17 +128,25 @@ exports.handler = async (event) => {
                 };
             }
 
-            const { place } = JSON.parse(event.body);
             console.log("Recording vote for:", place);
-            await client.query(
-                q.Create(q.Collection("votes"), {
-                    data: {
-                        ip,
-                        place,
-                        timestamp: today.toISOString()
-                    }
-                })
-            );
+            try {
+                await client.query(
+                    q.Create(q.Collection("votes"), {
+                        data: {
+                            ip,
+                            place,
+                            timestamp: today.toISOString()
+                        }
+                    })
+                );
+                console.log("Vote successfully recorded");
+            } catch (createErr) {
+                console.error("Error creating vote:", createErr);
+                return {
+                    statusCode: 500,
+                    body: JSON.stringify({ error: "Failed to create vote document", details: createErr.message }),
+                };
+            }
 
             const result = await client.query(
                 q.Map(
