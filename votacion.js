@@ -1,48 +1,32 @@
 let places = [];
 let cachedVotes = {};
-let winners = [];
 
 const resultDiv = document.getElementById("result");
 const placeList = document.getElementById("placeList");
 const rankingList = document.getElementById("rankingList");
 const newPlaceInput = document.getElementById("newPlaceInput");
 const addPlaceBtn = document.getElementById("addPlaceBtn");
-const winnersList = document.getElementById("winnersList");
 
 async function fetchData() {
   try {
-    console.log("Fetching data from /vote...");
     const response = await fetch("/.netlify/functions/vote", { method: "GET" });
-    if (!response.ok) {
-      throw new Error(`Fetch failed: ${response.status} ${await response.text()}`);
-    }
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
     const data = await response.json();
-    console.log("Data received:", data);
     cachedVotes = data.votes || {};
-    if (data.places && data.places.length > 0) {
-      places = data.places;
-    } else {
-      places = []; // Si no hay lugares, reinicia pero con manejo explícito
-      console.warn("No places found in the response.");
-    }
-    winners = data.winners || [];
+    places = data.places || [];
     renderPlaceList();
     renderRanking();
-    renderWinners();
   } catch (error) {
     console.error("Error fetching data:", error);
-    alert("Error loading data: " + error.message);
     cachedVotes = {};
-    winners = [];
+    places = []; // Usa una lista predeterminada si falla
     renderPlaceList();
     renderRanking();
-    renderWinners();
   }
 }
 
 async function castVote(place) {
   try {
-    console.log(`Casting vote for ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "POST",
       body: JSON.stringify({ place })
@@ -53,7 +37,8 @@ async function castVote(place) {
     }
     const data = await response.json();
     cachedVotes = data;
-    await fetchData();
+    renderPlaceList();
+    renderRanking();
     return data;
   } catch (error) {
     console.error("Vote error:", error);
@@ -68,15 +53,12 @@ async function castVote(place) {
 
 async function addPlace(place) {
   try {
-    console.log(`Adding place: ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "PUT",
       body: JSON.stringify({ place })
     });
-    if (!response.ok) {
-      throw new Error(`Add place failed: ${response.status} ${await response.text()}`);
-    }
-    await fetchData();
+    if (!response.ok) throw new Error(`Add place failed: ${response.status} ${response.statusText}`);
+    await fetchData(); // Recarga todos los datos después de agregar
   } catch (error) {
     console.error("Add place error:", error);
     alert("Failed to add place: " + error.message);
@@ -85,15 +67,12 @@ async function addPlace(place) {
 
 async function deletePlace(place) {
   try {
-    console.log(`Deleting place: ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "DELETE",
       body: JSON.stringify({ place })
     });
-    if (!response.ok) {
-      throw new Error(`Delete place failed: ${response.status} ${await response.text()}`);
-    }
-    await fetchData();
+    if (!response.ok) throw new Error(`Delete place failed: ${response.status} ${response.statusText}`);
+    await fetchData(); // Recarga todos los datos después de eliminar
   } catch (error) {
     console.error("Delete place error:", error);
     alert("Failed to delete place: " + error.message);
@@ -105,7 +84,6 @@ function renderPlaceList() {
   if (places.length === 0) {
     const li = document.createElement("li");
     li.textContent = "No places available.";
-    li.classList.add("flex", "items-center", "justify-center", "p-2", "bg-gray-700", "rounded-lg");
     placeList.appendChild(li);
     return;
   }
@@ -124,7 +102,7 @@ function renderPlaceList() {
         renderRanking();
       }
     });
-    li.classList.add("flex", "items-center", "justify-between", "p-2", "bg-gray-700", "rounded-lg", "hover:bg-gray-600", "transition-colors", "cursor-pointer");
+    li.classList.add("flex", "items-center", "justify-between", "p-2", "bg-gray-700", "rounded-lg", "hover:bg-gray-600", "transition-colors");
     placeList.appendChild(li);
   });
 }
@@ -141,31 +119,17 @@ function renderRanking() {
   sortedPlaces.forEach(([place, count], index) => {
     const li = document.createElement("li");
     li.textContent = `${place}: ${count} votos`;
-    if (index === 0 && count > 0) {
+    if (index === 0 && count > 0) { // Highlight top vote
       li.classList.add("top-voted");
     }
     rankingList.appendChild(li);
   });
 }
 
-function renderWinners() {
-  winnersList.innerHTML = "";
-  if (winners.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "No winners recorded yet.";
-    winnersList.appendChild(li);
-    return;
-  }
-  winners.forEach(winner => {
-    const li = document.createElement("li");
-    const date = new Date(winner.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    li.textContent = `${winner.place.padEnd(20, '.')}${date}`;
-    winnersList.appendChild(li);
-  });
-}
-
+// Initial setup
 fetchData().catch(() => console.error("Initial fetch failed"));
 
+// Add place event listener
 addPlaceBtn.addEventListener("click", () => {
   const newPlace = newPlaceInput.value.trim();
   if (newPlace && !places.includes(newPlace)) {
