@@ -11,12 +11,19 @@ const winnersList = document.getElementById("winnersList");
 
 async function fetchData() {
   try {
+    console.log("Fetching data from /vote...");
     const response = await fetch("/.netlify/functions/vote", { method: "GET" });
-    if (!response.ok) throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Fetch failed: ${response.status} ${await response.text()}`);
+    }
     const data = await response.json();
+    console.log("Data received:", data);
     cachedVotes = data.votes || {};
     if (data.places && data.places.length > 0) {
       places = data.places;
+    } else {
+      places = []; // Si no hay lugares, reinicia pero con manejo explícito
+      console.warn("No places found in the response.");
     }
     winners = data.winners || [];
     renderPlaceList();
@@ -24,6 +31,7 @@ async function fetchData() {
     renderWinners();
   } catch (error) {
     console.error("Error fetching data:", error);
+    alert("Error loading data: " + error.message);
     cachedVotes = {};
     winners = [];
     renderPlaceList();
@@ -34,6 +42,7 @@ async function fetchData() {
 
 async function castVote(place) {
   try {
+    console.log(`Casting vote for ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "POST",
       body: JSON.stringify({ place })
@@ -59,11 +68,14 @@ async function castVote(place) {
 
 async function addPlace(place) {
   try {
+    console.log(`Adding place: ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "PUT",
       body: JSON.stringify({ place })
     });
-    if (!response.ok) throw new Error(`Add place failed: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Add place failed: ${response.status} ${await response.text()}`);
+    }
     await fetchData();
   } catch (error) {
     console.error("Add place error:", error);
@@ -73,11 +85,14 @@ async function addPlace(place) {
 
 async function deletePlace(place) {
   try {
+    console.log(`Deleting place: ${place}...`);
     const response = await fetch("/.netlify/functions/vote", {
       method: "DELETE",
       body: JSON.stringify({ place })
     });
-    if (!response.ok) throw new Error(`Delete place failed: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Delete place failed: ${response.status} ${await response.text()}`);
+    }
     await fetchData();
   } catch (error) {
     console.error("Delete place error:", error);
@@ -90,6 +105,7 @@ function renderPlaceList() {
   if (places.length === 0) {
     const li = document.createElement("li");
     li.textContent = "No places available.";
+    li.classList.add("flex", "items-center", "justify-center", "p-2", "bg-gray-700", "rounded-lg");
     placeList.appendChild(li);
     return;
   }
@@ -108,7 +124,7 @@ function renderPlaceList() {
         renderRanking();
       }
     });
-    li.classList.add("flex", "items-center", "justify-between", "p-2", "bg-gray-700", "rounded-lg", "hover:bg-gray-600", "transition-colors");
+    li.classList.add("flex", "items-center", "justify-between", "p-2", "bg-gray-700", "rounded-lg", "hover:bg-gray-600", "transition-colors", "cursor-pointer");
     placeList.appendChild(li);
   });
 }
