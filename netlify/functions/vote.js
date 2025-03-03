@@ -2,58 +2,49 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY // Usa la Service Role Key para funciones backend
 );
 
 exports.handler = async (event) => {
   const ip = event.headers["client-ip"] || "unknown";
   const today = new Date();
   const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Lunes como inicio (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
   weekStart.setHours(0, 0, 0, 0);
-
-  console.log(`Received ${event.httpMethod} request from IP: ${ip}`);
 
   if (event.httpMethod === "GET") {
     try {
-      const { data: votes, error: votesError } = await supabase
+      const { data: votes, error } = await supabase
         .from('votes')
         .select('place')
         .gte('timestamp', weekStart.toISOString());
 
-      if (votesError) throw votesError;
+      if (error) throw error;
 
       const votesThisWeek = votes.reduce((acc, vote) => {
         acc[vote.place] = (acc[vote.place] || 0) + 1;
         return acc;
       }, {});
 
+      // También devolver los lugares
       const { data: placesData, error: placesError } = await supabase
         .from('places')
         .select('name');
 
       if (placesError) throw placesError;
 
-      const { data: winnersData, error: winnersError } = await supabase
-        .from('winners')
-        .select('place, date');
-
-      if (winnersError) throw winnersError;
-
-      console.log("GET response:", { votes: votesThisWeek, places: placesData, winners: winnersData });
       return {
         statusCode: 200,
         body: JSON.stringify({
           votes: votesThisWeek,
-          places: placesData.map(p => p.name),
-          winners: winnersData
+          places: placesData.map(p => p.name)
         }),
       };
     } catch (error) {
-      console.error("GET error:", error.message);
+      console.error("GET error:", error);
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Failed to fetch data", details: error.message }),
+        body: JSON.stringify({ error: "Failed to fetch votes or places", details: error.message }),
       };
     }
   }
@@ -62,6 +53,7 @@ exports.handler = async (event) => {
     try {
       const { place } = JSON.parse(event.body);
 
+      // Contar cuántos votos ha hecho esta IP esta semana
       const { data: existingVotes, error: checkError } = await supabase
         .from('votes')
         .select('id, place')
@@ -79,9 +71,11 @@ exports.handler = async (event) => {
         };
       }
 
+      // Verificar si la IP ya votó por este lugar esta semana
       const existingVoteForPlace = existingVotes.find(vote => vote.place === place);
 
       if (existingVoteForPlace) {
+        // Si ya votó por este lugar, actualiza el timestamp (opcional, para mantenerlo actualizado)
         const { error: updateError } = await supabase
           .from('votes')
           .update({ timestamp: today.toISOString() })
@@ -89,6 +83,7 @@ exports.handler = async (event) => {
 
         if (updateError) throw updateError;
       } else {
+        // Si no ha votado por este lugar, crea un nuevo voto
         const { error: insertError } = await supabase
           .from('votes')
           .insert([{ ip, place, timestamp: today.toISOString() }]);
@@ -96,6 +91,7 @@ exports.handler = async (event) => {
         if (insertError) throw insertError;
       }
 
+      // Obtener votos actualizados
       const { data: updatedVotes, error: fetchError } = await supabase
         .from('votes')
         .select('place')
@@ -108,36 +104,12 @@ exports.handler = async (event) => {
         return acc;
       }, {});
 
-      const sortedVotes = Object.entries(votesThisWeek).sort((a, b) => b[1] - a[1]);
-      const winner = sortedVotes.length > 0 ? sortedVotes[0][0] : null;
-
-      if (winner) {
-        const { data: lastWinner, error: lastWinnerError } = await supabase
-          .from('winners')
-          .select('place, date')
-          .order('date', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (lastWinnerError && lastWinnerError.code !== 'PGRST116') throw lastWinnerError;
-
-        const todayFormatted = today.toISOString().split('T')[0];
-        if (!lastWinner || lastWinner.place !== winner || lastWinner.date.split('T')[0] !== todayFormatted) {
-          const { error: winnerError } = await supabase
-            .from('winners')
-            .insert([{ place: winner, date: today.toISOString() }]);
-
-          if (winnerError) throw winnerError;
-        }
-      }
-
-      console.log("POST response:", votesThisWeek);
       return {
         statusCode: 200,
         body: JSON.stringify(votesThisWeek),
       };
     } catch (error) {
-      console.error("POST error:", error.message);
+      console.error("POST error:", error);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to record vote", details: error.message }),
@@ -145,10 +117,11 @@ exports.handler = async (event) => {
     }
   }
 
-  if (event.httpMethod === "PUT") {
+  if (event.httpMethod === "PUT") { // Agregar un nuevo lugar
     try {
       const { place } = JSON.parse(event.body);
 
+      // Verificar si el lugar ya existe
       const { data: existingPlace, error: checkError } = await supabase
         .from('places')
         .select('name')
@@ -165,19 +138,19 @@ exports.handler = async (event) => {
         if (insertError) throw insertError;
       }
 
+      // Devolver todos los lugares actualizados
       const { data: placesData, error: placesError } = await supabase
         .from('places')
         .select('name');
 
       if (placesError) throw placesError;
 
-      console.log("PUT response:", placesData.map(p => p.name));
       return {
         statusCode: 200,
         body: JSON.stringify(placesData.map(p => p.name)),
       };
     } catch (error) {
-      console.error("PUT error:", error.message);
+      console.error("PUT error:", error);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to add place", details: error.message }),
@@ -185,7 +158,7 @@ exports.handler = async (event) => {
     }
   }
 
-  if (event.httpMethod === "DELETE") {
+  if (event.httpMethod === "DELETE") { // Eliminar un lugar
     try {
       const { place } = JSON.parse(event.body);
 
@@ -196,19 +169,19 @@ exports.handler = async (event) => {
 
       if (deleteError) throw deleteError;
 
+      // Devolver todos los lugares actualizados
       const { data: placesData, error: placesError } = await supabase
         .from('places')
         .select('name');
 
       if (placesError) throw placesError;
 
-      console.log("DELETE response:", placesData.map(p => p.name));
       return {
         statusCode: 200,
         body: JSON.stringify(placesData.map(p => p.name)),
       };
     } catch (error) {
-      console.error("DELETE error:", error.message);
+      console.error("DELETE error:", error);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to delete place", details: error.message }),
