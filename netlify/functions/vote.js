@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   const ip = event.headers["client-ip"] || "unknown";
   const today = new Date();
   const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - ((today.getDay() + 5) % 7)); // Martes como inicio
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Lunes como inicio (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
   weekStart.setHours(0, 0, 0, 0);
 
   if (event.httpMethod === "GET") {
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
         return acc;
       }, {});
 
-      // También devolver los lugares para reutilizar el endpoint
+      // También devolver los lugares
       const { data: placesData, error: placesError } = await supabase
         .from('places')
         .select('name');
@@ -53,26 +53,37 @@ exports.handler = async (event) => {
     try {
       const { place } = JSON.parse(event.body);
 
-      // Verificar si la IP ya votó esta semana
+      // Contar cuántos votos ha hecho esta IP esta semana
       const { data: existingVotes, error: checkError } = await supabase
         .from('votes')
         .select('id, place')
         .eq('ip', ip)
-        .gte('timestamp', weekStart.toISOString())
-        .single(); // Obtiene un solo registro (el más reciente)
+        .gte('timestamp', weekStart.toISOString());
 
-      if (checkError && checkError.code !== 'PGRST116') throw checkError; // PGRST116 es "no rows found"
+      if (checkError) throw checkError;
 
-      if (existingVotes) {
-        // Si la IP ya votó, actualiza el voto existente
+      const voteCount = existingVotes.length;
+
+      if (voteCount >= 3) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: "Maximum 3 votes per IP per week reached" }),
+        };
+      }
+
+      // Verificar si la IP ya votó por este lugar esta semana
+      const existingVoteForPlace = existingVotes.find(vote => vote.place === place);
+
+      if (existingVoteForPlace) {
+        // Si ya votó por este lugar, actualiza el timestamp (opcional, para mantenerlo actualizado)
         const { error: updateError } = await supabase
           .from('votes')
-          .update({ place, timestamp: today.toISOString() })
-          .eq('id', existingVotes.id);
+          .update({ timestamp: today.toISOString() })
+          .eq('id', existingVoteForPlace.id);
 
         if (updateError) throw updateError;
       } else {
-        // Si no ha votó, crea un nuevo voto
+        // Si no ha votado por este lugar, crea un nuevo voto
         const { error: insertError } = await supabase
           .from('votes')
           .insert([{ ip, place, timestamp: today.toISOString() }]);
