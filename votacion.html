@@ -9,20 +9,22 @@
 </head>
 <body class="bg-gray-900 min-h-screen flex items-center justify-center text-white">
     <div class="container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-xl shadow-2xl relative">
-        <!-- Back button -->
         <a href="index.html" class="absolute top-4 right-4 text-2xl text-white hover:text-gray-300">⬅️</a>
         <h1 class="text-4xl font-bold text-white mb-6">Votación: ¿A dónde vamos?</h1>
-        <!-- Ranking list replaces Show Results button -->
         <ul id="rankingList" class="mb-8 text-lg"></ul>
         <div id="result" class="mb-8 text-4xl font-bold opacity-0 transition-all duration-500"></div>
         <h2 class="text-xl mb-4">Opciones:</h2>
         <ul id="placeList" class="mb-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg"></ul>
-        <div>
+        <div class="mb-8">
             <input id="newPlaceInput" type="text" placeholder="Add a new place for today..." class="p-2 rounded-lg text-black">
             <button id="addPlaceBtn" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Add</button>
         </div>
+        <div class="mt-8 text-left">
+            <h3 class="text-lg mb-2">Lugar Seleccionado y fecha</h3>
+            <ul id="winnersList" class="text-base text-gray-300"></ul>
+        </div>
     </div>
     <script src="votacion.js"></script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91a94ba88ade44d1',t:'MTc0MTAwNjYwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <!-- Mantén los scripts adicionales que ya tienes -->
 </body>
 </html>
