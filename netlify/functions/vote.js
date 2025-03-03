@@ -12,6 +12,8 @@ exports.handler = async (event) => {
   weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
   weekStart.setHours(0, 0, 0, 0);
 
+  console.log(`Received ${event.httpMethod} request from IP: ${ip}`);
+
   if (event.httpMethod === "GET") {
     try {
       const { data: votes, error: votesError } = await supabase
@@ -38,6 +40,7 @@ exports.handler = async (event) => {
 
       if (winnersError) throw winnersError;
 
+      console.log("GET response:", { votes: votesThisWeek, places: placesData, winners: winnersData });
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -47,7 +50,7 @@ exports.handler = async (event) => {
         }),
       };
     } catch (error) {
-      console.error("GET error:", error);
+      console.error("GET error:", error.message);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to fetch data", details: error.message }),
@@ -128,12 +131,13 @@ exports.handler = async (event) => {
         }
       }
 
+      console.log("POST response:", votesThisWeek);
       return {
         statusCode: 200,
         body: JSON.stringify(votesThisWeek),
       };
     } catch (error) {
-      console.error("POST error:", error);
+      console.error("POST error:", error.message);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to record vote", details: error.message }),
@@ -167,12 +171,13 @@ exports.handler = async (event) => {
 
       if (placesError) throw placesError;
 
+      console.log("PUT response:", placesData.map(p => p.name));
       return {
         statusCode: 200,
         body: JSON.stringify(placesData.map(p => p.name)),
       };
     } catch (error) {
-      console.error("PUT error:", error);
+      console.error("PUT error:", error.message);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to add place", details: error.message }),
@@ -197,12 +202,13 @@ exports.handler = async (event) => {
 
       if (placesError) throw placesError;
 
+      console.log("DELETE response:", placesData.map(p => p.name));
       return {
         statusCode: 200,
         body: JSON.stringify(placesData.map(p => p.name)),
       };
     } catch (error) {
-      console.error("DELETE error:", error);
+      console.error("DELETE error:", error.message);
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to delete place", details: error.message }),
