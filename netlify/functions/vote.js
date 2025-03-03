@@ -105,7 +105,6 @@ exports.handler = async (event) => {
         return acc;
       }, {});
 
-      // Determinar el ganador y guardarlo si cambió
       const sortedVotes = Object.entries(votesThisWeek).sort((a, b) => b[1] - a[1]);
       const winner = sortedVotes.length > 0 ? sortedVotes[0][0] : null;
 
@@ -142,7 +141,74 @@ exports.handler = async (event) => {
     }
   }
 
-  // ... (los otros métodos PUT y DELETE permanecen igual)
+  if (event.httpMethod === "PUT") {
+    try {
+      const { place } = JSON.parse(event.body);
+
+      const { data: existingPlace, error: checkError } = await supabase
+        .from('places')
+        .select('name')
+        .eq('name', place)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+      if (!existingPlace) {
+        const { error: insertError } = await supabase
+          .from('places')
+          .insert([{ name: place }]);
+
+        if (insertError) throw insertError;
+      }
+
+      const { data: placesData, error: placesError } = await supabase
+        .from('places')
+        .select('name');
+
+      if (placesError) throw placesError;
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify(placesData.map(p => p.name)),
+      };
+    } catch (error) {
+      console.error("PUT error:", error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Failed to add place", details: error.message }),
+      };
+    }
+  }
+
+  if (event.httpMethod === "DELETE") {
+    try {
+      const { place } = JSON.parse(event.body);
+
+      const { error: deleteError } = await supabase
+        .from('places')
+        .delete()
+        .eq('name', place);
+
+      if (deleteError) throw deleteError;
+
+      const { data: placesData, error: placesError } = await supabase
+        .from('places')
+        .select('name');
+
+      if (placesError) throw placesError;
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify(placesData.map(p => p.name)),
+      };
+    } catch (error) {
+      console.error("DELETE error:", error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Failed to delete place", details: error.message }),
+      };
+    }
+  }
 
   return { statusCode: 405, body: "Method Not Allowed" };
 };
