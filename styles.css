@@ -52,7 +52,7 @@ body {
 
 #placeList li,
 #rankingList li {
-    font-size: 1.1rem; /* Ajusta el tamaño si los emojis se ven demasiado grandes o pequeños */
+    font-size: 1.1rem; /* Ajusta el tamaño del texto si es necesario */
 }
 
 #rankingList li {
