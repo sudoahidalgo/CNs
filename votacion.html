@@ -103,6 +103,28 @@
       font-size: 1.2em;
       font-weight: 700;
     }
+    .icon-link {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 3px;
+      opacity: 0.85;
+      transition: opacity 0.12s;
+    }
+    .icon-link:hover {
+      opacity: 1;
+      filter: drop-shadow(0 1px 2px #ffe06688);
+    }
+    .ig-icon, .fb-icon {
+      width: 1.5em; height: 1.5em;
+      display: inline-block;
+    }
+    .ig-icon {
+      /* Fucsia/Naranja IG */
+      filter: drop-shadow(0 0 4px #ffe06688);
+    }
+    .fb-icon {
+      /* Azul Facebook */
+    }
     @media (max-width: 700px) {
       .main-content { padding: 2vw; }
       table { font-size: 0.93em; }
@@ -122,7 +144,7 @@
         <thead>
           <tr>
             <th>Lugar</th>
-            <th>Instagram / Facebook</th>
+            <th>Redes</th>
             <th>Votar</th>
             <th>Votos</th>
           </tr>
@@ -138,7 +160,7 @@
     const bars = [
       { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
       { name: "Distrito Federal (“DF”)", fb: "https://www.facebook.com/distritofederalcr/" },
-      { name: "Old West", ig: "" },
+      { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
       { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
       { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
       { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
@@ -157,7 +179,6 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ------ Get User IP --------
     async function getIP() {
       try {
         const res = await fetch('https://api.ipify.org?format=json');
@@ -168,11 +189,9 @@
       }
     }
 
-    // ------ State -------
     let votes = [];
-    let userVotes = {}; // track by IP
+    let userVotes = {};
 
-    // ------ Fetch votos de Supabase ------
     async function fetchVotes() {
       const { data, error } = await supabase
         .from('votos')
@@ -183,23 +202,35 @@
         votes: data.filter(d => d.bar === bar.name).length,
         ips: data.filter(d => d.bar === bar.name).map(d => d.ip)
       }));
-      // Llenar userVotes para saber por cuál bar ya votó este usuario
       const ip = await getIP();
       userVotes = {};
       data.filter(d => d.ip === ip).forEach(d => { userVotes[d.bar] = true; });
       renderTable();
     }
 
-    // ------ Render tabla y ganador ------
+    // ------ SVG iconos ------
+    function igIcon() {
+      return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    }
+    function fbIcon() {
+      return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+    }
+
     function renderTable() {
+      // Ordenar: primero los que tienen votos (desc), luego los de 0 votos (alfabético)
+      let sorted = votes.slice().sort((a, b) => {
+        if (b.votes !== a.votes) return b.votes - a.votes;
+        if (b.votes === 0 && a.votes === 0) return a.name.localeCompare(b.name);
+        return 0;
+      });
       const tbody = document.getElementById('bars-tbody');
       tbody.innerHTML = '';
-      votes.forEach((bar, idx) => {
+      sorted.forEach((bar) => {
+        let idx = bars.findIndex(b => b.name === bar.name);
         let igCell = '';
-        if (bars[idx].ig) igCell = `<a href="${bars[idx].ig}" target="_blank" style="color:#ffe066;font-weight:600;">IG</a>`;
-        else if (bars[idx].fb) igCell = `<a href="${bars[idx].fb}" target="_blank" style="color:#6d9be8;font-weight:600;">FB</a>`;
-        else igCell = '<span style="color:#bbb;">Sin IG</span>';
-        // Si ya votó este usuario para este bar, deshabilitar
+        if (bars[idx].ig) igCell += `<a class="icon-link" href="${bars[idx].ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
+        if (bars[idx].fb) igCell += `<a class="icon-link" href="${bars[idx].fb}" target="_blank" title="Facebook">${fbIcon()}</a>`;
+        if (!igCell) igCell = '<span style="color:#bbb;">—</span>';
         const voted = userVotes[bar.name];
         tbody.innerHTML += `
           <tr>
@@ -214,13 +245,11 @@
           </tr>
         `;
       });
-      showWinner();
+      showWinner(sorted);
     }
 
-    // ---- Votar y guardar en Supabase ----
     async function vote(barName, btn) {
       const ip = await getIP();
-      // Chequeo rápido para no doble votar desde frontend
       if (userVotes[barName]) return;
       const { error } = await supabase
         .from('votos')
@@ -232,15 +261,14 @@
       await fetchVotes();
     }
 
-    // --------- Mostrar ganador/empate arriba ---------
-    function showWinner() {
+    function showWinner(sorted) {
       const winnerDiv = document.getElementById("winner");
-      const maxVotes = Math.max(...votes.map(b => b.votes));
+      const maxVotes = Math.max(...sorted.map(b => b.votes));
       if (maxVotes === 0) {
         winnerDiv.style.display = "none";
         return;
       }
-      const winners = votes.filter(b => b.votes === maxVotes);
+      const winners = sorted.filter(b => b.votes === maxVotes);
       if (winners.length === 1) {
         winnerDiv.innerHTML = `🍻 Ganador: <b>${winners[0].name}</b> 🍻`;
       } else {
@@ -250,10 +278,7 @@
       winnerDiv.style.display = "block";
     }
 
-    // ------ Arrancar ------
     fetchVotes();
-
-    // Hacer global la función para el onclick HTML
     window.vote = vote;
   </script>
 </body>
