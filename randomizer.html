@@ -33,9 +33,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.7em;
-        position: absolute;
-        left: 25px;
-        top: 28px;
+        /* ¡NO más absolute! */
       }
       .btn-back:hover { background: #4d3a18; color: #fff; }
       .btn-randomizer {
@@ -76,7 +74,7 @@
         transform: scale(1.11);
       }
       @media (max-width: 600px) {
-        .btn-back { left: 8px; top: 12px; font-size: 1em; padding: 0.27em 1.2em; }
+        .btn-back { font-size: 1em; padding: 0.27em 1.2em; }
         .btn-randomizer { font-size: 1.17em; padding: 0.7em 1.5em;}
         .main-container { max-width: 99vw; }
       }
@@ -84,11 +82,11 @@
 </head>
 <body class="min-h-screen flex items-center justify-center text-white relative">
     <div class="overlay"></div>
+    <!-- Botón de volver FLOTANTE, nunca tapa nada -->
+    <a href="index.html" class="btn-back shadow-lg" style="position: fixed; top: 20px; left: 20px; z-index: 10;">
+        ⬅️ Volver
+    </a>
     <div class="container main-container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-2xl shadow-2xl max-w-xl">
-        <!-- Back button -->
-        <a href="index.html" class="btn-back shadow-lg">
-            ⬅️ Volver
-        </a>
         <h1 class="text-4xl font-extrabold text-yellow-200 mb-3 drop-shadow-lg mt-2">🎲 Randomizer de Birras 🍺</h1>
         <p class="text-lg text-yellow-100 mb-6">¿Empate? ¿No se ponen de acuerdo? ¡Dejá que la suerte decida el bar de hoy!</p>
         <button id="decideBtn" class="btn-randomizer">
