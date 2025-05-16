@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randomizer - ¿A dónde vamos a la CN hoy?</title>
-    <!-- Tailwind CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
       body {
@@ -22,38 +21,64 @@
         position: relative;
       }
       .btn-back {
-        background: rgba(34,34,34,0.78);
-        border-radius: 1.5em;
+        background: rgba(34,34,34,0.80);
+        border-radius: 2em;
         color: #ffe066;
-        padding: 0.3em 1.2em;
-        font-size: 1.15em;
+        padding: 0.45em 1.8em;
+        font-size: 1.25em;
         font-weight: 600;
         box-shadow: 0 1px 10px #0004;
         text-decoration: none;
         transition: background 0.18s;
         display: inline-flex;
         align-items: center;
-        gap: 0.5em;
+        gap: 0.7em;
+        position: absolute;
+        left: 25px;
+        top: 28px;
       }
       .btn-back:hover { background: #4d3a18; color: #fff; }
       .btn-randomizer {
         background: #008d4e;
         color: #fff;
         border-radius: 2em;
-        padding: 1.2em 2.5em;
+        padding: 1em 2.6em;
         font-size: 2em;
         font-weight: 700;
-        margin: 1em 0 1.4em 0;
+        margin: 1.2em 0 1.2em 0;
         box-shadow: 0 3px 20px #1116;
         display: flex;
         align-items: center;
-        gap: 0.7em;
+        gap: 0.9em;
         transition: background 0.16s, transform 0.1s;
       }
       .btn-randomizer:hover {
         background: #19d260;
         color: #222;
-        transform: scale(1.06) rotate(-1.5deg);
+        transform: scale(1.07) rotate(-2deg);
+      }
+      .bar-pill {
+        display: inline-block;
+        background: #282e36;
+        color: #ffe066;
+        border-radius: 2em;
+        padding: 0.37em 1.1em;
+        margin: 0.3em 0.5em;
+        font-size: 1.15em;
+        font-weight: 500;
+        cursor: pointer;
+        border: 2px solid #4446;
+        transition: background 0.13s, color 0.13s, transform 0.11s;
+      }
+      .bar-pill:hover {
+        background: #ffe066;
+        color: #23292f;
+        transform: scale(1.11);
+      }
+      @media (max-width: 600px) {
+        .btn-back { left: 8px; top: 12px; font-size: 1em; padding: 0.27em 1.2em; }
+        .btn-randomizer { font-size: 1.17em; padding: 0.7em 1.5em;}
+        .main-container { max-width: 99vw; }
       }
     </style>
 </head>
@@ -61,23 +86,78 @@
     <div class="overlay"></div>
     <div class="container main-container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-2xl shadow-2xl max-w-xl">
         <!-- Back button -->
-        <a href="index.html" class="btn-back absolute left-5 top-5 shadow-lg">
+        <a href="index.html" class="btn-back shadow-lg">
             ⬅️ Volver
         </a>
-        <h1 class="text-4xl font-extrabold text-yellow-200 mb-3 drop-shadow-lg">🎲 Randomizer de Birras 🍺</h1>
-        <p class="text-lg text-yellow-100 mb-7">¿Empate? ¿No se ponen de acuerdo? ¡Dejá que la suerte decida el bar de hoy!</p>
+        <h1 class="text-4xl font-extrabold text-yellow-200 mb-3 drop-shadow-lg mt-2">🎲 Randomizer de Birras 🍺</h1>
+        <p class="text-lg text-yellow-100 mb-6">¿Empate? ¿No se ponen de acuerdo? ¡Dejá que la suerte decida el bar de hoy!</p>
         <button id="decideBtn" class="btn-randomizer">
-            <span style="font-size:1.3em;">🎲</span> Randomizer
+            <span style="font-size:1.4em;">🎲</span> Randomizer
         </button>
         <div id="result" class="mb-7 text-4xl font-extrabold text-yellow-200 opacity-0 transition-all duration-500"></div>
-        <h2 class="text-xl mb-3 mt-4 font-semibold text-white">Dale click para quitar lugares:</h2>
-        <ul id="placeList" class="mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg"></ul>
+        <h2 class="text-xl mb-2 mt-3 font-semibold text-white">Dale click para quitar lugares:</h2>
+        <ul id="placeList" class="mb-8 flex flex-wrap justify-center"></ul>
         <div>
             <input id="newPlaceInput" type="text" placeholder="Agregar bar..." class="p-2 rounded-lg text-black shadow" autocomplete="off">
             <button id="addPlaceBtn" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Agregar</button>
         </div>
         <div class="desc mt-5" style="font-size: 1em; color:#ffe066; opacity:.8">Powered by Corky’s 🍺</div>
     </div>
-    <script src="randomizer.js"></script>
+    <script>
+      // --- randomizer.js embebido aquí, o usa tu archivo externo ---
+      const defaultPlaces = [
+        "Hooligans Alas", "DF", "Old West", "El Jardín", "Stifel", "CRCC",
+        "Pocket", "Refugio", "Chante en Santa Ana CP", "La Planta", "Rio de J", "THC",
+        "Zompopas", "Casa Adrian", "Casa Nino"
+      ];
+      let places = [...defaultPlaces];
+
+      function renderList() {
+        const ul = document.getElementById('placeList');
+        ul.innerHTML = '';
+        places.forEach((place, i) => {
+          const li = document.createElement('li');
+          li.className = "bar-pill";
+          li.textContent = place;
+          li.onclick = () => {
+            places.splice(i,1); renderList();
+          }
+          ul.appendChild(li);
+        });
+      }
+
+      document.getElementById('decideBtn').onclick = function() {
+        const resDiv = document.getElementById('result');
+        if (places.length === 0) {
+          resDiv.textContent = "¡No hay lugares!";
+          resDiv.style.opacity = 1;
+          return;
+        }
+        // Animación tipo slot
+        let idx = 0;
+        const slotAnim = setInterval(() => {
+          idx = Math.floor(Math.random() * places.length);
+          resDiv.textContent = places[idx];
+          resDiv.style.opacity = 0.6;
+        }, 90);
+        setTimeout(() => {
+          clearInterval(slotAnim);
+          resDiv.textContent = "🍺 " + places[idx] + " 🍺";
+          resDiv.style.opacity = 1;
+        }, 1200);
+      };
+
+      document.getElementById('addPlaceBtn').onclick = function() {
+        const input = document.getElementById('newPlaceInput');
+        let val = input.value.trim();
+        if(val && !places.includes(val)){
+          places.push(val);
+          renderList();
+        }
+        input.value = '';
+      };
+
+      renderList();
+    </script>
 </body>
 </html>
