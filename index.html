@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Corky's - Martes de Birras 🍻</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap para layout y botones -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body, html {
@@ -13,13 +12,7 @@
       padding: 0;
       overflow-x: hidden;
     }
-    #bgvid {
-      position: fixed;
-      right: 0; bottom: 0;
-      min-width: 100vw; min-height: 100vh;
-      z-index: 0;
-      object-fit: cover;
-    }
+    /* El fondo se pone con la etiqueta <img> SVG */
     .overlay {
       position: fixed;
       top:0; left:0; width:100vw; height:100vh;
@@ -82,11 +75,10 @@
   </style>
 </head>
 <body>
-  <!-- Fondo de video -->
-  <video autoplay muted loop playsinline id="bgvid">
-    <source src="CNs.mp4" type="video/mp4">
-    Tu navegador no soporta videos.
-  </video>
+  <!-- SVG como fondo (estático o animado) -->
+  <img src="Yellow Black Beer Pub Happy Hour Video.svg"
+       style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0;"
+       alt="beer-bg-svg" />
   <!-- Overlay oscuro -->
   <div class="overlay"></div>
   <!-- Contenido principal -->
