@@ -1,27 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Randomizer - A Donde Vamos a la CN Hoy?</title>
+    <title>Randomizer - ¿A dónde vamos a la CN hoy?</title>
+    <!-- Tailwind CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+        background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+        background-size: cover;
+      }
+      .overlay {
+        background: rgba(25,25,25,0.85);
+        position: fixed;
+        top:0; left:0; width:100vw; height:100vh;
+        z-index: 0;
+      }
+      .main-container {
+        z-index: 1;
+        position: relative;
+      }
+      .btn-back {
+        background: rgba(34,34,34,0.78);
+        border-radius: 1.5em;
+        color: #ffe066;
+        padding: 0.3em 1.2em;
+        font-size: 1.15em;
+        font-weight: 600;
+        box-shadow: 0 1px 10px #0004;
+        text-decoration: none;
+        transition: background 0.18s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+      }
+      .btn-back:hover { background: #4d3a18; color: #fff; }
+      .btn-randomizer {
+        background: #008d4e;
+        color: #fff;
+        border-radius: 2em;
+        padding: 1.2em 2.5em;
+        font-size: 2em;
+        font-weight: 700;
+        margin: 1em 0 1.4em 0;
+        box-shadow: 0 3px 20px #1116;
+        display: flex;
+        align-items: center;
+        gap: 0.7em;
+        transition: background 0.16s, transform 0.1s;
+      }
+      .btn-randomizer:hover {
+        background: #19d260;
+        color: #222;
+        transform: scale(1.06) rotate(-1.5deg);
+      }
+    </style>
 </head>
-<body class="bg-gray-900 min-h-screen flex items-center justify-center text-white">
-    <div class="container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-xl shadow-2xl relative">
+<body class="min-h-screen flex items-center justify-center text-white relative">
+    <div class="overlay"></div>
+    <div class="container main-container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-2xl shadow-2xl max-w-xl">
         <!-- Back button -->
-        <a href="index.html" class="absolute top-4 right-4 text-2xl text-white hover:text-gray-300">⬅️</a>
-        <h1 class="text-4xl font-bold text-white mb-6">¿A dónde vamos a la CN hoy?</h1>
-        <button id="decideBtn" class="mb-6 px-8 py-4 bg-blue-500 text-white text-xl font-semibold rounded-lg shadow-lg hover:bg-blue-600 transition-all duration-300">
-            Randomizer
+        <a href="index.html" class="btn-back absolute left-5 top-5 shadow-lg">
+            ⬅️ Volver
+        </a>
+        <h1 class="text-4xl font-extrabold text-yellow-200 mb-3 drop-shadow-lg">🎲 Randomizer de Birras 🍺</h1>
+        <p class="text-lg text-yellow-100 mb-7">¿Empate? ¿No se ponen de acuerdo? ¡Dejá que la suerte decida el bar de hoy!</p>
+        <button id="decideBtn" class="btn-randomizer">
+            <span style="font-size:1.3em;">🎲</span> Randomizer
         </button>
-        <div id="result" class="mb-8 text-4xl font-bold opacity-0 transition-all duration-500"></div>
-        <h2 class="text-xl mb-4">Click to deselect places:</h2>
-        <ul id="placeList" class="mb-10 grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg"></ul>
+        <div id="result" class="mb-7 text-4xl font-extrabold text-yellow-200 opacity-0 transition-all duration-500"></div>
+        <h2 class="text-xl mb-3 mt-4 font-semibold text-white">Dale click para quitar lugares:</h2>
+        <ul id="placeList" class="mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg"></ul>
         <div>
-            <input id="newPlaceInput" type="text" placeholder="Add a new place..." class="p-2 rounded-lg text-black">
-            <button id="addPlaceBtn" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Add</button>
+            <input id="newPlaceInput" type="text" placeholder="Agregar bar..." class="p-2 rounded-lg text-black shadow" autocomplete="off">
+            <button id="addPlaceBtn" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Agregar</button>
         </div>
+        <div class="desc mt-5" style="font-size: 1em; color:#ffe066; opacity:.8">Powered by Corky’s 🍺</div>
     </div>
     <script src="randomizer.js"></script>
 </body>
