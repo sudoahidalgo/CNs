@@ -138,16 +138,100 @@
             </table>
         </div>
     </div>
+    <!-- Supabase voting script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        function vote(btn) {
+        // Tus datos de Supabase:
+        const SUPABASE_URL = 'https://wjwsdyrkqvxszlclitru.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
+
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Conseguir IP pública del usuario
+        async function getIP() {
+            try {
+                let res = await fetch('https://api64.ipify.org?format=json');
+                let data = await res.json();
+                return data.ip;
+            } catch (e) {
+                return '0.0.0.0';
+            }
+        }
+
+        // Función para saber el último miércoles
+        function getLastWednesday() {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            const diff = (d.getDay() + 4) % 7; // Days since last Wed
+            d.setDate(d.getDate() - diff);
+            return d.toISOString();
+        }
+
+        // Función para votar
+        async function vote(btn) {
             const td = btn.parentElement;
             const tr = td.parentElement;
-            const voteCount = tr.querySelector('.vote-count');
-            let count = parseInt(voteCount.textContent);
-            voteCount.textContent = count + 1;
+            const bar = tr.querySelector('td').textContent.trim();
+
             btn.disabled = true;
-            btn.textContent = "✅";
+            btn.textContent = '...';
+
+            const ip = await getIP();
+
+            // Verificar si ya votó este bar desde esta IP esta semana
+            const { data: existing, error: readErr } = await supabase
+                .from('votos')
+                .select('*')
+                .eq('bar', bar)
+                .eq('ip', ip)
+                .gte('created_at', getLastWednesday());
+
+            if (existing && existing.length > 0) {
+                alert('Ya votaste por este lugar esta semana 😅');
+                btn.textContent = "✅";
+                return;
+            }
+
+            // Guardar el voto
+            const { data, error } = await supabase
+                .from('votos')
+                .insert([{ bar, ip }]);
+
+            if (!error) {
+                // Actualizar el contador en pantalla
+                const voteCount = tr.querySelector('.vote-count');
+                let count = parseInt(voteCount.textContent);
+                voteCount.textContent = count + 1;
+                btn.textContent = "✅";
+            } else {
+                alert('Error al votar, intenta de nuevo');
+                btn.disabled = false;
+                btn.textContent = "👍";
+            }
         }
+
+        // Mostrar conteo de votos al cargar la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data, error } = await supabase
+                .from('votos')
+                .select('bar')
+                .gte('created_at', getLastWednesday());
+
+            // Contar los votos por bar
+            const counts = {};
+            if (data) {
+                data.forEach(row => {
+                    counts[row.bar] = (counts[row.bar] || 0) + 1;
+                });
+            }
+
+            // Actualiza los contadores en la tabla
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const barName = tr.querySelector('td').textContent.trim();
+                tr.querySelector('.vote-count').textContent = counts[barName] || 0;
+            });
+        });
     </script>
 </body>
 </html>
