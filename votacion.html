@@ -14,16 +14,22 @@
         .table-dark th, .table-dark td {
             background-color: #23272b;
         }
-        .ig-feed-img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
+        .ig-profile-btn {
+            background: #24292f;
+            color: #fff;
             border-radius: 10px;
-            border: 2px solid #292929;
-            transition: box-shadow 0.2s;
+            padding: 8px 16px;
+            font-size: 1rem;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: background 0.2s;
         }
-        .ig-feed-img:hover {
-            box-shadow: 0 0 8px #f8d90f88;
+        .ig-profile-btn:hover {
+            background: #d6249f;
+            color: #fff;
         }
         .vote-btn {
             background-color: #2d6a4f;
@@ -37,6 +43,16 @@
         .vote-btn:hover {
             background: #52b788;
         }
+        .ig-embed-cell {
+            min-width: 340px;
+            max-width: 370px;
+        }
+        @media (max-width: 700px) {
+            .ig-embed-cell {
+                min-width: 180px;
+                max-width: 100vw;
+            }
+        }
     </style>
 </head>
 <body>
@@ -46,88 +62,149 @@
             <table class="table table-dark table-striped align-middle">
                 <thead>
                     <tr>
-                        <th>Restaurante/Bar</th>
-                        <th colspan="5" class="text-center">Instagram Feed</th>
+                        <th>Lugar</th>
+                        <th class="text-center">Último Post Instagram</th>
+                        <th class="text-center">Ver Perfil IG</th>
                         <th>Votar</th>
                         <th>Votos</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Hooligans -->
                     <tr>
                         <td>Hooligans</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de Hooligans -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C4vfzJRs4c4/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C4vfzJRs4c4/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/hooligans_cr/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- Distrito Federal (solo Facebook) -->
                     <tr>
                         <td>Distrito Federal</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell text-center text-secondary">
+                            <a href="https://www.facebook.com/distritofederalcr/" target="_blank" style="color: #fff; text-decoration: underline;">
+                                Ver Facebook
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.facebook.com/distritofederalcr/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="24" alt="FB">
+                                Ver FB
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- Eremita -->
                     <tr>
                         <td>Eremita</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de Eremita -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C5VzOLLLtY6/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C5VzOLLLtY6/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/eremita.cerveza/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- Old West -->
                     <tr>
                         <td>Old West</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de Old West -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C1A3mA4MZsg/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C1A3mA4MZsg/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/oldwestcr/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- El Jardín -->
                     <tr>
                         <td>El Jardín</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de El Jardín -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C3Q99Ibt4xT/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C3Q99Ibt4xT/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/el_jardin_bar_y_restaurante/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- Pocket -->
                     <tr>
                         <td>Pocket</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de Pocket -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C4q5SC6OssR/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C4q5SC6OssR/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/pocketcostarica/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
+                    <!-- Charles BBQ -->
                     <tr>
                         <td>Charles BBQ</td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG1" alt="IG1"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG2" alt="IG2"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG3" alt="IG3"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG4" alt="IG4"></td>
-                        <td><img class="ig-feed-img" src="https://via.placeholder.com/70?text=IG5" alt="IG5"></td>
+                        <td class="ig-embed-cell">
+                            <!-- Cambiá este embed cada semana por el último post de Charles BBQ -->
+                            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C3v3pHmtGCR/" data-instgrm-version="14" style="width:100%; max-width:350px; min-width:180px;">
+                              <a href="https://www.instagram.com/p/C3v3pHmtGCR/" target="_blank"></a>
+                            </blockquote>
+                        </td>
+                        <td class="text-center">
+                            <a class="ig-profile-btn" href="https://www.instagram.com/charlesbbqcr/" target="_blank">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="IG">
+                                Ver IG
+                            </a>
+                        </td>
                         <td><button class="vote-btn" onclick="vote(this)">👍</button></td>
                         <td class="vote-count">0</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <p class="text-center text-secondary mt-4">*Los feeds de IG se mostrarán aquí. Pronto en vivo.*</p>
+        <p class="text-center text-secondary mt-4" style="font-size: 1rem;">
+            *Haz clic en "Ver IG" para ver todo el perfil. El post mostrado es el más reciente de cada bar/restaurante.<br>
+            Para actualizar el feed, solo cambia el código embed del último post.*
+        </p>
     </div>
+    <!-- Solo necesitas este script una vez por página -->
+    <script async src="//www.instagram.com/embed.js"></script>
     <script>
         function vote(btn) {
             const td = btn.parentElement;
