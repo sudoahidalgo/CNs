@@ -7,6 +7,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><text y='96' font-size='96'>🍺</text></svg>">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body, html {
       height: 100%;
@@ -121,12 +122,33 @@
     .ig-icon {
       filter: drop-shadow(0 0 4px #ffe06688);
     }
-    .fb-icon {
-    }
     @media (max-width: 700px) {
       .main-content { padding: 2vw; }
       table { font-size: 0.93em; }
       .winner-box { font-size: 1.13em; min-width: 100px; }
+    }
+    /* Footer beer button */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100vw;
+      z-index: 30;
+      background: #191919e0 !important;
+      font-size: 1.1em;
+      letter-spacing: 1px;
+      border-top: 1px solid #333;
+      box-shadow: 0 -1px 8px #0004;
+      user-select: none;
+    }
+    #beerBtn {
+      cursor: pointer;
+      font-size: 1.65rem;
+      margin-left: 0.4em;
+      transition: filter 0.15s;
+    }
+    #beerBtn:hover {
+      filter: drop-shadow(0 0 5px #ffe066) brightness(1.2);
     }
   </style>
 </head>
@@ -153,6 +175,36 @@
       </table>
     </div>
   </div>
+  
+  <!-- FOOTER CON BOTÓN DE CERVEZA -->
+  <footer class="text-center p-3 bg-dark text-light">
+    powered by ice cold beer 
+    <span 
+      id="beerBtn" 
+      title="Borrar todas las votaciones (admin)">
+      🍺
+    </span>
+  </footer>
+  
+  <!-- MODAL PARA PEDIR PIN -->
+  <div class="modal fade" id="pinModal" tabindex="-1" aria-labelledby="pinModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="pinModalLabel">Ingresá el PIN de admin</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="password" id="pinInput" class="form-control" placeholder="PIN" autofocus>
+          <div id="pinError" class="text-danger mt-2" style="display:none;">PIN incorrecto. Intentá de nuevo.</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" id="submitPinBtn">Borrar todo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // --------- DATOS ---------
     const bars = [
@@ -170,7 +222,6 @@
       { name: "Zompopas", ig: "" },
       { name: "Casa Adrián" },
       { name: "Casa Nino" },
-      // Bares nuevos:
       { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
       { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
       { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
@@ -215,7 +266,6 @@
       renderTable();
     }
 
-    // ------ SVG iconos ------
     function igIcon() {
       return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
     }
@@ -287,6 +337,43 @@
 
     fetchVotes();
     window.vote = vote;
+
+    // ========== LOGICA BOTON CERVEZA ADMIN ==========
+    document.getElementById('beerBtn').addEventListener('click', function() {
+      document.getElementById('pinInput').value = "";
+      document.getElementById('pinError').style.display = "none";
+      var modal = new bootstrap.Modal(document.getElementById('pinModal'));
+      modal.show();
+      setTimeout(() => { document.getElementById('pinInput').focus(); }, 400);
+    });
+
+    document.getElementById('submitPinBtn').addEventListener('click', async function() {
+      const pin = document.getElementById('pinInput').value;
+      if (pin === '3401') {
+        const { error } = await supabase
+          .from('votos')
+          .delete()
+          .neq('bar', '___NO_EXISTE___'); // borra todos
+        if (error) {
+          alert('Error al borrar: ' + error.message);
+        } else {
+          alert('¡Base limpiada exitosamente!');
+          document.getElementById('pinModal').querySelector('.btn-close').click();
+          fetchVotes();
+        }
+      } else {
+        document.getElementById('pinError').style.display = "block";
+        document.getElementById('pinInput').value = "";
+        document.getElementById('pinInput').focus();
+      }
+    });
+
+    document.getElementById('pinInput').addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        document.getElementById('submitPinBtn').click();
+      }
+    });
+    // ========== FIN LOGICA ADMIN ==========
   </script>
 </body>
 </html>
