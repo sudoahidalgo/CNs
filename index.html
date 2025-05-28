@@ -507,18 +507,28 @@
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('userInfo').style.display = 'flex';
         
-        document.getElementById('userName').textContent = currentUser.user_metadata.name || currentUser.email;
-        document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || '';
+        // Verificar que los elementos existen antes de asignar valores
+        const userNameEl = document.getElementById('userName');
+        const userAvatarEl = document.getElementById('userAvatar');
         
-        console.log('📊 Cargando datos...');
-        await loadCurrentWeek();
-        await loadVotingData();
-        await loadAttendanceData();
+        if (userNameEl) {
+          userNameEl.textContent = currentUser.user_metadata.name || currentUser.email;
+        }
+        if (userAvatarEl) {
+          userAvatarEl.src = currentUser.user_metadata.avatar_url || '';
+        }
         
-        console.log('✅ Todo cargado correctamente');
+        // Esperar un momento para asegurar que el DOM esté listo
+        setTimeout(async () => {
+          console.log('📊 Cargando datos...');
+          await loadCurrentWeek();
+          await loadVotingData();
+          await loadAttendanceData();
+          console.log('✅ Todo cargado correctamente');
+        }, 100);
+        
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
-        // En caso de error, mostrar la pantalla de login de nuevo
         showAuthContainer();
       }
     }
@@ -571,16 +581,21 @@
     }
 
     async function loadCurrentWeek() {
-      const { data } = await supabase
-        .from('semana_actual')
-        .select('*')
-        .single();
-      
-      currentWeek = data;
-      
-      if (currentWeek) {
-        document.getElementById('semanaInfo').innerHTML = 
-          `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: ${currentWeek.estado}`;
+      try {
+        const { data } = await supabase
+          .from('semana_actual')
+          .select('*')
+          .single();
+        
+        currentWeek = data;
+        
+        const semanaInfoEl = document.getElementById('semanaInfo');
+        if (currentWeek && semanaInfoEl) {
+          semanaInfoEl.innerHTML = 
+            `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: ${currentWeek.estado}`;
+        }
+      } catch (error) {
+        console.error('❌ Error cargando semana actual:', error);
       }
     }
 
@@ -646,6 +661,11 @@
       });
 
       const tbody = document.getElementById('barsTable');
+      if (!tbody) {
+        console.error('❌ Element barsTable not found');
+        return;
+      }
+      
       tbody.innerHTML = '';
 
       sortedBars.forEach(bar => {
