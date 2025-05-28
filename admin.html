@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - CN Martes de Birras</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      min-height: 100vh;
+    }
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .admin-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .stat-card {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: white;
+      margin-bottom: 15px;
+    }
+    .stat-card h3 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .stat-card p {
+      margin: 5px 0 0 0;
+      opacity: 0.9;
+    }
+    .btn-admin {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      transition: transform 0.2s;
+    }
+    .btn-admin:hover {
+      transform: translateY(-2px);
+      color: white;
+    }
+    .table-dark {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .auth-required {
+      text-align: center;
+      padding: 100px 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Auth Check -->
+    <div id="authCheck" class="auth-required">
+      <h2>🔐 Acceso Administrativo</h2>
+      <p>Verificando permisos...</p>
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🛠️ Panel de Administración - CN</h1>
+        <button class="btn btn-outline-light" onclick="window.location.href='index.html'">
+          ← Volver a la App
+        </button>
+      </div>
+
+      <!-- Estadísticas Rápidas -->
+      <div class="admin-card">
+        <h3>📊 Estadísticas Generales</h3>
+        <div class="row" id="quickStats">
+          <!-- Se llena con JS -->
+        </div>
+      </div>
+
+      <!-- Controles de Semana -->
+      <div class="admin-card">
+        <h3>📅 Control de Semanas</h3>
+        <div class="row">
+          <div class="col-md-6">
+            <h5>Semana Actual</h5>
+            <div id="currentWeekInfo" class="mb-3">
+              <!-- Se llena con JS -->
+            </div>
+            <button class="btn btn-admin" onclick="createNewWeek()">➕ Crear Nueva Semana</button>
+            <button class="btn btn-admin" onclick="finalizeCurrentWeek()">✅ Finalizar Semana Actual</button>
+          </div>
+          <div class="col-md-6">
+            <h5>Acciones Rápidas</h5>
+            <button class="btn btn-admin" onclick="resetCurrentVotes()">🗳️ Resetear Votos</button>
+            <button class="btn btn-admin" onclick="resetAttendances()">👥 Resetear Asistencias</button>
+            <button class="btn btn-admin" onclick="runWeeklyProcess()">🔄 Ejecutar Proceso Semanal</button>
+            <button class="btn btn-admin" onclick="migrateOldData()">📦 Migrar Datos Antiguos</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gestión de Usuarios -->
+      <div class="admin-card">
+        <h3>👥 Usuarios Registrados</h3>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Registro</th>
+                <th>Último Voto</th>
+                <th>Total Votos</th>
+                <th>CNs Asistidas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+              <!-- Se llena con JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Gestión de Semanas -->
+      <div class="admin-card">
+        <h3>📋 Historial de Semanas</h3>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Bar Ganador</th>
+                <th>Votos</th>
+                <th>Asistentes</th>
+                <th>Quorum</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="weeksTable">
+              <!-- Se llena con JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Log de Actividades -->
+      <div class="admin-card">
+        <h3>📝 Actividad Reciente</h3>
+        <div id="activityLog" style="max-height: 300px; overflow-y: auto;">
+          <!-- Se llena con JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmar Acción</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage">¿Estás seguro de realizar esta acción?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmAction">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== CONFIGURACIÓN SUPABASE ==========
+    const supabaseUrl = 'https://wjwsdyrkqvxszlclitru.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ========== CONFIGURACIÓN DE ADMINS ==========
+    const ADMIN_EMAILS = [
+      'ahidalgod@gmail.com',    // Tu email de admin
+      'admin2@example.com'      // Agrega otros admins si quieres
+    ];
+
+    let currentUser = null;
+    let pendingAction = null;
+
+    // ========== INICIALIZACIÓN ==========
+    async function init() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        currentUser = session.user;
+        
+        if (!ADMIN_EMAILS.includes(currentUser.email)) {
+          document.getElementById('authCheck').innerHTML = `
+            <h2>❌ Acceso Denegado</h2>
+            <p>No tienes permisos de administrador.</p>
+            <p>Tu email: <code>${currentUser.email}</code></p>
+            <a href="index.html" class="btn btn-primary">Volver a la App</a>
+          `;
+          return;
+        }
+
+        document.getElementById('authCheck').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        
+        await loadDashboard();
+        
+      } catch (error) {
+        console.error('Error en inicialización:', error);
+        document.getElementById('authCheck').innerHTML = `
+          <h2>❌ Error</h2>
+          <p>Error al verificar permisos: ${error.message}</p>
+          <a href="index.html" class="btn btn-primary">Volver a la App</a>
+        `;
+      }
+    }
+
+    async function loadDashboard() {
+      await Promise.all([
+        loadQuickStats(),
+        loadCurrentWeek(),
+        loadUsers(),
+        loadWeeks(),
+        loadActivityLog()
+      ]);
+    }
+
+    async function loadQuickStats() {
+      try {
+        const { data: stats } = await supabase.rpc('get_cn_summary');
+        const { data: totalUsers, count } = await supabase
+          .from('usuarios')
+          .select('id', { count: 'exact' });
+        
+        const statsData = stats?.[0] || {};
+        
+        document.getElementById('quickStats').innerHTML = `
+          <div class="col-md-3">
+            <div class="stat-card">
+              <h3>${statsData.total_cns || 0}</h3>
+              <p>CNs Realizadas</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <h3>${statsData.cns_con_quorum || 0}</h3>
+              <p>Con Quorum</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <h3>${count || 0}</h3>
+              <p>Usuarios</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card">
+              <h3>${statsData.promedio_asistencia || 0}</h3>
+              <p>Promedio Asistencia</p>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+      }
+    }
+
+    async function loadCurrentWeek() {
+      try {
+        const { data: week } = await supabase
+          .from('semana_actual')
+          .select('*')
+          .single();
+
+        if (week) {
+          const { data: votes, count: votesCount } = await supabase
+            .from('votos')
+            .select('*', { count: 'exact' })
+            .eq('semana_id', week.id);
+
+          const { data: attendances, count: attendancesCount } = await supabase
+            .from('asistencias')
+            .select('*', { count: 'exact' })
+            .eq('semana_id', week.id)
+            .eq('confirmado', true);
+
+          document.getElementById('currentWeekInfo').innerHTML = `
+            <div class="card bg-secondary">
+              <div class="card-body">
+                <h6 class="card-title">Semana del ${formatDate(week.fecha_martes)}</h6>
+                <p class="card-text">
+                  <strong>Estado:</strong> ${week.estado}<br>
+                  <strong>Votos:</strong> ${votesCount || 0}<br>
+                  <strong>Confirmados:</strong> ${attendancesCount || 0}<br>
+                  <strong>Quorum:</strong> ${(attendancesCount || 0) >= 3 ? '✅ Sí' : '❌ No'}
+                </p>
+              </div>
+            </div>
+          `;
+        } else {
+          document.getElementById('currentWeekInfo').innerHTML = `
+            <div class="alert alert-warning">No hay semana activa</div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error cargando semana actual:', error);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const { data: users } = await supabase
+          .from('usuarios')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = '';
+
+        for (const user of users || []) {
+          // Obtener estadísticas del usuario
+          const { count: totalVotes } = await supabase
+            .from('votos')
+            .select('*', { count: 'exact' })
+            .eq('user_id', user.id);
+
+          const { count: totalAttendances } = await supabase
+            .from('asistencias')
+            .select('*', { count: 'exact' })
+            .eq('user_id', user.id);
+
+          const { data: lastVote } = await supabase
+            .from('votos')
+            .select('created_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${user.nombre}</td>
+              <td>${user.email}</td>
+              <td>${formatDate(user.created_at)}</td>
+              <td>${lastVote ? formatDate(lastVote.created_at) : 'Nunca'}</td>
+              <td>${totalVotes || 0}</td>
+              <td>${totalAttendances || 0}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${user.id}')">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      }
+    }
+
+    async function loadWeeks() {
+      try {
+        const { data: weeks } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .order('fecha_martes', { ascending: false })
+          .limit(20);
+
+        const tbody = document.getElementById('weeksTable');
+        tbody.innerHTML = '';
+
+        for (const week of weeks || []) {
+          tbody.innerHTML += `
+            <tr>
+              <td>${formatDate(week.fecha_martes)}</td>
+              <td>
+                <span class="badge ${week.estado === 'activa' ? 'bg-success' : 
+                  week.estado === 'finalizada' ? 'bg-primary' : 'bg-secondary'}">
+                  ${week.estado}
+                </span>
+              </td>
+              <td>${week.bar_ganador || '-'}</td>
+              <td>${week.total_votos || 0}</td>
+              <td>${week.total_asistentes || 0}</td>
+              <td>${week.hubo_quorum ? '✅' : '❌'}</td>
+              <td>
+                ${week.estado === 'activa' ? 
+                  `<button class="btn btn-sm btn-warning" onclick="finalizeWeek(${week.id})">Finalizar</button>` :
+                  `<button class="btn btn-sm btn-outline-danger" onclick="deleteWeek(${week.id})">Eliminar</button>`
+                }
+              </td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error cargando semanas:', error);
+      }
+    }
+
+    async function loadActivityLog() {
+      try {
+        const { data: recentVotes } = await supabase
+          .from('votos')
+          .select(`
+            created_at,
+            bar,
+            usuarios(nombre)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        const { data: recentAttendances } = await supabase
+          .from('asistencias')
+          .select(`
+            created_at,
+            confirmado,
+            usuarios(nombre)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        const activities = [
+          ...(recentVotes || []).map(v => ({
+            time: v.created_at,
+            action: `🗳️ ${v.usuarios.nombre} votó por ${v.bar}`,
+            type: 'vote'
+          })),
+          ...(recentAttendances || []).map(a => ({
+            time: a.created_at,
+            action: `👥 ${a.usuarios.nombre} ${a.confirmado ? 'confirmó' : 'canceló'} asistencia`,
+            type: 'attendance'
+          }))
+        ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 15);
+
+        document.getElementById('activityLog').innerHTML = activities.map(activity => `
+          <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span>${activity.action}</span>
+            <small class="text-muted">${formatDateTime(activity.time)}</small>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Error cargando log de actividad:', error);
+      }
+    }
+
+    // ========== FUNCIONES DE ADMINISTRACIÓN ==========
+    async function createNewWeek() {
+      confirmAction(
+        '¿Crear una nueva semana? Esto creará automáticamente la semana para el próximo martes.',
+        async () => {
+          try {
+            await supabase.rpc('crear_semana_si_no_existe');
+            showAlert('Nueva semana creada exitosamente', 'success');
+            await loadDashboard();
+          } catch (error) {
+            showAlert('Error creando nueva semana: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function finalizeCurrentWeek() {
+      confirmAction(
+        '¿Finalizar la semana actual? Esto procesará los votos y asistencias.',
+        async () => {
+          try {
+            await supabase.rpc('process_weekly_reset');
+            showAlert('Semana finalizada exitosamente', 'success');
+            await loadDashboard();
+          } catch (error) {
+            showAlert('Error finalizando semana: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function resetCurrentVotes() {
+      confirmAction(
+        '⚠️ ¿Eliminar TODOS los votos de la semana actual? Esta acción no se puede deshacer.',
+        async () => {
+          try {
+            const { data: currentWeek } = await supabase
+              .from('semana_actual')
+              .select('id')
+              .single();
+
+            if (currentWeek) {
+              await supabase
+                .from('votos')
+                .delete()
+                .eq('semana_id', currentWeek.id);
+              
+              showAlert('Votos eliminados exitosamente', 'success');
+              await loadDashboard();
+            }
+          } catch (error) {
+            showAlert('Error eliminando votos: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function resetAttendances() {
+      confirmAction(
+        '⚠️ ¿Eliminar TODAS las confirmaciones de asistencia de la semana actual?',
+        async () => {
+          try {
+            const { data: currentWeek } = await supabase
+              .from('semana_actual')
+              .select('id')
+              .single();
+
+            if (currentWeek) {
+              await supabase
+                .from('asistencias')
+                .delete()
+                .eq('semana_id', currentWeek.id);
+              
+              showAlert('Asistencias eliminadas exitosamente', 'success');
+              await loadDashboard();
+            }
+          } catch (error) {
+            showAlert('Error eliminando asistencias: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function runWeeklyProcess() {
+      confirmAction(
+        'Ejecutar el proceso semanal manualmente. Esto finalizará la semana anterior y creará una nueva.',
+        async () => {
+          try {
+            await supabase.rpc('process_weekly_reset');
+            showAlert('Proceso semanal ejecutado exitosamente', 'success');
+            await loadDashboard();
+          } catch (error) {
+            showAlert('Error ejecutando proceso: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function migrateOldData() {
+      confirmAction(
+        'Migrar datos antiguos de votos a la nueva estructura. Solo ejecutar UNA VEZ.',
+        async () => {
+          try {
+            const result = await supabase.rpc('migrate_existing_votes');
+            showAlert(`Migración completada: ${result.data?.migrated_votes || 0} votos migrados`, 'success');
+            await loadDashboard();
+          } catch (error) {
+            showAlert('Error en migración: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function deleteUser(userId) {
+      confirmAction(
+        '⚠️ ¿Eliminar este usuario? Se eliminarán todos sus votos y asistencias.',
+        async () => {
+          try {
+            await supabase
+              .from('usuarios')
+              .delete()
+              .eq('id', userId);
+            
+            showAlert('Usuario eliminado exitosamente', 'success');
+            await loadUsers();
+          } catch (error) {
+            showAlert('Error eliminando usuario: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    async function deleteWeek(weekId) {
+      confirmAction(
+        '⚠️ ¿Eliminar esta semana? Se eliminarán todos los votos y asistencias asociados.',
+        async () => {
+          try {
+            await supabase
+              .from('semanas_cn')
+              .delete()
+              .eq('id', weekId);
+            
+            showAlert('Semana eliminada exitosamente', 'success');
+            await loadWeeks();
+          } catch (error) {
+            showAlert('Error eliminando semana: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
+    // ========== UTILIDADES ==========
+    function confirmAction(message, action) {
+      document.getElementById('confirmMessage').textContent = message;
+      pendingAction = action;
+      
+      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      modal.show();
+    }
+
+    document.getElementById('confirmAction').addEventListener('click', async () => {
+      if (pendingAction) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        modal.hide();
+        
+        await pendingAction();
+        pendingAction = null;
+      }
+    });
+
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.querySelector('.admin-container').insertBefore(alertDiv, document.querySelector('.admin-container').firstChild);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString('es-ES', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    function formatDateTime(dateString) {
+      return new Date(dateString).toLocaleString('es-ES', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Auto-refresh cada 30 segundos
+    setInterval(() => {
+      loadDashboard();
+    }, 30000);
+
+    // Inicializar
+    init();
+  </script>
+</body>
+</html>
