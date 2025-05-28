@@ -362,15 +362,18 @@
             </div>
             
             <!-- Modal para mostrar quién votó -->
-            <div class="modal fade" id="voteDetailsModal" tabindex="-1">
+            <div class="modal fade" id="voteDetailsModal" tabindex="-1" aria-labelledby="voteDetailsTitle" aria-hidden="true">
               <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content bg-dark text-light">
-                  <div class="modal-header">
+                  <div class="modal-header border-secondary">
                     <h5 class="modal-title" id="voteDetailsTitle">Votos por este bar</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
                   <div class="modal-body" id="voteDetailsBody">
                     <!-- Se llena con JS -->
+                  </div>
+                  <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                   </div>
                 </div>
               </div>
@@ -893,13 +896,15 @@
       }
       
       try {
-        const { data: votes } = await supabase
+        const { data: votes, error } = await supabase
           .from('votos')
           .select(`
             usuarios (nombre, avatar_url)
           `)
           .eq('semana_id', currentWeek.id)
           .eq('bar', barName);
+
+        if (error) throw error;
 
         console.log('📊 Votos encontrados:', votes);
 
@@ -913,18 +918,38 @@
           return;
         }
 
-        const modal = new bootstrap.Modal(modalEl);
+        // Actualizar contenido del modal
         titleEl.textContent = `Votos por ${barName}`;
         
-        const votersHtml = votes.map(vote => 
-          `<div class="d-flex align-items-center mb-2">
-            <img src="${vote.usuarios.avatar_url || ''}" class="rounded-circle me-2" width="32" height="32" alt="Avatar">
-            <span>${vote.usuarios.nombre}</span>
-          </div>`
-        ).join('');
+        if (!votes || votes.length === 0) {
+          bodyEl.innerHTML = '<p class="text-muted">No hay votos para mostrar</p>';
+        } else {
+          const votersHtml = votes
+            .filter(vote => vote.usuarios && vote.usuarios.nombre)
+            .map(vote => 
+              `<div class="d-flex align-items-center mb-2 p-2 rounded" style="background: rgba(255,255,255,0.1);">
+                <img src="${vote.usuarios.avatar_url || ''}" class="rounded-circle me-3" width="40" height="40" alt="Avatar" onerror="this.style.display='none'" style="border: 2px solid #ffe066;">
+                <span style="font-size: 1.1rem;">${vote.usuarios.nombre}</span>
+              </div>`
+            ).join('');
+          
+          bodyEl.innerHTML = votersHtml || '<p class="text-muted">No hay votos válidos para mostrar</p>';
+        }
         
-        bodyEl.innerHTML = votersHtml;
+        // Mostrar modal
+        const modal = new bootstrap.Modal(modalEl, {
+          backdrop: true,
+          keyboard: true,
+          focus: true
+        });
+        
         modal.show();
+        
+        // Asegurar que se pueda cerrar con escape
+        modalEl.addEventListener('hidden.bs.modal', function () {
+          console.log('🔒 Modal cerrado');
+        }, { once: true });
+
       } catch (error) {
         console.error('❌ Error cargando detalles de votos:', error);
         alert('Error cargando detalles: ' + error.message);
