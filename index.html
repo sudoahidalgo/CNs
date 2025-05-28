@@ -453,73 +453,121 @@
 
     // ========== INICIALIZACIÓN ==========
     async function init() {
+      console.log('🚀 Iniciando aplicación...');
+      
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('📋 Sesión actual:', session ? 'Existe' : 'No existe');
+        
         if (session) {
+          console.log('👤 Usuario encontrado:', session.user.email);
           await handleAuthSuccess(session);
         } else {
+          console.log('🔐 Mostrando pantalla de login');
           showAuthContainer();
         }
 
         supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('🔄 Cambio de autenticación:', event, session ? session.user.email : 'Sin sesión');
+          
           if (event === 'SIGNED_IN' && session) {
+            console.log('✅ Login exitoso');
             await handleAuthSuccess(session);
           } else if (event === 'SIGNED_OUT') {
+            console.log('👋 Logout detectado');
             showAuthContainer();
           }
         });
       } catch (error) {
-        console.error('Error en inicialización:', error);
+        console.error('❌ Error en inicialización:', error);
         showAuthContainer();
       }
     }
 
     function showAuthContainer() {
+      console.log('🔐 Mostrando contenedor de autenticación');
       document.getElementById('authContainer').style.display = 'block';
       document.getElementById('mainContent').style.display = 'none';
       document.getElementById('userInfo').style.display = 'none';
     }
 
     async function handleAuthSuccess(session) {
+      console.log('🎉 Procesando login exitoso...');
       currentUser = session.user;
       
-      await ensureUserProfile();
-      await ensureCurrentWeek();
-      
-      document.getElementById('authContainer').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'block';
-      document.getElementById('userInfo').style.display = 'flex';
-      
-      document.getElementById('userName').textContent = currentUser.user_metadata.name || currentUser.email;
-      document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || '';
-      
-      await loadCurrentWeek();
-      await loadVotingData();
-      await loadAttendanceData();
+      try {
+        console.log('👤 Asegurando perfil de usuario...');
+        await ensureUserProfile();
+        
+        console.log('📅 Asegurando semana actual...');
+        await ensureCurrentWeek();
+        
+        console.log('🖥️ Mostrando interfaz principal...');
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('userInfo').style.display = 'flex';
+        
+        document.getElementById('userName').textContent = currentUser.user_metadata.name || currentUser.email;
+        document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || '';
+        
+        console.log('📊 Cargando datos...');
+        await loadCurrentWeek();
+        await loadVotingData();
+        await loadAttendanceData();
+        
+        console.log('✅ Todo cargado correctamente');
+      } catch (error) {
+        console.error('❌ Error en handleAuthSuccess:', error);
+        // En caso de error, mostrar la pantalla de login de nuevo
+        showAuthContainer();
+      }
     }
 
     async function ensureUserProfile() {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-
-      if (!data) {
-        await supabase
+      try {
+        console.log('🔍 Verificando perfil de usuario...');
+        const { data, error } = await supabase
           .from('usuarios')
-          .insert({
-            id: currentUser.id,
-            email: currentUser.email,
-            nombre: currentUser.user_metadata.name || currentUser.email.split('@')[0],
-            avatar_url: currentUser.user_metadata.avatar_url
-          });
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        if (!data) {
+          console.log('➕ Creando perfil de usuario...');
+          const { error: insertError } = await supabase
+            .from('usuarios')
+            .insert({
+              id: currentUser.id,
+              email: currentUser.email,
+              nombre: currentUser.user_metadata.name || currentUser.email.split('@')[0],
+              avatar_url: currentUser.user_metadata.avatar_url
+            });
+          
+          if (insertError) throw insertError;
+          console.log('✅ Perfil creado exitosamente');
+        } else {
+          console.log('✅ Perfil ya existe');
+        }
+      } catch (error) {
+        console.error('❌ Error en ensureUserProfile:', error);
+        throw error;
       }
     }
 
     async function ensureCurrentWeek() {
-      await supabase.rpc('crear_semana_si_no_existe');
-      await supabase.rpc('finalizar_semana_anterior');
+      try {
+        console.log('📅 Verificando semana actual...');
+        await supabase.rpc('crear_semana_si_no_existe');
+        await supabase.rpc('finalizar_semana_anterior');
+        console.log('✅ Semana verificada');
+      } catch (error) {
+        console.error('❌ Error en ensureCurrentWeek:', error);
+        throw error;
+      }
     }
 
     async function loadCurrentWeek() {
