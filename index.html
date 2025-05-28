@@ -330,10 +330,20 @@
       <!-- Voting Tab -->
       <div class="tab-pane fade show active" id="voting" role="tabpanel">
         <div id="winner" class="winner-box" style="display:none;"></div>
-        <div id="quorumStatus" class="quorum-status"></div>
         
         <div class="row">
-          <div class="col-md-8">
+          <div class="col-md-4 order-md-2">
+            <h4 class="text-light mb-3">👥 Asistencia</h4>
+            <div class="stats-card">
+              <div id="quorumStatus" class="quorum-status mb-3"></div>
+              <div id="attendanceList">
+                <h6 class="text-warning">Confirmados (votaron):</h6>
+                <div id="confirmedList" class="mb-2"></div>
+                <small class="text-muted">Votar por un bar = confirmar asistencia</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8 order-md-1">
             <h4 class="text-light mb-3">🗳️ Votación de Bares</h4>
             <div class="table-responsive">
               <table class="table table-dark table-hover align-middle">
@@ -350,20 +360,19 @@
                 </tbody>
               </table>
             </div>
-          </div>
-          <div class="col-md-4">
-            <h4 class="text-light mb-3">👥 Asistencia</h4>
-            <div class="stats-card">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <span>¿Vas a ir este martes?</span>
-                <button id="attendanceBtn" class="attendance-btn" onclick="toggleAttendance()">
-                  Confirmar
-                </button>
-              </div>
-              <div id="attendanceList">
-                <h6 class="text-warning">Confirmados:</h6>
-                <div id="confirmedList" class="mb-2"></div>
-                <small class="text-muted">Se necesitan mínimo 3 personas para quorum</small>
+            
+            <!-- Modal para mostrar quién votó -->
+            <div class="modal fade" id="voteDetailsModal" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark text-light">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="voteDetailsTitle">Votos por este bar</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body" id="voteDetailsBody">
+                    <!-- Se llena con JS -->
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -621,12 +630,14 @@
             <td>${socialLinks}</td>
             <td>
               <button class="vote-btn${hasVoted ? ' voted' : ''}" 
-                      ${hasVoted || currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                      onclick="vote('${bar.name}', this)">
+                      ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
+                      onclick="toggleVote('${bar.name.replace(/'/g, "\\'")}', this)">
                 ${hasVoted ? '🍺' : '💪'}
               </button>
             </td>
-            <td class="text-center" style="font-size: 1.2em; font-weight: 700;">${votes}</td>
+            <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
+              <span style="cursor: pointer;" onclick="showVoteDetails('${bar.name.replace(/'/g, "\\'")}', ${votes})">${votes}</span>
+            </td>
             <td class="last-visit">${lastVisitText}</td>
           </tr>
         `;
@@ -692,23 +703,68 @@
       }
     }
 
-    async function vote(barName, btn) {
-      if (userVote || currentWeek?.estado !== 'activa') return;
+    async function toggleVote(barName, btn) {
+      if (currentWeek?.estado !== 'activa') return;
 
       try {
-        const { error } = await supabase
-          .from('votos')
-          .insert({
-            user_id: currentUser.id,
-            semana_id: currentWeek.id,
-            bar: barName
-          });
+        if (userVote === barName) {
+          // Quitar voto existente
+          const { error } = await supabase
+            .from('votos')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('semana_id', currentWeek.id);
 
-        if (error) throw error;
+          if (error) throw error;
+        } else {
+          // Crear nuevo voto (upsert)
+          const { error } = await supabase
+            .from('votos')
+            .upsert({
+              user_id: currentUser.id,
+              semana_id: currentWeek.id,
+              bar: barName
+            }, {
+              onConflict: 'user_id,semana_id'
+            });
+
+          if (error) throw error;
+        }
 
         await loadVotingData();
+        await loadAttendanceData();
       } catch (error) {
+        console.error('Error al votar:', error);
         alert('Error al votar: ' + error.message);
+      }
+    }
+
+    async function showVoteDetails(barName, voteCount) {
+      if (voteCount === 0) return;
+      
+      try {
+        const { data: votes } = await supabase
+          .from('votos')
+          .select(`
+            usuarios (nombre, avatar_url)
+          `)
+          .eq('semana_id', currentWeek.id)
+          .eq('bar', barName);
+
+        const modal = new bootstrap.Modal(document.getElementById('voteDetailsModal'));
+        document.getElementById('voteDetailsTitle').textContent = `Votos por ${barName}`;
+        
+        const votersHtml = votes.map(vote => 
+          `<div class="d-flex align-items-center mb-2">
+            <img src="${vote.usuarios.avatar_url || ''}" class="rounded-circle me-2" width="32" height="32">
+            <span>${vote.usuarios.nombre}</span>
+          </div>`
+        ).join('');
+        
+        document.getElementById('voteDetailsBody').innerHTML = votersHtml;
+        modal.show();
+      } catch (error) {
+        console.error('Error cargando detalles de votos:', error);
       }
     }
 
@@ -905,8 +961,8 @@
     }
 
     // Hacer funciones globales
-    window.vote = vote;
-    window.toggleAttendance = toggleAttendance;
+    window.toggleVote = toggleVote;
+    window.showVoteDetails = showVoteDetails;
     window.signOut = signOut;
 
     // Inicializar aplicación
