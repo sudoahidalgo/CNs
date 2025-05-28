@@ -22,7 +22,7 @@
     .overlay {
       position: fixed;
       top:0; left:0; width:100vw; height:100vh;
-      background: rgba(25, 25, 25, 0.72);
+      background: rgba(25, 25, 25, 0.15);
       z-index: 1;
       pointer-events: none;
     }
@@ -238,6 +238,27 @@
       font-size: 0.9rem;
       color: #94a3b8;
     }
+    .icon-link {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 3px;
+      opacity: 0.85;
+      transition: opacity 0.12s;
+    }
+    .icon-link:hover {
+      opacity: 1;
+      filter: drop-shadow(0 1px 2px #ffe06688);
+    }
+    .ig-icon, .fb-icon {
+      width: 1.5em; height: 1.5em;
+      display: inline-block;
+    }
+    .ig-icon {
+      filter: drop-shadow(0 0 4px #ffe06688);
+    }
+    .recent-visit {
+      color: #10b981;
+    }
     .never-visited {
       color: #ef4444;
       font-weight: 600;
@@ -319,6 +340,7 @@
                 <thead>
                   <tr>
                     <th>Bar</th>
+                    <th>Redes</th>
                     <th>Votar</th>
                     <th>Votos</th>
                     <th>Última visita</th>
@@ -541,6 +563,13 @@
       updateQuorumStatus(attendances?.length || 0);
     }
 
+    function igIcon() {
+      return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    }
+    function fbIcon() {
+      return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+    }
+
     function renderBarsTable(votes, barStats) {
       const voteCounts = {};
       votes.forEach(vote => {
@@ -567,6 +596,12 @@
         const hasVoted = userVote === bar.name;
         const stats = statsMap[bar.name];
         
+        // Crear enlaces de redes sociales
+        let socialLinks = '';
+        if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
+        if (bar.fb) socialLinks += `<a class="icon-link" href="${bar.fb}" target="_blank" title="Facebook">${fbIcon()}</a>`;
+        if (!socialLinks) socialLinks = '<span style="color:#bbb;">—</span>';
+        
         let lastVisitText = '<span class="never-visited">Nunca</span>';
         if (stats && stats.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
@@ -583,6 +618,7 @@
         tbody.innerHTML += `
           <tr>
             <td style="font-weight: 600;">${bar.name}</td>
+            <td>${socialLinks}</td>
             <td>
               <button class="vote-btn${hasVoted ? ' voted' : ''}" 
                       ${hasVoted || currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
