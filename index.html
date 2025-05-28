@@ -774,8 +774,21 @@
     async function toggleVote(barName, btn) {
       console.log('🗳️ Intentando votar por:', barName);
       
-      if (currentWeek?.estado !== 'activa') {
-        console.log('❌ Semana no está activa');
+      if (!currentWeek) {
+        console.log('❌ No hay semana actual disponible');
+        alert('No hay semana activa para votar');
+        return;
+      }
+      
+      if (currentWeek.estado !== 'activa') {
+        console.log('❌ Semana no está activa:', currentWeek.estado);
+        alert('La votación no está activa');
+        return;
+      }
+
+      if (!currentUser) {
+        console.log('❌ No hay usuario autenticado');
+        alert('Debes estar autenticado para votar');
         return;
       }
 
@@ -786,40 +799,64 @@
 
       try {
         if (userVote === barName) {
-          console.log('🗑️ Eliminando voto existente');
-          // Quitar voto existente
+          console.log('🗑️ Eliminando voto existente para:', barName);
+          
           const { error } = await supabase
             .from('votos')
             .delete()
             .eq('user_id', currentUser.id)
             .eq('semana_id', currentWeek.id);
 
-          if (error) throw error;
-          console.log('✅ Voto eliminado');
+          if (error) {
+            console.error('Error eliminando voto:', error);
+            throw error;
+          }
+          
+          console.log('✅ Voto eliminado exitosamente');
         } else {
-          console.log('➕ Creando/actualizando voto');
-          // Crear nuevo voto (upsert)
+          console.log('➕ Creando/actualizando voto para:', barName);
+          
+          const voteData = {
+            user_id: currentUser.id,
+            semana_id: currentWeek.id,
+            bar: barName
+          };
+          
+          console.log('📝 Datos del voto:', voteData);
+          
           const { error } = await supabase
             .from('votos')
-            .upsert({
-              user_id: currentUser.id,
-              semana_id: currentWeek.id,
-              bar: barName
-            }, {
+            .upsert(voteData, {
               onConflict: 'user_id,semana_id'
             });
 
-          if (error) throw error;
-          console.log('✅ Voto registrado');
+          if (error) {
+            console.error('Error creando voto:', error);
+            throw error;
+          }
+          
+          console.log('✅ Voto registrado exitosamente');
         }
 
         // Recargar datos
+        console.log('🔄 Recargando datos...');
         await loadVotingData();
         await loadAttendanceData();
+        console.log('✅ Datos recargados');
         
       } catch (error) {
-        console.error('❌ Error al votar:', error);
-        alert('Error al votar: ' + error.message);
+        console.error('❌ Error completo al votar:', error);
+        
+        // Mostrar error específico
+        let errorMessage = 'Error al votar';
+        if (error.message) {
+          errorMessage += ': ' + error.message;
+        }
+        if (error.details) {
+          errorMessage += ' (' + error.details + ')';
+        }
+        
+        alert(errorMessage);
         
         // Restaurar botón
         btn.innerHTML = originalText;
@@ -1066,9 +1103,40 @@
       });
     }
 
+    // Función de debugging para verificar estado
+    async function debugCurrentState() {
+      console.log('🔍 ESTADO ACTUAL DEL SISTEMA:');
+      console.log('- Usuario actual:', currentUser?.email);
+      console.log('- Usuario ID:', currentUser?.id);
+      console.log('- Semana actual:', currentWeek);
+      console.log('- Voto del usuario:', userVote);
+      
+      if (currentWeek) {
+        try {
+          const { data: votes, error } = await supabase
+            .from('votos')
+            .select('*')
+            .eq('semana_id', currentWeek.id);
+            
+          console.log('- Votos en la semana:', votes);
+          if (error) console.error('- Error obteniendo votos:', error);
+        } catch (e) {
+          console.error('- Error en debug:', e);
+        }
+      }
+    }
+
+    // Hacer función global para debugging
+    window.debugCurrentState = debugCurrentState;
+
     // Funciones wrapper para manejar encoding
     function handleVoteClick(encodedBarName, btn) {
       const barName = decodeURIComponent(encodedBarName);
+      console.log('🎯 Botón clickeado para:', barName);
+      
+      // Debug antes de votar
+      debugCurrentState();
+      
       toggleVote(barName, btn);
     }
 
