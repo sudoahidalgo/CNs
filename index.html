@@ -9,12 +9,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    /* ... (Estilos CSS de la v6 sin cambios) ... */
+    /* ... (Estilos CSS como en v7) ... */
     body, html { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     body {
       background: url('fondo.png') no-repeat center center fixed;
       background-size: cover;
       font-family: 'Inter', sans-serif; 
+      /* CAMBIO: Eliminar el manejo de visibilidad del body desde JS inicialmente, 
+         los contenedores se manejan con display:none y se muestran según la lógica. */
     }
     .overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(25, 25, 25, 0.25); z-index: 1; pointer-events: none; }
     .main-content { z-index: 2; position: relative; min-height: 100vh; padding: 20px; }
@@ -76,107 +78,90 @@
 </head>
 <body>
   <div class="overlay"></div>
-  <div id="userInfo" class="user-info" style="display: none;"> /* ... (HTML igual que v6) ... */ </div>
-  <div id="authContainer" class="auth-container" style="display: none;"> /* ... (HTML igual que v6) ... */ </div>
-  <div id="mainContent" class="main-content" style="display: none;"> /* ... (HTML igual que v6, sin el modal de detalles de voto) ... */ </div>
+  <div id="userInfo" class="user-info" style="display: none;">
+    <div id="userAvatar" class="user-avatar"></div>
+    <span id="userName"></span>
+    <button id="signOutButton" class="btn btn-sm btn-outline-light ms-2">Salir</button>
+  </div>
+  <div id="authContainer" class="auth-container" style="display: none;"> /* ... (HTML igual que v7) ... */ </div>
+  <div id="mainContent" class="main-content" style="display: none;"> /* ... (HTML igual que v7) ... */ </div>
 
   <script>
-    // CAMBIO: Mover estas constantes arriba para claridad y porque se usan en el listener DOMContentLoaded
     const supabaseUrl = 'https://wjwsdyrkqvxszlclitru.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-      auth: { 
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
 
-    const bars = [ /* ... (igual que v6) ... */ ];
+    const bars = [ /* ... (igual que v7) ... */ ];
     let currentUser = null;
     let currentWeek = null;
     let userVotes = []; 
     let userAttendance = false;
 
     async function init() {
-      console.log('🚀 Iniciando aplicación... Intentando obtener sesión.');
-      // CAMBIO: Ocultar body temporalmente para evitar FOUC (flash of unstyled content) o pantalla en blanco momentánea
-      document.body.style.visibility = 'hidden'; 
+      console.log('🚀 Iniciando aplicación v8...');
+      // CAMBIO: No manipular document.body.style.visibility aquí. 
+      // Los contenedores principales tienen display:none por defecto y se mostrarán según la lógica.
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('❌ Error crítico obteniendo sesión inicial:', sessionError);
-          document.getElementById('mainContent').innerHTML = '<div class="container text-center mt-5 p-4 rounded bg-dark"><p class="text-danger lead">Error al conectar con el servicio de autenticación. Por favor, intenta recargar la página.</p></div>';
-          document.getElementById('mainContent').style.display = 'block';
-          document.body.style.visibility = 'visible'; // Mostrar el error
+          // Mostrar un error persistente si falla la obtención de sesión
+          const mainContentEl = document.getElementById('mainContent');
+          if (mainContentEl) {
+            mainContentEl.innerHTML = '<div class="container text-center mt-5 p-4 rounded bg-dark"><p class="text-danger lead">Error al conectar con el servicio de autenticación. Por favor, intenta recargar la página.</p></div>';
+            mainContentEl.style.display = 'block';
+          }
           return; 
         }
         console.log('👤 Sesión inicial obtenida:', session ? session.user?.email : 'No hay sesión');
         
         if (session) {
-          console.log('🔑 Sesión encontrada, procediendo...');
           await handleAuthSuccess(session);
         } else {
           if (window.location.hash.includes('access_token') || window.location.hash.includes('error_description')) {
             console.log('⏳ Token/error detectado en URL (OAuth redirect), onAuthStateChange se encargará.');
-            // Dejar que onAuthStateChange maneje la visualización
           } else {
             console.log('🔐 No hay sesión activa ni redirección OAuth, mostrando pantalla de login.');
-            showAuthContainer(); // Esto ya hace visible el body
+            showAuthContainer();
           }
         }
 
         supabase.auth.onAuthStateChange(async (event, session) => {
           console.log(`🔄 Evento AuthStateChange: ${event}`, session ? `Usuario: ${session.user?.email}` : 'Sin sesión');
           if (event === 'INITIAL_SESSION' && session) {
-             console.log('🔑 Sesión persistente cargada (INITIAL_SESSION)');
              await handleAuthSuccess(session);
           } else if (event === 'SIGNED_IN' && session) {
-            console.log('✅ Login exitoso (SIGNED_IN)');
             await handleAuthSuccess(session);
           } else if (event === 'SIGNED_OUT') {
-            console.log('👋 Logout detectado (SIGNED_OUT)');
             handleSignOut();
           } else if (event === 'TOKEN_REFRESHED' && session) {
-            console.log('🔄 Token refrescado');
             currentUser = session.user;
           } else if (event === 'USER_UPDATED' && session) {
-            console.log('👤 Usuario actualizado');
             currentUser = session.user;
             updateUserInfoDisplay(); 
-          }
-          // Asegurar que el body sea visible si algo se mostró
-          if (document.getElementById('authContainer').style.display === 'block' || document.getElementById('mainContent').style.display === 'block') {
-            document.body.style.visibility = 'visible';
           }
         });
 
       } catch (error) { 
         console.error('❌ Error catastrófico en inicialización:', error);
-        document.getElementById('mainContent').innerHTML = `<div class="container text-center mt-5 p-4 rounded bg-dark"><p class="text-danger lead">Ocurrió un error grave al iniciar la aplicación: ${error.message}.<br/>Intenta recargar o revisa la consola.</p></div>`;
-        document.getElementById('mainContent').style.display = 'block';
-        document.body.style.visibility = 'visible';
-      }
-
-      // Fallback por si algo no hizo visible el body
-      setTimeout(() => {
-        if (document.body.style.visibility === 'hidden') {
-            console.warn("El body seguía oculto después de 3s. Forzando AuthContainer visible.");
-            showAuthContainer(); 
+        const mainContentEl = document.getElementById('mainContent');
+        if (mainContentEl) {
+            mainContentEl.innerHTML = `<div class="container text-center mt-5 p-4 rounded bg-dark"><p class="text-danger lead">Ocurrió un error grave al iniciar la aplicación: ${error.message}.<br/>Intenta recargar o revisa la consola.</p></div>`;
+            mainContentEl.style.display = 'block';
         }
-      }, 3000);
+      }
     }
 
     function showAuthContainer() {
       document.getElementById('authContainer').style.display = 'block';
       document.getElementById('mainContent').style.display = 'none';
       document.getElementById('userInfo').style.display = 'none';
-      document.body.style.visibility = 'visible'; // Asegurar que el body sea visible
     }
     
     async function handleAuthSuccess(session) {
-      console.log('🎉 Procesando login exitoso...');
       currentUser = session.user;
       try {
         await ensureUserProfile();
@@ -184,74 +169,73 @@
         document.getElementById('authContainer').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('userInfo').style.display = 'flex';
-        document.body.style.visibility = 'visible'; // Asegurar que el body sea visible
-
         updateUserInfoDisplay(); 
-        console.log('📊 Cargando datos iniciales...');
         await loadCurrentWeek(); 
         if (currentWeek) { 
              await Promise.all([ loadVotingData(), loadAttendanceData() ]);
         } else {
-            console.warn("No se pudo cargar la semana actual.");
             document.getElementById('barsTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No se pudo cargar la información de la semana.</td></tr>';
         }
         setupEventListeners(); 
-        console.log('✅ Todo cargado y configurado correctamente');
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
-        showAuthContainer(); // Revertir a login si algo falla
+        showAuthContainer(); 
       }
     }
     
-    // ... (resto de funciones JS como ensureUserProfile, ensureCurrentWeek, loadCurrentWeek, 
+    // ... (Las funciones updateUserInfoDisplay, ensureUserProfile, ensureCurrentWeek, loadCurrentWeek, 
     //      loadVotingData, loadAttendanceData, igIcon, fbIcon, renderBarsTable, updateWinner,
-    //      updateAttendanceUI (con cambios de v6), updateQuorumStatus, toggleVote (con cambios de v5),
-    //      loadHistory, loadStats (con cambios de v6), updateStatsUI (con cambios de v6),
-    //      formatDate, handleTableClick (con cambios de v6), signOut) ...
-    // Asegúrate de que las versiones de estas funciones sean las de v6, con las correcciones
-    // para el modal eliminado y el error de loadStats.
-    // Por brevedad, no las repetiré todas aquí, pero la clave es la corrección del listener del botón de Google.
-
-    function updateUserInfoDisplay() { /* ... (igual que v6) ... */ }
-    async function ensureUserProfile() { /* ... (igual que v6) ... */ }
-    async function ensureCurrentWeek() { /* ... (igual que v6) ... */ }
-    async function loadCurrentWeek() { /* ... (igual que v6) ... */ }
-    async function loadVotingData() { /* ... (igual que v6) ... */ }
-    async function loadAttendanceData() { /* ... (igual que v6, con la lógica para obtener votos de asistentes) ... */
-        if (!currentUser || !currentWeek) { updateAttendanceUI([]); updateQuorumStatus(0); userAttendance = false; return; }
-        try {
-            const { data: allVotesThisWeek, error: allVotesError } = await supabase.from('votos').select('user_id, bar').eq('semana_id', currentWeek.id);
-            if (allVotesError) { console.error('❌ Error cargando todos los votos de la semana:', allVotesError); }
-            const { data: attendances, error: attendanceError } = await supabase.from('asistencias').select(`user_id, confirmado, usuarios (nombre, avatar_url)`).eq('semana_id', currentWeek.id).eq('confirmado', true);
-            if (attendanceError) throw attendanceError;
-            userAttendance = (attendances || []).some(a => a.user_id === currentUser.id);
-            const attendeesWithVotes = (attendances || []).map(att => {
-                const userSpecificVotes = (allVotesThisWeek || []).filter(vote => vote.user_id === att.user_id).map(vote => vote.bar);
-                return { ...att, votedBars: userSpecificVotes };
-            });
-            updateAttendanceUI(attendeesWithVotes);
-            updateQuorumStatus((attendances || []).length);
-        } catch (error) { console.error("❌ Error en loadAttendanceData:", error); userAttendance = false; updateAttendanceUI([]); updateQuorumStatus(0); }
+    //      updateAttendanceUI, updateQuorumStatus, toggleVote, loadHistory, loadStats, 
+    //      updateStatsUI, formatDate, handleTableClick, setupEventListeners
+    //      permanecen IGUALES que en v7, ya que el error principal estaba en la inicialización
+    //      y el listener del botón signOut) ...
+    // Por ejemplo:
+    function handleSignOut() {
+      console.log('🚪 Procesando logout...');
+      currentUser = null; currentWeek = null; userVotes = []; userAttendance = false;
+      showAuthContainer();
     }
-    function igIcon() { /* ... (igual que v6) ... */ }
-    function fbIcon() { /* ... (igual que v6) ... */ }
-    function renderBarsTable(allVotesInWeek, barStats) { /* ... (igual que v6, sin data-action=showDetails para el modal) ... */ }
-    function updateWinner(allVotesInWeek) { /* ... (igual que v6) ... */ }
-    function updateAttendanceUI(attendeesWithVotes) { /* ... (igual que v6, mostrando votedBars) ... */ }
-    function updateQuorumStatus(count) { /* ... (igual que v6) ... */ }
-    async function toggleVote(barName, btnElement) { /* ... (igual que v5, con logs detallados para delete) ... */ }
-    async function loadHistory() { /* ... (igual que v6) ... */ }
-    async function loadStats() { /* ... (igual que v6, con la query corregida) ... */ }
-    function updateStatsUI(topBars, lastVisits, cnStats) { /* ... (igual que v6, con manejo de error.message) ... */ }
-    function formatDate(dateString) { /* ... (igual que v6) ... */ }
-    function handleTableClick(event) { /* ... (igual que v6, sin la parte del modal) ... */ }
-    function setupEventListeners() { /* ... (igual que v6) ... */ }
-    window.signOut = signOut;
+    function updateUserInfoDisplay() { /* ... (igual que v7) ... */ }
+    async function ensureUserProfile() { /* ... (igual que v7) ... */ }
+    async function ensureCurrentWeek() { /* ... (igual que v7) ... */ }
+    async function loadCurrentWeek() { /* ... (igual que v7) ... */ }
+    async function loadVotingData() { /* ... (igual que v7) ... */ }
+    async function loadAttendanceData() { /* ... (igual que v7) ... */ }
+    function igIcon() { /* ... (igual que v7) ... */ }
+    function fbIcon() { /* ... (igual que v7) ... */ }
+    function renderBarsTable(allVotesInWeek, barStats) { /* ... (igual que v7) ... */ }
+    function updateWinner(allVotesInWeek) { /* ... (igual que v7) ... */ }
+    function updateAttendanceUI(attendeesWithVotes) { /* ... (igual que v7) ... */ }
+    function updateQuorumStatus(count) { /* ... (igual que v7) ... */ }
+    async function toggleVote(barName, btnElement) { /* ... (igual que v7) ... */ }
+    async function loadHistory() { /* ... (igual que v7) ... */ }
+    async function loadStats() { /* ... (igual que v7) ... */ }
+    function updateStatsUI(topBars, lastVisits, cnStats) { /* ... (igual que v7) ... */ }
+    function formatDate(dateString) { /* ... (igual que v7) ... */ }
+    function handleTableClick(event) { /* ... (igual que v7) ... */ }
+    function setupEventListeners() { /* ... (igual que v7) ... */ }
+    
+    // CAMBIO: La función signOut ya no necesita estar en window si el listener se añade programáticamente
+    async function signOut() {
+      console.log('🚪 Botón Salir clickeado, cerrando sesión...');
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('❌ Error al cerrar sesión en Supabase:', error);
+          alert('Error al cerrar sesión: ' + error.message);
+        }
+        // onAuthStateChange con evento SIGNED_OUT se encargará de llamar a handleSignOut()
+      } catch (error) {
+        console.error('❌ Error inesperado al cerrar sesión:', error);
+        alert('Error inesperado al cerrar sesión: ' + error.message);
+        handleSignOut(); // Forzar limpieza local en caso de error grave
+      }
+    }
+
 
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🌐 DOM completamente cargado y parseado.');
+      console.log('🌐 DOM completamente cargado y parseado (v8).');
       
-      // CAMBIO: Mover el listener del botón de Google aquí
       const googleSignInButton = document.getElementById('googleSignIn');
       if (googleSignInButton) {
         googleSignInButton.addEventListener('click', async () => {
@@ -259,10 +243,7 @@
           try {
             const { error } = await supabase.auth.signInWithOAuth({ 
               provider: 'google', 
-              options: { 
-                redirectTo: window.location.origin, 
-                queryParams: { access_type: 'offline', prompt: 'consent' } 
-              } 
+              options: { redirectTo: window.location.origin, queryParams: { access_type: 'offline', prompt: 'consent' } } 
             });
             if (error) throw error;
           } catch (error) {
@@ -270,9 +251,17 @@
             alert('Error al iniciar sesión: ' + error.message);
           }
         });
-        console.log('✅ Listener para googleSignIn configurado.');
       } else {
         console.error('❌ Botón googleSignIn no encontrado en el DOM.');
+      }
+
+      // CAMBIO: Añadir listener para el botón de signOut
+      const signOutButton = document.getElementById('signOutButton');
+      if (signOutButton) {
+        signOutButton.addEventListener('click', signOut); // Llama a la función signOut definida en el script
+      } else {
+        // Esto podría pasar si el usuario no está logueado y userInfo no se muestra
+        console.log('ℹ️ Botón signOutButton no encontrado (esperado si no hay sesión).');
       }
 
       const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
@@ -283,37 +272,41 @@
           else if (target === '#stats') loadStats();
         });
       });
-      console.log('✅ Listeners para tabs configurados.');
 
-      init(); // Iniciar la lógica principal de la aplicación
+      init(); 
     });
   </script>
 </body>
 </html>
 ```
 
-**Cambios Clave en esta Versión (`v7`):**
+**Cambios Clave en esta Versión (`v8`):**
 
-1.  **`googleSignIn` Event Listener Movido:**
-    * El `document.getElementById('googleSignIn').addEventListener(...)` ahora está **dentro** del listener `DOMContentLoaded`. Esto asegura que el botón HTML existe antes de intentar adjuntarle un evento. Esta es la solución directa al error `Cannot read properties of null (reading 'addEventListener')`.
+1.  **Manejo del Botón `signOut`:**
+    * En el HTML, se eliminó `onclick="signOut()"` del botón "Salir" y se le añadió un `id="signOutButton"`:
+        ```html
+        <button id="signOutButton" class="btn btn-sm btn-outline-light ms-2">Salir</button>
+        ```
+    * Dentro del listener `DOMContentLoaded`, se obtiene este botón por su ID y se le añade un event listener que llama a la función `signOut` (que ya estaba definida en el script):
+        ```javascript
+        const signOutButton = document.getElementById('signOutButton');
+        if (signOutButton) {
+          signOutButton.addEventListener('click', signOut);
+        }
+        ```
+    * La función `signOut` ya no necesita estar explícitamente en `window` porque el listener se añade programáticamente.
 
-2.  **Manejo de Visibilidad en `init()`:**
-    * He añadido `document.body.style.visibility = 'hidden';` al principio de `init()` y luego `document.body.style.visibility = 'visible';` cuando `showAuthContainer()` o `handleAuthSuccess()` (o el manejo de errores) deciden mostrar algo. Esto puede ayudar a prevenir un "flash" de contenido incorrecto o una pantalla en blanco mientras se toma la decisión.
-    * Se añadió un fallback con `setTimeout` para mostrar el `authContainer` si después de unos segundos el `body` sigue oculto, como medida de seguridad.
-    * Se mejoró el manejo de `sessionError` en `init()` para mostrar un mensaje de error al usuario si la obtención de la sesión falla críticamente.
-
-3.  **Logs de Sesión Mejorados:**
-    * Añadí más `console.log` en `init()` y `onAuthStateChange` para que puedas rastrear mejor el flujo de la sesión, especialmente alrededor del manejo del hash de la URL de OAuth.
+2.  **Visibilidad del `body` Simplificada:**
+    * Eliminé la manipulación de `document.body.style.visibility` de la función `init()`. Los contenedores principales (`authContainer`, `mainContent`) ya tienen `display: none;` en el HTML y se mostrarán con `display: block;` según la lógica de `showAuthContainer()` o `handleAuthSuccess()`. Esto debería ser suficiente para controlar lo que se ve y cuándo.
 
 **Próximos Pasos:**
 
-1.  **Prueba esta versión (`v7`).**
-2.  **Revisa la consola del navegador (F12) INMEDIATAMENTE después de cargar la página.**
-    * El error de `addEventListener` en la línea 456 debería haber desaparecido.
-    * Observa los nuevos logs de `init()` y `onAuthStateChange`. ¿Qué dicen sobre la sesión? ¿Se muestra `authContainer` o `mainContent`?
-    * Si la pantalla sigue en blanco, los logs deberían darnos una pista de dónde se detiene la ejecución o por qué no se está mostrando ningún contenedor.
-3.  **Si la pantalla sigue en blanco, pero ya no hay errores obvios:**
-    * Intenta comentar la línea `background: url('fondo.png')` en el CSS como te sugerí antes, para descartar completamente que sea la imagen.
-    * Asegúrate de que los IDs `authContainer` y `mainContent` en tu HTML son correctos y no tienen errores de tipeo.
+1.  **Prueba esta versión (`v8`)** en tu navegador.
+2.  **Revisa la consola (F12) inmediatamente al cargar:**
+    * El error `Uncaught ReferenceError: signOut is not defined` **debería haber desaparecido.**
+    * Si la pantalla sigue en blanco o solo con texto, busca **nuevos errores** en la consola.
+    * Observa los logs de `init()` y `onAuthStateChange` para ver qué está pasando con la detección de la sesión y la decisión de qué contenedor mostrar.
 
-Con la corrección del error de `addEventListener`, hay una alta probabilidad de que la pantalla en blanco se resuelva o que al menos veamos un comportamiento más claro en los lo
+Si el error de `signOut` desaparece, la aplicación debería al menos intentar cargar la pantalla de login o el contenido principal. Si sigue fallando, los nuevos errores en la consola nos darán más pistas.
+
+Respecto al problema de **"Quitar Voto"**, por favor, no olvides revisar tus **Políticas de Seguridad a Nivel de Fila (RLS) en Supabase** para la tabla `votos`. Esta es la causa más probable si la operación de `DELETE` no se refleja en la base de dat
