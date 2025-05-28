@@ -2,10 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Corky's - Martes de Birras 🍻</title>
+  <title>CN - Martes de Birras 🍻</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap para layout y botones -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><text y='96' font-size='96'>🍺</text></svg>">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body, html {
       height: 100%;
@@ -20,7 +22,7 @@
     .overlay {
       position: fixed;
       top:0; left:0; width:100vw; height:100vh;
-      background: rgba(25, 25, 25, 0.62);
+      background: rgba(25, 25, 25, 0.72);
       z-index: 1;
       pointer-events: none;
     }
@@ -28,75 +30,777 @@
       z-index: 2;
       position: relative;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      padding: 20px;
     }
-    h1 {
-      font-size: 3rem;
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.8rem;
       color: #ffe066;
       text-shadow: 2px 3px 8px #0008;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
-    .desc {
-      color: #fff;
-      font-size: 1.2rem;
-      margin-bottom: 38px;
-      text-align: center;
-      text-shadow: 1px 2px 8px #222b;
-    }
-    .main-btn {
-      min-width: 220px;
-      font-size: 1.4rem;
-      margin: 15px 0;
-      padding: 18px 36px;
-      border-radius: 2rem;
-      border: none;
-      font-weight: 600;
+    .user-info {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(34,34,34,0.90);
+      border-radius: 15px;
+      padding: 10px 15px;
+      color: #ffe066;
       display: flex;
       align-items: center;
-      gap: 1rem;
-      justify-content: center;
-      transition: background 0.18s;
-      box-shadow: 0 3px 20px #1116;
+      gap: 10px;
+      box-shadow: 0 2px 10px #0004;
     }
-    .btn-vote {
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #ffe066;
+    }
+    .auth-container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: rgba(36,36,36,0.95);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+    }
+    .main-tabs {
+      margin-bottom: 30px;
+    }
+    .nav-pills .nav-link {
+      background: rgba(36,36,36,0.80);
+      color: #ffe066;
+      border-radius: 15px;
+      margin: 0 5px;
+      font-weight: 600;
+    }
+    .nav-pills .nav-link.active {
+      background: #008d4e;
+      color: white;
+    }
+    .tab-content {
+      background: rgba(36,36,36,0.90);
+      border-radius: 20px;
+      padding: 25px;
+    }
+    .winner-box {
+      font-size: 1.8rem;
+      color: #ffe066;
+      font-weight: 700;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.50);
+      padding: 15px 25px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    .quorum-status {
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
+    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
+    table {
+      background: rgba(36,36,36,0.95);
+      border-radius: 15px;
+      color: #fff;
+      overflow: hidden;
+    }
+    th {
+      background: #222;
+      color: #ffe066;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+    }
+    .vote-btn {
       background: #008d4e;
       color: #fff;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      padding: 6px 15px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 2px;
     }
-    .btn-vote:hover { background: #19d260; }
-    .btn-random {
-      background: #2b2d42;
+    .vote-btn.voted {
+      background: #e74c3c;
+    }
+    .vote-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .attendance-btn {
+      background: #2563eb;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 1rem;
+      padding: 5px 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .attendance-btn.confirmed {
+      background: #16a34a;
+    }
+    .stats-card {
+      background: rgba(36,36,36,0.90);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .stats-card h5 {
       color: #ffe066;
+      margin-bottom: 15px;
     }
-    .btn-random:hover { background: #403e69; color: #fff;}
-    @media (max-width: 600px) {
-      h1 { font-size: 2rem; }
-      .main-btn { font-size: 1.08rem; min-width: 140px;}
-      .desc { font-size: 1rem; }
+    .last-visit {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+    .never-visited {
+      color: #ef4444;
+      font-weight: 600;
+    }
+    .recent-visit {
+      color: #10b981;
+    }
+    .old-visit {
+      color: #f59e0b;
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2rem; }
+      .user-info { position: relative; top: auto; right: auto; margin: 10px auto; width: fit-content; }
+      table { font-size: 0.85rem; }
     }
   </style>
 </head>
 <body>
-  <!-- Overlay oscuro -->
   <div class="overlay"></div>
-  <!-- Contenido principal -->
-  <div class="main-content">
-    <h1>🍻 Martes de Birras 🍻</h1>
-    <div class="desc">
-      ¿Dónde es la próxima parada?<br>
-      <span style="font-size:1.4em;">Votá tu bar favorito o, si no hay acuerdo, ¡dejá que la suerte decida! 🎲</span>
+  
+  <!-- User Info -->
+  <div id="userInfo" class="user-info" style="display: none;">
+    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+    <span id="userName"></span>
+    <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
+  </div>
+
+  <!-- Auth Container -->
+  <div id="authContainer" class="auth-container" style="display: none;">
+    <h2 style="color: #ffe066; margin-bottom: 20px;">🍻 CN - Martes de Birras</h2>
+    <p style="color: #fff; margin-bottom: 30px;">Inicia sesión con Google para votar y confirmar asistencia</p>
+    <button id="googleSignIn" class="btn btn-primary btn-lg">
+      📱 Iniciar sesión con Google
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent" class="main-content" style="display: none;">
+    <div class="header">
+      <h1>🍻 CN - Martes de Birras 🍻</h1>
+      <div id="semanaInfo" class="text-light"></div>
     </div>
-    <a href="votacion.html" class="main-btn btn-vote">
-      <span style="font-size:1.8em;">💪</span> Votación
-    </a>
-    <a href="randomizer.html" class="main-btn btn-random">
-      <span style="font-size:1.8em;">🎲</span> Randomizer
-    </a>
-    <div class="desc mt-4" style="font-size: 1em;">
-      <span style="opacity:.8">Powered by delicious ice cold beer 🍺</span>
+
+    <!-- Main Navigation Tabs -->
+    <ul class="nav nav-pills justify-content-center main-tabs" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="voting-tab" data-bs-toggle="pill" data-bs-target="#voting" type="button" role="tab">
+          💪 Votación
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">
+          📊 Historial
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button" role="tab">
+          📈 Estadísticas
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="mainTabContent">
+      <!-- Voting Tab -->
+      <div class="tab-pane fade show active" id="voting" role="tabpanel">
+        <div id="winner" class="winner-box" style="display:none;"></div>
+        <div id="quorumStatus" class="quorum-status"></div>
+        
+        <div class="row">
+          <div class="col-md-8">
+            <h4 class="text-light mb-3">🗳️ Votación de Bares</h4>
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Bar</th>
+                    <th>Votar</th>
+                    <th>Votos</th>
+                    <th>Última visita</th>
+                  </tr>
+                </thead>
+                <tbody id="barsTable">
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <h4 class="text-light mb-3">👥 Asistencia</h4>
+            <div class="stats-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>¿Vas a ir este martes?</span>
+                <button id="attendanceBtn" class="attendance-btn" onclick="toggleAttendance()">
+                  Confirmar
+                </button>
+              </div>
+              <div id="attendanceList">
+                <h6 class="text-warning">Confirmados:</h6>
+                <div id="confirmedList" class="mb-2"></div>
+                <small class="text-muted">Se necesitan mínimo 3 personas para quorum</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Tab -->
+      <div class="tab-pane fade" id="history" role="tabpanel">
+        <h4 class="text-light mb-3">📅 Historial de CNs</h4>
+        <div id="historyContent">
+          <!-- Se llena con JS -->
+        </div>
+      </div>
+
+      <!-- Stats Tab -->
+      <div class="tab-pane fade" id="stats" role="tabpanel">
+        <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="stats-card">
+              <h5>🏆 Bares más Visitados</h5>
+              <div id="topBars"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="stats-card">
+              <h5>⏰ Última Visita por Bar</h5>
+              <div id="lastVisits"></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="stats-card">
+              <h5>📈 Estadísticas de CNs</h5>
+              <div id="cnStats"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script>
+    // ========== CONFIGURACIÓN SUPABASE ==========
+    const supabaseUrl = 'https://wjwsdyrkqvxszlclitru.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Datos de bares
+    const bars = [
+      { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
+      { name: "Distrito Federal (\"DF\")", fb: "https://www.facebook.com/distritofederalcr/" },
+      { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
+      { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
+      { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
+      { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
+      { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
+      { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
+      { name: "Rio de J", ig: "https://www.instagram.com/rioescazu/" },
+      { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
+      { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
+      { name: "Zompopas", ig: "" },
+      { name: "Casa Adrián" },
+      { name: "Casa Nino" },
+      { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
+      { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
+      { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
+      { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
+      { name: "El Pub Escazu" },
+      { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
+      { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
+      { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
+    ];
+
+    let currentUser = null;
+    let currentWeek = null;
+    let userVote = null;
+    let userAttendance = false;
+
+    // ========== INICIALIZACIÓN ==========
+    async function init() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await handleAuthSuccess(session);
+        } else {
+          showAuthContainer();
+        }
+
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            await handleAuthSuccess(session);
+          } else if (event === 'SIGNED_OUT') {
+            showAuthContainer();
+          }
+        });
+      } catch (error) {
+        console.error('Error en inicialización:', error);
+        showAuthContainer();
+      }
+    }
+
+    function showAuthContainer() {
+      document.getElementById('authContainer').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+
+    async function handleAuthSuccess(session) {
+      currentUser = session.user;
+      
+      await ensureUserProfile();
+      await ensureCurrentWeek();
+      
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('userInfo').style.display = 'flex';
+      
+      document.getElementById('userName').textContent = currentUser.user_metadata.name || currentUser.email;
+      document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || '';
+      
+      await loadCurrentWeek();
+      await loadVotingData();
+      await loadAttendanceData();
+    }
+
+    async function ensureUserProfile() {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (!data) {
+        await supabase
+          .from('usuarios')
+          .insert({
+            id: currentUser.id,
+            email: currentUser.email,
+            nombre: currentUser.user_metadata.name || currentUser.email.split('@')[0],
+            avatar_url: currentUser.user_metadata.avatar_url
+          });
+      }
+    }
+
+    async function ensureCurrentWeek() {
+      await supabase.rpc('crear_semana_si_no_existe');
+      await supabase.rpc('finalizar_semana_anterior');
+    }
+
+    async function loadCurrentWeek() {
+      const { data } = await supabase
+        .from('semana_actual')
+        .select('*')
+        .single();
+      
+      currentWeek = data;
+      
+      if (currentWeek) {
+        document.getElementById('semanaInfo').innerHTML = 
+          `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: ${currentWeek.estado}`;
+      }
+    }
+
+    async function loadVotingData() {
+      if (!currentWeek) return;
+
+      const { data: votes } = await supabase
+        .from('votos')
+        .select('bar, user_id')
+        .eq('semana_id', currentWeek.id);
+
+      const { data: barStats } = await supabase
+        .from('estadisticas_bares')
+        .select('*');
+
+      userVote = votes?.find(v => v.user_id === currentUser.id)?.bar || null;
+
+      renderBarsTable(votes || [], barStats || []);
+      updateWinner(votes || []);
+    }
+
+    async function loadAttendanceData() {
+      if (!currentWeek) return;
+
+      const { data: attendances } = await supabase
+        .from('asistencias')
+        .select(`
+          *,
+          usuarios (nombre, avatar_url)
+        `)
+        .eq('semana_id', currentWeek.id)
+        .eq('confirmado', true);
+
+      userAttendance = attendances?.some(a => a.user_id === currentUser.id) || false;
+      
+      updateAttendanceUI(attendances || []);
+      updateQuorumStatus(attendances?.length || 0);
+    }
+
+    function renderBarsTable(votes, barStats) {
+      const voteCounts = {};
+      votes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+
+      const statsMap = {};
+      barStats.forEach(stat => {
+        statsMap[stat.bar] = stat;
+      });
+
+      const sortedBars = bars.slice().sort((a, b) => {
+        const aVotes = voteCounts[a.name] || 0;
+        const bVotes = voteCounts[b.name] || 0;
+        if (bVotes !== aVotes) return bVotes - aVotes;
+        return a.name.localeCompare(b.name);
+      });
+
+      const tbody = document.getElementById('barsTable');
+      tbody.innerHTML = '';
+
+      sortedBars.forEach(bar => {
+        const votes = voteCounts[bar.name] || 0;
+        const hasVoted = userVote === bar.name;
+        const stats = statsMap[bar.name];
+        
+        let lastVisitText = '<span class="never-visited">Nunca</span>';
+        if (stats && stats.ultima_visita) {
+          const days = stats.dias_desde_ultima_visita;
+          const dateStr = formatDate(stats.ultima_visita);
+          if (days <= 14) {
+            lastVisitText = `<span class="recent-visit">${dateStr} (${days}d)</span>`;
+          } else if (days <= 60) {
+            lastVisitText = `<span class="old-visit">${dateStr} (${days}d)</span>`;
+          } else {
+            lastVisitText = `<span class="last-visit">${dateStr} (${days}d)</span>`;
+          }
+        }
+
+        tbody.innerHTML += `
+          <tr>
+            <td style="font-weight: 600;">${bar.name}</td>
+            <td>
+              <button class="vote-btn${hasVoted ? ' voted' : ''}" 
+                      ${hasVoted || currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
+                      onclick="vote('${bar.name}', this)">
+                ${hasVoted ? '🍺' : '💪'}
+              </button>
+            </td>
+            <td class="text-center" style="font-size: 1.2em; font-weight: 700;">${votes}</td>
+            <td class="last-visit">${lastVisitText}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateWinner(votes) {
+      const winnerDiv = document.getElementById("winner");
+      
+      if (votes.length === 0) {
+        winnerDiv.style.display = "none";
+        return;
+      }
+
+      const voteCounts = {};
+      votes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+
+      const maxVotes = Math.max(...Object.values(voteCounts));
+      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+
+      if (winners.length === 1) {
+        winnerDiv.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
+      } else {
+        const names = winners.map(w => `<strong>${w}</strong>`).join(", ");
+        winnerDiv.innerHTML = `🤝 Empate entre: ${names} (${maxVotes} votos c/u) 🤝`;
+      }
+      winnerDiv.style.display = "block";
+    }
+
+    function updateAttendanceUI(attendances) {
+      const btn = document.getElementById('attendanceBtn');
+      const list = document.getElementById('confirmedList');
+      
+      btn.textContent = userAttendance ? '✅ Confirmado' : 'Confirmar';
+      btn.className = userAttendance ? 'attendance-btn confirmed' : 'attendance-btn';
+      
+      if (attendances.length === 0) {
+        list.innerHTML = '<em class="text-muted">Nadie ha confirmado aún</em>';
+      } else {
+        list.innerHTML = attendances.map(att => 
+          `<div class="d-flex align-items-center mb-1">
+            <img src="${att.usuarios.avatar_url || ''}" class="rounded-circle me-2" width="24" height="24">
+            <span>${att.usuarios.nombre}</span>
+          </div>`
+        ).join('');
+      }
+    }
+
+    function updateQuorumStatus(count) {
+      const status = document.getElementById('quorumStatus');
+      
+      if (count >= 3) {
+        status.className = 'quorum-status quorum-yes';
+        status.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+      } else if (count > 0) {
+        status.className = 'quorum-status quorum-pending';
+        status.innerHTML = `⏳ ${count} confirmadas, faltan ${3 - count} para quorum`;
+      } else {
+        status.className = 'quorum-status quorum-no';
+        status.innerHTML = `❌ Sin confirmaciones aún. Se necesitan 3 para hacer CN`;
+      }
+    }
+
+    async function vote(barName, btn) {
+      if (userVote || currentWeek?.estado !== 'activa') return;
+
+      try {
+        const { error } = await supabase
+          .from('votos')
+          .insert({
+            user_id: currentUser.id,
+            semana_id: currentWeek.id,
+            bar: barName
+          });
+
+        if (error) throw error;
+
+        await loadVotingData();
+      } catch (error) {
+        alert('Error al votar: ' + error.message);
+      }
+    }
+
+    async function toggleAttendance() {
+      if (!currentWeek || currentWeek.estado !== 'activa') return;
+
+      try {
+        if (userAttendance) {
+          await supabase
+            .from('asistencias')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('semana_id', currentWeek.id);
+        } else {
+          await supabase
+            .from('asistencias')
+            .insert({
+              user_id: currentUser.id,
+              semana_id: currentWeek.id,
+              confirmado: true
+            });
+        }
+
+        await loadAttendanceData();
+      } catch (error) {
+        alert('Error al confirmar asistencia: ' + error.message);
+      }
+    }
+
+    async function loadHistory() {
+      const { data: weeks } = await supabase
+        .from('semanas_cn')
+        .select('*')
+        .eq('estado', 'finalizada')
+        .order('fecha_martes', { ascending: false })
+        .limit(20);
+
+      const historyDiv = document.getElementById('historyContent');
+      
+      if (!weeks || weeks.length === 0) {
+        historyDiv.innerHTML = '<p class="text-muted">No hay historial disponible aún.</p>';
+        return;
+      }
+
+      historyDiv.innerHTML = weeks.map(week => `
+        <div class="stats-card">
+          <div class="row">
+            <div class="col-md-3">
+              <strong>${formatDate(week.fecha_martes)}</strong>
+            </div>
+            <div class="col-md-3">
+              ${week.hubo_quorum ? 
+                `🏆 <strong>${week.bar_ganador}</strong>` : 
+                '❌ Sin quorum'
+              }
+            </div>
+            <div class="col-md-3">
+              👥 ${week.total_asistentes} asistentes
+            </div>
+            <div class="col-md-3">
+              🗳️ ${week.total_votos} votos
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadStats() {
+      const { data: topBars } = await supabase
+        .from('visitas_bares')
+        .select('bar, COUNT(*) as visitas')
+        .group('bar')
+        .order('visitas', { ascending: false })
+        .limit(10);
+
+      const { data: lastVisits } = await supabase
+        .from('estadisticas_bares')
+        .select('*')
+        .order('dias_desde_ultima_visita', { ascending: false });
+
+      const { data: cnStats } = await supabase
+        .from('semanas_cn')
+        .select('*')
+        .eq('estado', 'finalizada');
+
+      updateStatsUI(topBars || [], lastVisits || [], cnStats || []);
+    }
+
+    function updateStatsUI(topBars, lastVisits, cnStats) {
+      const topBarsDiv = document.getElementById('topBars');
+      if (topBars.length === 0) {
+        topBarsDiv.innerHTML = '<p class="text-muted">No hay datos disponibles</p>';
+      } else {
+        topBarsDiv.innerHTML = topBars.map((bar, index) => 
+          `<div class="d-flex justify-content-between">
+            <span>${index + 1}. ${bar.bar}</span>
+            <span class="text-warning">${bar.visitas} visitas</span>
+          </div>`
+        ).join('');
+      }
+
+      const lastVisitsDiv = document.getElementById('lastVisits');
+      if (lastVisits.length === 0) {
+        lastVisitsDiv.innerHTML = '<p class="text-muted">No hay datos disponibles</p>';
+      } else {
+        lastVisitsDiv.innerHTML = lastVisits.slice(0, 10).map(bar => {
+          let statusClass = 'never-visited';
+          let statusText = 'Nunca visitado';
+          
+          if (bar.ultima_visita) {
+            const days = bar.dias_desde_ultima_visita;
+            statusText = `${days} días`;
+            if (days <= 14) statusClass = 'recent-visit';
+            else if (days <= 60) statusClass = 'old-visit';
+            else statusClass = 'last-visit';
+          }
+          
+          return `<div class="d-flex justify-content-between">
+            <span>${bar.bar}</span>
+            <span class="${statusClass}">${statusText}</span>
+          </div>`;
+        }).join('');
+      }
+
+      const cnStatsDiv = document.getElementById('cnStats');
+      const totalCNs = cnStats.length;
+      const quorumCNs = cnStats.filter(cn => cn.hubo_quorum).length;
+      const avgAttendance = totalCNs > 0 ? (cnStats.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0) / totalCNs).toFixed(1) : 0;
+      
+      cnStatsDiv.innerHTML = `
+        <div class="row text-center">
+          <div class="col-4">
+            <h3 class="text-warning">${totalCNs}</h3>
+            <small>CNs Realizadas</small>
+          </div>
+          <div class="col-4">
+            <h3 class="text-success">${quorumCNs}</h3>
+            <small>Con Quorum</small>
+          </div>
+          <div class="col-4">
+            <h3 class="text-info">${avgAttendance}</h3>
+            <small>Promedio Asistencia</small>
+          </div>
+        </div>
+      `;
+    }
+
+    // Event listeners para tabs
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
+      tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+          const target = event.target.getAttribute('data-bs-target');
+          if (target === '#history') {
+            loadHistory();
+          } else if (target === '#stats') {
+            loadStats();
+          }
+        });
+      });
+    });
+
+    // Funciones de autenticación
+    document.getElementById('googleSignIn').addEventListener('click', async () => {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin
+          }
+        });
+        if (error) throw error;
+      } catch (error) {
+        alert('Error al iniciar sesión: ' + error.message);
+      }
+    });
+
+    async function signOut() {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        alert('Error al cerrar sesión: ' + error.message);
+      }
+    }
+
+    // Utilidades
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    // Hacer funciones globales
+    window.vote = vote;
+    window.toggleAttendance = toggleAttendance;
+    window.signOut = signOut;
+
+    // Inicializar aplicación
+    init();
+  </script>
 </body>
 </html>
