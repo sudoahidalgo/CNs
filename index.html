@@ -451,7 +451,7 @@
 
     let currentUser = null;
     let currentWeek = null;
-    let userVote = null;
+    let userVotes = []; // Cambiar de userVote a userVotes (array)
     let userAttendance = false;
 
     // ========== INICIALIZACIÓN ==========
@@ -673,7 +673,7 @@
 
       sortedBars.forEach(bar => {
         const votes = voteCounts[bar.name] || 0;
-        const hasVoted = userVote === bar.name;
+        const hasVoted = userVotes.includes(bar.name); // Cambiar a includes para array
         const stats = statsMap[bar.name];
         
         // Crear enlaces de redes sociales
@@ -783,7 +783,7 @@
 
     async function toggleVote(barName, btn) {
       console.log('🗳️ Intentando votar por:', barName);
-      console.log('🔍 Voto actual del usuario:', userVote);
+      console.log('🔍 Votos actuales del usuario:', userVotes);
       
       if (!currentWeek) {
         console.log('❌ No hay semana actual disponible');
@@ -809,14 +809,18 @@
       btn.disabled = true;
 
       try {
-        if (userVote === barName) {
+        // Verificar si ya votó por este bar
+        const hasVotedForThisBar = userVotes.includes(barName);
+        
+        if (hasVotedForThisBar) {
           console.log('🗑️ Eliminando voto existente para:', barName);
           
           const { error } = await supabase
             .from('votos')
             .delete()
             .eq('user_id', currentUser.id)
-            .eq('semana_id', currentWeek.id);
+            .eq('semana_id', currentWeek.id)
+            .eq('bar', barName);
 
           if (error) {
             console.error('❌ Error eliminando voto:', error);
@@ -825,26 +829,8 @@
           
           console.log('✅ Voto eliminado exitosamente');
           
-        } else if (userVote) {
-          // Si ya tiene un voto diferente, hacer UPDATE en lugar de UPSERT
-          console.log('🔄 Cambiando voto de', userVote, 'a', barName);
-          
-          const { error } = await supabase
-            .from('votos')
-            .update({ bar: barName })
-            .eq('user_id', currentUser.id)
-            .eq('semana_id', currentWeek.id);
-
-          if (error) {
-            console.error('❌ Error actualizando voto:', error);
-            throw error;
-          }
-          
-          console.log('✅ Voto actualizado exitosamente');
-          
         } else {
-          // Si no tiene voto, crear uno nuevo
-          console.log('➕ Creando nuevo voto para:', barName);
+          console.log('➕ Agregando nuevo voto para:', barName);
           
           const voteData = {
             user_id: currentUser.id,
@@ -863,7 +849,7 @@
             throw error;
           }
           
-          console.log('✅ Voto creado exitosamente');
+          console.log('✅ Voto agregado exitosamente');
         }
 
         // Recargar datos con delay para asegurar que el DOM esté listo
@@ -1166,7 +1152,7 @@
       console.log('- Usuario actual:', currentUser?.email);
       console.log('- Usuario ID:', currentUser?.id);
       console.log('- Semana actual:', currentWeek);
-      console.log('- Voto del usuario:', userVote);
+      console.log('- Votos del usuario:', userVotes); // Cambiar a userVotes
       
       if (currentWeek) {
         try {
