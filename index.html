@@ -699,12 +699,12 @@
             <td>
               <button class="vote-btn${hasVoted ? ' voted' : ''}" 
                       ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                      onclick="toggleVote('${bar.name.replace(/'/g, "\\'")}', this)">
+                      onclick="handleVoteClick('${encodeURIComponent(bar.name)}', this)">
                 ${hasVoted ? '🍺' : '💪'}
               </button>
             </td>
             <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
-              <span style="cursor: pointer;" onclick="showVoteDetails('${bar.name.replace(/'/g, "\\'")}', ${votes})">${votes}</span>
+              <span style="cursor: pointer;" onclick="handleVoteDetailsClick('${encodeURIComponent(bar.name)}', ${votes})">${votes}</span>
             </td>
             <td class="last-visit">${lastVisitText}</td>
           </tr>
@@ -772,10 +772,21 @@
     }
 
     async function toggleVote(barName, btn) {
-      if (currentWeek?.estado !== 'activa') return;
+      console.log('🗳️ Intentando votar por:', barName);
+      
+      if (currentWeek?.estado !== 'activa') {
+        console.log('❌ Semana no está activa');
+        return;
+      }
+
+      // Mostrar indicador de carga
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳';
+      btn.disabled = true;
 
       try {
         if (userVote === barName) {
+          console.log('🗑️ Eliminando voto existente');
           // Quitar voto existente
           const { error } = await supabase
             .from('votos')
@@ -784,7 +795,9 @@
             .eq('semana_id', currentWeek.id);
 
           if (error) throw error;
+          console.log('✅ Voto eliminado');
         } else {
+          console.log('➕ Creando/actualizando voto');
           // Crear nuevo voto (upsert)
           const { error } = await supabase
             .from('votos')
@@ -797,18 +810,30 @@
             });
 
           if (error) throw error;
+          console.log('✅ Voto registrado');
         }
 
+        // Recargar datos
         await loadVotingData();
         await loadAttendanceData();
+        
       } catch (error) {
-        console.error('Error al votar:', error);
+        console.error('❌ Error al votar:', error);
         alert('Error al votar: ' + error.message);
+        
+        // Restaurar botón
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }
     }
 
     async function showVoteDetails(barName, voteCount) {
-      if (voteCount === 0) return;
+      console.log('👀 Mostrando detalles de votos para:', barName);
+      
+      if (voteCount === 0) {
+        console.log('ℹ️ No hay votos para mostrar');
+        return;
+      }
       
       try {
         const { data: votes } = await supabase
@@ -819,20 +844,33 @@
           .eq('semana_id', currentWeek.id)
           .eq('bar', barName);
 
-        const modal = new bootstrap.Modal(document.getElementById('voteDetailsModal'));
-        document.getElementById('voteDetailsTitle').textContent = `Votos por ${barName}`;
+        console.log('📊 Votos encontrados:', votes);
+
+        // Verificar que el modal existe
+        const modalEl = document.getElementById('voteDetailsModal');
+        const titleEl = document.getElementById('voteDetailsTitle');
+        const bodyEl = document.getElementById('voteDetailsBody');
+        
+        if (!modalEl || !titleEl || !bodyEl) {
+          console.error('❌ Elementos del modal no encontrados');
+          return;
+        }
+
+        const modal = new bootstrap.Modal(modalEl);
+        titleEl.textContent = `Votos por ${barName}`;
         
         const votersHtml = votes.map(vote => 
           `<div class="d-flex align-items-center mb-2">
-            <img src="${vote.usuarios.avatar_url || ''}" class="rounded-circle me-2" width="32" height="32">
+            <img src="${vote.usuarios.avatar_url || ''}" class="rounded-circle me-2" width="32" height="32" alt="Avatar">
             <span>${vote.usuarios.nombre}</span>
           </div>`
         ).join('');
         
-        document.getElementById('voteDetailsBody').innerHTML = votersHtml;
+        bodyEl.innerHTML = votersHtml;
         modal.show();
       } catch (error) {
-        console.error('Error cargando detalles de votos:', error);
+        console.error('❌ Error cargando detalles de votos:', error);
+        alert('Error cargando detalles: ' + error.message);
       }
     }
 
@@ -1028,9 +1066,20 @@
       });
     }
 
+    // Funciones wrapper para manejar encoding
+    function handleVoteClick(encodedBarName, btn) {
+      const barName = decodeURIComponent(encodedBarName);
+      toggleVote(barName, btn);
+    }
+
+    function handleVoteDetailsClick(encodedBarName, voteCount) {
+      const barName = decodeURIComponent(encodedBarName);
+      showVoteDetails(barName, voteCount);
+    }
+
     // Hacer funciones globales
-    window.toggleVote = toggleVote;
-    window.showVoteDetails = showVoteDetails;
+    window.handleVoteClick = handleVoteClick;
+    window.handleVoteDetailsClick = handleVoteDetailsClick;
     window.signOut = signOut;
 
     // Inicializar aplicación
