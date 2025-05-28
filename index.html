@@ -898,16 +898,20 @@
         } else {
           console.log('➕ Agregando nuevo voto para:', barName);
           
-          // Verificar primero si ya existe (doble verificación)
-          const { data: existingVote } = await supabase
+          // Verificar primero si ya existe usando una consulta más simple
+          const { data: existingVotes, error: checkError } = await supabase
             .from('votos')
             .select('id')
             .eq('user_id', currentUser.id)
             .eq('semana_id', currentWeek.id)
-            .eq('bar', barName)
-            .single();
+            .eq('bar', barName);
 
-          if (existingVote) {
+          if (checkError) {
+            console.error('❌ Error verificando voto existente:', checkError);
+            // Continuar con la inserción de todos modos
+          }
+
+          if (existingVotes && existingVotes.length > 0) {
             console.log('⚠️ Voto ya existe, no se agrega duplicado');
           } else {
             const voteData = {
@@ -931,16 +935,24 @@
           }
         }
 
-        // Recargar datos
+        // Recargar datos forzando un refresh completo
         console.log('🔄 Recargando datos...');
+        
+        // Primero limpiar las variables
+        userVotes = [];
+        
+        // Recargar con un delay progresivo
+        await new Promise(resolve => setTimeout(resolve, 200));
         await loadVotingData();
         
-        // Recargar asistencia después de un pequeño delay
-        setTimeout(async () => {
-          await loadAttendanceData();
-        }, 200);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await loadAttendanceData();
         
-        console.log('✅ Datos recargados');
+        // Forzar actualización final
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setupEventListeners();
+        
+        console.log('✅ Datos recargados completamente');
         
       } catch (error) {
         console.error('❌ Error completo al votar:', error);
