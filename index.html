@@ -702,17 +702,24 @@
             <td>
               <button class="vote-btn${hasVoted ? ' voted' : ''}" 
                       ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                      onclick="handleVoteClick('${encodeURIComponent(bar.name)}', this)">
+                      data-bar="${encodeURIComponent(bar.name)}"
+                      data-action="vote">
                 ${hasVoted ? '🍺' : '💪'}
               </button>
             </td>
             <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
-              <span style="cursor: pointer;" onclick="handleVoteDetailsClick('${encodeURIComponent(bar.name)}', ${votes})">${votes}</span>
+              <span style="cursor: pointer;" 
+                    data-bar="${encodeURIComponent(bar.name)}" 
+                    data-votes="${votes}"
+                    data-action="showDetails">${votes}</span>
             </td>
             <td class="last-visit">${lastVisitText}</td>
           </tr>
         `;
       });
+
+      // Agregar event listeners después de renderizar
+      setupEventListeners();
     }
 
     function updateWinner(votes) {
@@ -859,12 +866,17 @@
           console.log('✅ Voto creado exitosamente');
         }
 
-        // Recargar datos
+        // Recargar datos con delay para asegurar que el DOM esté listo
         console.log('🔄 Recargando datos...');
-        await Promise.all([
-          loadVotingData(),
-          loadAttendanceData()
-        ]);
+        
+        // Primero recargar datos de votación
+        await loadVotingData();
+        
+        // Luego, con un pequeño delay, recargar asistencia
+        setTimeout(async () => {
+          await loadAttendanceData();
+        }, 100);
+        
         console.log('✅ Datos recargados');
         
       } catch (error) {
@@ -1174,13 +1186,35 @@
     // Hacer función global para debugging
     window.debugCurrentState = debugCurrentState;
 
-    // Funciones wrapper para manejar encoding
-    function handleVoteClick(encodedBarName, btn) {
+    function setupEventListeners() {
+      console.log('🔗 Configurando event listeners...');
+      
+      // Event listeners para botones de voto
+      const voteButtons = document.querySelectorAll('[data-action="vote"]');
+      voteButtons.forEach(button => {
+        button.removeEventListener('click', handleVoteButtonClick); // Remover listeners previos
+        button.addEventListener('click', handleVoteButtonClick);
+      });
+
+      // Event listeners para mostrar detalles de votos
+      const voteDetailsSpans = document.querySelectorAll('[data-action="showDetails"]');
+      voteDetailsSpans.forEach(span => {
+        span.removeEventListener('click', handleVoteDetailsSpanClick); // Remover listeners previos
+        span.addEventListener('click', handleVoteDetailsSpanClick);
+      });
+      
+      console.log('✅ Event listeners configurados:', voteButtons.length, 'botones,', voteDetailsSpans.length, 'detalles');
+    }
+
+    function handleVoteButtonClick(event) {
+      const button = event.target;
+      const encodedBarName = button.getAttribute('data-bar');
       const barName = decodeURIComponent(encodedBarName);
+      
       console.log('🎯 Botón clickeado para:', barName);
       
       // Prevenir doble click
-      if (btn.disabled) {
+      if (button.disabled) {
         console.log('⚠️ Botón ya está procesando, ignorando click');
         return;
       }
@@ -1191,23 +1225,26 @@
       // Timeout de seguridad
       const timeout = setTimeout(() => {
         console.log('⏰ Timeout alcanzado, restaurando botón');
-        btn.innerHTML = btn.innerHTML === '⏳' ? '💪' : btn.innerHTML;
-        btn.disabled = false;
+        button.innerHTML = button.innerHTML === '⏳' ? '💪' : button.innerHTML;
+        button.disabled = false;
       }, 10000); // 10 segundos de timeout
       
-      toggleVote(barName, btn).finally(() => {
+      toggleVote(barName, button).finally(() => {
         clearTimeout(timeout);
       });
     }
 
-    function handleVoteDetailsClick(encodedBarName, voteCount) {
+    function handleVoteDetailsSpanClick(event) {
+      const span = event.target;
+      const encodedBarName = span.getAttribute('data-bar');
+      const voteCount = parseInt(span.getAttribute('data-votes'));
       const barName = decodeURIComponent(encodedBarName);
+      
       showVoteDetails(barName, voteCount);
     }
 
-    // Hacer funciones globales
-    window.handleVoteClick = handleVoteClick;
-    window.handleVoteDetailsClick = handleVoteDetailsClick;
+    // Hacer función global para debugging
+    window.debugCurrentState = debugCurrentState;
     window.signOut = signOut;
 
     // Inicializar aplicación
