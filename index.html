@@ -18,11 +18,12 @@
     body {
       background: url('fondo.png') no-repeat center center fixed;
       background-size: cover;
+      font-family: 'Inter', sans-serif; /* Fuente más moderna */
     }
     .overlay {
       position: fixed;
       top:0; left:0; width:100vw; height:100vh;
-      background: rgba(25, 25, 25, 0.15);
+      background: rgba(25, 25, 25, 0.25); /* Un poco más oscuro */
       z-index: 1;
       pointer-events: none;
     }
@@ -41,12 +42,13 @@
       color: #ffe066;
       text-shadow: 2px 3px 8px #0008;
       margin-bottom: 10px;
+      font-weight: 700;
     }
     .user-info {
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 10;
+      z-index: 1050; /* Asegurar que esté sobre otros elementos como el modal */
       background: rgba(34,34,34,0.90);
       border-radius: 15px;
       padding: 10px 15px;
@@ -57,10 +59,22 @@
       box-shadow: 0 2px 10px #0004;
     }
     .user-avatar {
-      width: 32px;
-      height: 32px;
+      width: 36px; /* Un poco más grande */
+      height: 36px;
       border-radius: 50%;
       border: 2px solid #ffe066;
+      background-color: #555; /* Color de fondo para el placeholder */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      overflow: hidden; /* Para que la imagen no se salga */
+    }
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
     .auth-container {
       max-width: 500px;
@@ -149,15 +163,18 @@
       border-radius: 15px;
       margin: 0 5px;
       font-weight: 600;
+      padding: 10px 20px;
     }
     .nav-pills .nav-link.active {
       background: #008d4e;
       color: white;
+      box-shadow: 0 0 10px #008d4e99;
     }
     .tab-content {
       background: rgba(36,36,36,0.90);
       border-radius: 20px;
       padding: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
     .winner-box {
       font-size: 1.8rem;
@@ -177,65 +194,61 @@
       text-align: center;
       font-weight: 600;
     }
-    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
-    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
-    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
+    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; border: 1px solid #4ade8033; }
+    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; border: 1px solid #f8717133; }
+    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; border: 1px solid #facc1533; }
     table {
       background: rgba(36,36,36,0.95);
       border-radius: 15px;
       color: #fff;
-      overflow: hidden;
+      overflow: hidden; /* Para que el border-radius afecte a las celdas */
     }
     th {
       background: #222;
       color: #ffe066;
       font-size: 1.05rem;
       letter-spacing: 0.5px;
+      border-bottom: 2px solid #444;
+    }
+    td {
+        vertical-align: middle;
     }
     .vote-btn {
       background: #008d4e;
       color: #fff;
       border-radius: 10px;
-      font-size: 1.2rem;
-      padding: 6px 15px;
+      font-size: 1.1rem; /* Ajustado */
+      padding: 8px 15px; /* Ajustado */
       border: none;
       cursor: pointer;
       transition: all 0.2s;
       margin: 2px;
+      min-width: 100px; /* Para que "Quitar" y "Votar" tengan ancho similar */
+      text-align: center;
     }
     .vote-btn.voted {
-      background: #e74c3c; /* Rojo para indicar "ya votado / click para desvotar" */
+      background: #c0392b; /* Rojo más oscuro */
     }
     .vote-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
+      background: #555;
     }
-    /* Estilos para attendance-btn si decides usarlo manualmente */
-    /*
-    .attendance-btn {
-      background: #2563eb;
-      color: #fff;
-      border-radius: 10px;
-      font-size: 1rem;
-      padding: 5px 12px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
+    .vote-btn:hover:not(:disabled) {
+        filter: brightness(1.2);
     }
-    .attendance-btn.confirmed {
-      background: #16a34a;
-    }
-    */
     .stats-card {
-      background: rgba(36,36,36,0.90);
+      background: rgba(40,40,40,0.90); /* Un poco más oscuro */
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 20px;
       color: #fff;
+      border: 1px solid #55555555;
     }
     .stats-card h5 {
       color: #ffe066;
       margin-bottom: 15px;
+      font-weight: 600;
     }
     .last-visit {
       font-size: 0.9rem;
@@ -259,20 +272,40 @@
     .ig-icon {
       filter: drop-shadow(0 0 4px #ffe06688);
     }
-    .recent-visit {
-      color: #10b981;
+    .recent-visit { color: #10b981; font-weight: 500; }
+    .never-visited { color: #ef4444; font-weight: 600; }
+    .old-visit { color: #f59e0b; font-weight: 500; }
+    .text-muted-light { color: #adb5bd !important; } /* Para texto muted sobre fondos oscuros */
+
+    /* Estilos para el modal de detalles de voto */
+    #voteDetailsModal .modal-content {
+        background-color: #2a2a2a; /* Fondo oscuro para el modal */
+        border: 1px solid #444;
     }
-    .never-visited {
-      color: #ef4444;
-      font-weight: 600;
+    #voteDetailsModal .modal-header {
+        border-bottom: 1px solid #444;
     }
-    .old-visit {
-      color: #f59e0b;
+    #voteDetailsModal .modal-footer {
+        border-top: 1px solid #444;
     }
+    #voteDetailsModal .list-group-item {
+        background-color: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #eee;
+        margin-bottom: 5px;
+        border-radius: 8px;
+    }
+    #voteDetailsModal .list-group-item img {
+        border: 1px solid #ffe066aa;
+    }
+
+
     @media (max-width: 768px) {
-      .header h1 { font-size: 2rem; }
-      .user-info { position: relative; top: auto; right: auto; margin: 10px auto; width: fit-content; }
+      .header h1 { font-size: 2.2rem; }
+      .user-info { position: relative; top: auto; right: auto; margin: 15px auto; width: fit-content; }
       table { font-size: 0.85rem; }
+      .vote-btn { font-size: 0.9rem; padding: 6px 10px; min-width: 80px;}
+      .nav-pills .nav-link { padding: 8px 12px; font-size: 0.9rem;}
     }
   </style>
 </head>
@@ -280,7 +313,8 @@
   <div class="overlay"></div>
   
   <div id="userInfo" class="user-info" style="display: none;">
-    <img id="userAvatar" class="user-avatar" src="" alt="Avatar" onerror="this.style.display='none'; this.parentElement.insertAdjacentHTML('afterbegin', '<div style=\'width:32px;height:32px;border-radius:50%;background:#555;display:inline-block;\'></div>')">
+    <div id="userAvatar" class="user-avatar">
+      </div>
     <span id="userName"></span>
     <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
   </div>
@@ -333,9 +367,9 @@
               <div id="attendanceList">
                 <h6 class="text-warning">Confirmados (quienes votaron):</h6>
                 <div id="confirmedList" class="mb-2">
-                  </div>
-                <small class="text-muted">Votar por un bar = confirmar asistencia. Si quitas todos tus votos, se elimina tu asistencia.</small>
                 </div>
+                <small class="text-muted-light">Votar por un bar = confirmar asistencia. Si quitas todos tus votos, se elimina tu asistencia.</small>
+              </div>
             </div>
           </div>
           <div class="col-md-8 order-md-1">
@@ -352,20 +386,22 @@
                   </tr>
                 </thead>
                 <tbody id="barsTable">
-                  </tbody>
+                </tbody>
               </table>
             </div>
             
-            <div class="modal fade" id="voteDetailsModal" tabindex="-1" aria-labelledby="voteDetailsTitle" aria-hidden="true">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content bg-dark text-light">
-                  <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="voteDetailsTitle">Votos por este bar</h5>
+            <div class="modal fade" id="voteDetailsModal" tabindex="-1" aria-labelledby="voteDetailsModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="voteDetailsModalLabel">Votos por este bar</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
-                  <div class="modal-body" id="voteDetailsBody">
-                    </div>
-                  <div class="modal-footer border-secondary">
+                  <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="voteDetailsBody">
+                      </ul>
+                  </div>
+                  <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                   </div>
                 </div>
@@ -378,7 +414,7 @@
       <div class="tab-pane fade" id="history" role="tabpanel">
         <h4 class="text-light mb-3">📅 Historial de CNs</h4>
         <div id="historyContent">
-          </div>
+        </div>
       </div>
 
       <div class="tab-pane fade" id="stats" role="tabpanel">
@@ -413,10 +449,10 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Datos de bares
+    // CAMBIO: Nombre de bar actualizado
     const bars = [
       { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
-      { name: "Distrito Federal (\"DF\")", fb: "https://www.facebook.com/distritofederalcr/" },
+      { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, // CAMBIO
       { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
       { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
       { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
@@ -441,10 +477,10 @@
 
     let currentUser = null;
     let currentWeek = null;
-    let userVotes = []; // Array para los nombres de los bares votados por el usuario
-    let userAttendance = false; // Indica si el usuario está marcado como asistente
+    let userVotes = []; 
+    let userAttendance = false;
+    let voteDetailsModalInstance = null; // CAMBIO: Para manejar la instancia del modal
 
-    // ========== INICIALIZACIÓN CON SESIÓN PERSISTENTE ==========
     async function init() {
       console.log('🚀 Iniciando aplicación...');
       
@@ -476,42 +512,12 @@
           } else if (event === 'TOKEN_REFRESHED' && session) {
             console.log('🔄 Token refrescado');
             currentUser = session.user;
-            // Podrías querer recargar datos si la sesión se refrescó después de un error
-            // await loadCurrentWeek(); // etc.
           } else if (event === 'USER_UPDATED' && session) {
             console.log('👤 Usuario actualizado');
             currentUser = session.user;
+            updateUserInfoDisplay(); // CAMBIO: Actualizar UI si datos del usuario cambian
           }
         });
-
-        // Auto-refresh de sesión (Supabase lo maneja bien, pero esto es una doble verificación)
-        // Puedes probar comentándolo si la sesión se mantiene bien sin él.
-        setInterval(async () => {
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-              console.log('🔄 Verificando sesión automáticamente...');
-              const expiresAt = new Date(session.expires_at * 1000);
-              const now = new Date();
-              const timeLeft = expiresAt.getTime() - now.getTime();
-              const minutesLeft = Math.floor(timeLeft / 1000 / 60);
-              
-              console.log(`⏰ Sesión expira en ${minutesLeft} minutos`);
-              
-              if (minutesLeft < 10) { // Si quedan menos de 10 minutos, Supabase debería intentar refrescar
-                console.log('🔄 Intentando refrescar sesión (Supabase debería manejarlo)...');
-                await supabase.auth.refreshSession(); // La librería JS lo hace auto
-              }
-            } else {
-              console.log('❌ No hay sesión activa, manejando como logout si es necesario.');
-              // No llamar a handleSignOut() directamente aquí a menos que estés seguro,
-              // onAuthStateChange debería capturar el evento SIGNED_OUT si la sesión realmente termina.
-            }
-          } catch (error) {
-            console.error('❌ Error verificando/refrescando sesión:', error);
-          }
-        }, 30 * 60 * 1000); 
-
       } catch (error) {
         console.error('❌ Error en inicialización:', error);
         showAuthContainer();
@@ -520,88 +526,96 @@
 
     function handleSignOut() {
       console.log('🚪 Procesando logout...');
-      
       currentUser = null;
       currentWeek = null;
       userVotes = [];
       userAttendance = false;
-      
       showAuthContainer();
-      // Limpiar listeners si es necesario, aunque setupEventListeners se llama al cargar
     }
 
     function showAuthContainer() {
-      console.log('🔐 Mostrando contenedor de autenticación');
-      
-      const authContainer = document.getElementById('authContainer');
-      const mainContent = document.getElementById('mainContent');
-      const userInfo = document.getElementById('userInfo');
-      
-      if (authContainer) authContainer.style.display = 'block';
-      if (mainContent) mainContent.style.display = 'none';
-      if (userInfo) userInfo.style.display = 'none';
+      document.getElementById('authContainer').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'none';
     }
+    
+    // CAMBIO: Función separada para actualizar la info del usuario en la UI
+    function updateUserInfoDisplay() {
+        if (!currentUser) return;
+
+        const userNameEl = document.getElementById('userName');
+        const userAvatarContainerEl = document.getElementById('userAvatar'); // Contenedor del avatar
+
+        if (userNameEl) {
+          userNameEl.textContent = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || "Usuario";
+        }
+        if (userAvatarContainerEl) {
+            userAvatarContainerEl.innerHTML = ''; // Limpiar avatar anterior
+            const avatarUrl = currentUser.user_metadata?.avatar_url;
+            if (avatarUrl) {
+                const img = document.createElement('img');
+                img.src = avatarUrl;
+                img.alt = "Avatar";
+                img.onerror = function() { // Fallback si la imagen no carga
+                    this.remove(); // Quitar la imagen rota
+                    const name = currentUser.user_metadata?.name || currentUser.email || "U";
+                    userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); // Mostrar inicial
+                    userAvatarContainerEl.style.backgroundColor = '#777'; // Color de fondo para inicial
+                };
+                userAvatarContainerEl.appendChild(img);
+            } else {
+                const name = currentUser.user_metadata?.name || currentUser.email || "U";
+                userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); // Mostrar inicial
+                userAvatarContainerEl.style.backgroundColor = '#777';
+            }
+        }
+    }
+
 
     async function handleAuthSuccess(session) {
       console.log('🎉 Procesando login exitoso...');
       currentUser = session.user;
       
       try {
-        console.log('👤 Asegurando perfil de usuario...');
         await ensureUserProfile();
-        
-        console.log('📅 Asegurando semana actual...');
         await ensureCurrentWeek();
         
-        console.log('🖥️ Mostrando interfaz principal...');
-        const authContainer = document.getElementById('authContainer');
-        const mainContent = document.getElementById('mainContent');
-        const userInfo = document.getElementById('userInfo');
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('userInfo').style.display = 'flex';
         
-        if (authContainer) authContainer.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'block';
-        if (userInfo) userInfo.style.display = 'flex';
+        updateUserInfoDisplay(); // CAMBIO: Usar la función separada
         
-        const userNameEl = document.getElementById('userName');
-        const userAvatarEl = document.getElementById('userAvatar');
-        
-        if (userNameEl) {
-          userNameEl.textContent = currentUser.user_metadata.name || currentUser.email;
-        }
-        if (userAvatarEl) {
-          userAvatarEl.src = currentUser.user_metadata.avatar_url || ''; // El onerror en HTML maneja el fallback
-        }
-        
-        // Cargar todos los datos necesarios
         console.log('📊 Cargando datos iniciales...');
-        await loadCurrentWeek(); // Carga la semana primero
-        if (currentWeek) { // Solo cargar votos y asistencia si hay una semana
+        await loadCurrentWeek(); 
+        if (currentWeek) { 
              await Promise.all([
                 loadVotingData(),
                 loadAttendanceData()
             ]);
         } else {
             console.warn("No se pudo cargar la semana actual, no se cargan votos ni asistencia.");
+            // Mostrar algún mensaje en la UI si es necesario
+            document.getElementById('barsTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No se pudo cargar la información de la semana.</td></tr>';
         }
-        setupEventListeners(); // Configurar listeners después de que el contenido principal es visible
+        setupEventListeners(); 
         console.log('✅ Todo cargado y configurado correctamente');
         
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
-        showAuthContainer(); // Revertir a login si algo falla
+        showAuthContainer(); 
       }
     }
 
     async function ensureUserProfile() {
       try {
-        console.log('🔍 Verificando perfil de usuario...');
         const { data, error } = await supabase
           .from('usuarios')
           .select('*')
           .eq('id', currentUser.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
+        if (error && error.code !== 'PGRST116') { 
           throw error;
         }
 
@@ -612,57 +626,62 @@
             .insert({
               id: currentUser.id,
               email: currentUser.email,
-              nombre: currentUser.user_metadata.name || currentUser.email.split('@')[0],
-              avatar_url: currentUser.user_metadata.avatar_url
+              nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
+              avatar_url: currentUser.user_metadata?.avatar_url
             });
-          
           if (insertError) throw insertError;
-          console.log('✅ Perfil creado exitosamente');
-        } else {
-          console.log('✅ Perfil ya existe');
+        } else { // CAMBIO: Actualizar perfil si existe y los datos de metadata son más nuevos
+            const metadataName = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+            const metadataAvatar = currentUser.user_metadata?.avatar_url;
+            if (data.nombre !== metadataName || data.avatar_url !== metadataAvatar) {
+                console.log('🔄 Actualizando perfil de usuario con datos de metadata...');
+                const { error: updateError } = await supabase
+                    .from('usuarios')
+                    .update({
+                        nombre: metadataName,
+                        avatar_url: metadataAvatar
+                    })
+                    .eq('id', currentUser.id);
+                if (updateError) console.error("Error actualizando perfil:", updateError);
+            }
         }
       } catch (error) {
         console.error('❌ Error en ensureUserProfile:', error);
-        throw error; // Propagar para que handleAuthSuccess lo capture
+        throw error; 
       }
     }
 
     async function ensureCurrentWeek() {
       try {
-        console.log('📅 Verificando/Creando semana actual y finalizando anterior...');
         await supabase.rpc('crear_semana_si_no_existe');
         await supabase.rpc('finalizar_semana_anterior');
-        console.log('✅ Semana verificada/creada/finalizada.');
       } catch (error) {
         console.error('❌ Error en ensureCurrentWeek:', error);
-        throw error; // Propagar
+        throw error; 
       }
     }
 
     async function loadCurrentWeek() {
       try {
         const { data, error } = await supabase
-          .from('semana_actual') // Asumo que esta es una VISTA o FUNCIÓN que te da la semana actual
+          .from('semana_actual') 
           .select('*')
-          .single(); // Espera una sola fila
+          .single(); 
 
         if (error) {
             console.error('❌ Error cargando semana actual:', error);
             currentWeek = null;
             const semanaInfoEl = document.getElementById('semanaInfo');
-            if(semanaInfoEl) semanaInfoEl.innerHTML = 'Error cargando información de la semana.';
-            return; // Importante salir si no hay semana
+            if(semanaInfoEl) semanaInfoEl.innerHTML = '<span class="text-danger">Error cargando información de la semana.</span>';
+            return; 
         }
-        
         currentWeek = data;
-        console.log("Semana actual cargada:", currentWeek);
-        
         const semanaInfoEl = document.getElementById('semanaInfo');
-        if (currentWeek && semanaInfoEl) {
+        if (semanaInfoEl) {
           semanaInfoEl.innerHTML = 
-            `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado}</strong>`;
+            `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
-      } catch (error) { // Captura de errores de red o inesperados
+      } catch (error) { 
         console.error('❌ Excepción cargando semana actual:', error);
         currentWeek = null;
       }
@@ -670,43 +689,34 @@
 
     async function loadVotingData() {
       if (!currentUser || !currentWeek) {
-        console.log("loadVotingData: Usuario o semana actual no definidos. No se cargan votos.");
-        renderBarsTable([], []); // Renderizar tabla vacía
+        renderBarsTable([], []); 
         updateWinner([]);
-        userVotes = []; // Asegurar que userVotes esté vacío
+        userVotes = []; 
         return;
       }
-
       try {
-        console.log(`🔄 Cargando datos de votación para la semana ID: ${currentWeek.id}`);
         const { data: votesInWeek, error: votesError } = await supabase
           .from('votos')
           .select('bar, user_id')
           .eq('semana_id', currentWeek.id);
 
-        if (votesError) {
-          console.error('❌ Error cargando votos de la semana:', votesError);
-          userVotes = []; 
-        } else {
-          userVotes = (votesInWeek || [])
-            .filter(v => v.user_id === currentUser.id)
-            .map(v => v.bar);
-        }
-        console.log('🗳️ Votos del usuario actualizados (loadVotingData):', userVotes);
+        if (votesError) throw votesError;
+        
+        userVotes = (votesInWeek || [])
+          .filter(v => v.user_id === currentUser.id)
+          .map(v => v.bar);
+        console.log('🗳️ Votos del usuario (loadVotingData):', userVotes);
 
         const { data: barStats, error: barStatsError } = await supabase
-          .from('estadisticas_bares') // Asumo que esta es una tabla/vista con stats
+          .from('estadisticas_bares') 
           .select('*');
-
-        if (barStatsError) {
-          console.error('❌ Error cargando estadísticas de bares:', barStatsError);
-        }
+        if (barStatsError) console.error('Error cargando stats de bares:', barStatsError);
 
         renderBarsTable(votesInWeek || [], barStats || []);
         updateWinner(votesInWeek || []);
 
       } catch (error) {
-        console.error("❌ Excepción en loadVotingData:", error);
+        console.error("❌ Error en loadVotingData:", error);
         userVotes = [];
         renderBarsTable([], []);
         updateWinner([]);
@@ -715,53 +725,36 @@
 
     async function loadAttendanceData() {
       if (!currentUser || !currentWeek) {
-        console.log("loadAttendanceData: Usuario o semana actual no definidos. No se carga asistencia.");
         updateAttendanceUI([]);
         updateQuorumStatus(0);
-        userAttendance = false; // Asegurar que userAttendance sea false
+        userAttendance = false; 
         return;
       }
-
       try {
-        console.log(`🔄 Cargando datos de asistencia para la semana ID: ${currentWeek.id}`);
         const { data: attendances, error: attendanceError } = await supabase
           .from('asistencias')
-          .select(`
-            user_id,
-            confirmado,
-            usuarios (nombre, avatar_url) 
-          `)
+          .select(`user_id, confirmado, usuarios (nombre, avatar_url)`)
           .eq('semana_id', currentWeek.id)
           .eq('confirmado', true);
 
-        if (attendanceError) {
-          console.error('❌ Error cargando asistencias:', attendanceError);
-          userAttendance = false;
-          updateAttendanceUI([]);
-          updateQuorumStatus(0);
-          return;
-        }
+        if (attendanceError) throw attendanceError;
         
         userAttendance = (attendances || []).some(a => a.user_id === currentUser.id);
-        console.log('👥 Asistencia del usuario actual:', userAttendance);
+        console.log('👥 Asistencia del usuario (loadAttendanceData):', userAttendance);
         
         updateAttendanceUI(attendances || []);
         updateQuorumStatus((attendances || []).length);
 
       } catch (error) {
-        console.error("❌ Excepción en loadAttendanceData:", error);
+        console.error("❌ Error en loadAttendanceData:", error);
         userAttendance = false;
         updateAttendanceUI([]);
         updateQuorumStatus(0);
       }
     }
 
-    function igIcon() {
-      return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
-    }
-    function fbIcon() {
-      return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
-    }
+    function igIcon() { /* ... (sin cambios) ... */ return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;}
+    function fbIcon() { /* ... (sin cambios) ... */ return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;}
 
     function renderBarsTable(allVotesInWeek, barStats) {
       const voteCounts = {};
@@ -770,28 +763,32 @@
       });
 
       const statsMap = {};
-      barStats.forEach(stat => {
-        statsMap[stat.bar] = stat;
-      });
+      barStats.forEach(stat => { statsMap[stat.bar] = stat; });
 
       const sortedBars = bars.slice().sort((a, b) => {
         const aVotes = voteCounts[a.name] || 0;
         const bVotes = voteCounts[b.name] || 0;
-        if (bVotes !== aVotes) return bVotes - aVotes; // Ordenar por más votados primero
-        return a.name.localeCompare(b.name); // Luego alfabéticamente
+        if (bVotes !== aVotes) return bVotes - aVotes; 
+        return a.name.localeCompare(b.name); 
       });
 
       const tbody = document.getElementById('barsTable');
-      if (!tbody) {
-        console.error('❌ Elemento tbody#barsTable no encontrado para renderizar.');
-        return;
+      if (!tbody) return;
+      tbody.innerHTML = ''; 
+
+      if (sortedBars.length === 0 && (!currentWeek || currentWeek.estado !== 'activa')) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">La votación no está activa o no hay bares configurados.</td></tr>';
+          return;
       }
-      
-      tbody.innerHTML = ''; // Limpiar tabla antes de re-renderizar
+       if (sortedBars.length === 0 ) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
+          return;
+      }
+
 
       sortedBars.forEach(bar => {
         const votesForBar = voteCounts[bar.name] || 0;
-        const userHasVotedForThisBar = userVotes.includes(bar.name); // Usar userVotes (plural)
+        const userHasVotedForThisBar = userVotes.includes(bar.name); 
         const stats = statsMap[bar.name];
         
         let socialLinks = '';
@@ -803,13 +800,9 @@
         if (stats && stats.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
           const dateStr = formatDate(stats.ultima_visita);
-          if (days <= 14) {
-            lastVisitText = `<span class="recent-visit">${dateStr} (${days}d)</span>`;
-          } else if (days <= 60) {
-            lastVisitText = `<span class="old-visit">${dateStr} (${days}d)</span>`;
-          } else {
-            lastVisitText = `<span class="last-visit">${dateStr} (${days}d)</span>`;
-          }
+          if (days <= 14) lastVisitText = `<span class="recent-visit">${dateStr} (${days}d)</span>`;
+          else if (days <= 60) lastVisitText = `<span class="old-visit">${dateStr} (${days}d)</span>`;
+          else lastVisitText = `<span class="last-visit">${dateStr} (${days}d)</span>`;
         }
 
         const row = `
@@ -826,7 +819,7 @@
               </button>
             </td>
             <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
-              <span style="cursor: pointer;" 
+              <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}" style="cursor: ${votesForBar > 0 ? 'pointer' : 'default'};" 
                     data-bar="${encodeURIComponent(bar.name)}" 
                     data-votes="${votesForBar}"
                     data-action="showDetails">${votesForBar}</span>
@@ -836,92 +829,75 @@
         `;
         tbody.innerHTML += row;
       });
-      // No es necesario llamar a setupEventListeners() aquí si ya se llamó después de mostrar mainContent
-      // y si se usa delegación de eventos en el tbody.
     }
 
-    function updateWinner(allVotesInWeek) {
-      const winnerDiv = document.getElementById("winner");
-      if (!winnerDiv) return;
+    function updateWinner(allVotesInWeek) { /* ... (sin cambios significativos, solo asegurar que maxVotes sea al menos 0) ... */
+        const winnerDiv = document.getElementById("winner");
+        if (!winnerDiv) return;
 
-      if (!allVotesInWeek || allVotesInWeek.length === 0) {
-        winnerDiv.style.display = "none";
-        return;
-      }
+        if (!allVotesInWeek || allVotesInWeek.length === 0) {
+            winnerDiv.style.display = "none";
+            return;
+        }
 
-      const voteCounts = {};
-      allVotesInWeek.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
+        const voteCounts = {};
+        allVotesInWeek.forEach(vote => {
+            voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        });
 
-      const maxVotes = Math.max(0, ...Object.values(voteCounts)); // Asegurar que sea al menos 0
-      if (maxVotes === 0 && Object.keys(voteCounts).length === 0) { // Si no hay votos en absoluto
-         winnerDiv.style.display = "none";
-         return;
-      }
+        const maxVotes = Math.max(0, ...Object.values(voteCounts)); 
+        if (maxVotes === 0 && Object.keys(voteCounts).length === 0) {
+            winnerDiv.style.display = "none";
+            return;
+        }
 
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+        const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
 
-      if (winners.length === 1) {
-        winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
-      } else if (winners.length > 1) {
-        const names = winners.map(w => `<strong>${w}</strong>`).join(", ");
-        winnerDiv.innerHTML = `🤝 Empate actual entre: ${names} (${maxVotes} votos c/u) 🤝`;
-      } else { // No hay ganadores (ej. todos 0 votos)
-        winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
-      }
-      winnerDiv.style.display = "block";
+        if (winners.length === 1) {
+            winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
+        } else if (winners.length > 1) {
+            const names = winners.map(w => `<strong>${w}</strong>`).join(" y ");
+            winnerDiv.innerHTML = `🤝 Empate actual: ${names} (${maxVotes} votos c/u) 🤝`;
+        } else { 
+            winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
+        }
+        winnerDiv.style.display = "block";
     }
     
     function updateAttendanceUI(attendances) {
         const confirmedListEl = document.getElementById('confirmedList');
-        // const attendanceButton = document.getElementById('attendanceBtn'); // Si tuvieras un botón manual
-
-        if (!confirmedListEl) {
-            console.error("Elemento confirmedList no encontrado");
-            return;
-        }
-
-        // Actualizar estado del botón manual si existiera
-        // if (attendanceButton) {
-        //     attendanceButton.textContent = userAttendance ? '✅ Confirmado (manual)' : 'Confirmar Asistencia (manual)';
-        //     attendanceButton.className = userAttendance ? 'attendance-btn confirmed mt-2' : 'attendance-btn mt-2';
-        //     attendanceButton.disabled = !(currentWeek?.estado === 'activa');
-        // }
+        if (!confirmedListEl) return;
 
         if (!attendances || attendances.length === 0) {
-            confirmedListEl.innerHTML = '<em class="text-muted">Nadie ha confirmado asistencia (nadie ha votado).</em>';
+            confirmedListEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
         } else {
             confirmedListEl.innerHTML = attendances.map(att => {
-                const userName = att.usuarios ? att.usuarios.nombre : 'Usuario Desconocido';
-                const avatarUrl = att.usuarios ? att.usuarios.avatar_url : ''; // Usar string vacío si no hay avatar
+                const userName = att.usuarios?.nombre || 'Usuario Desconocido';
+                const avatarUrl = att.usuarios?.avatar_url || ''; 
+                const avatarPlaceholder = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;background-color:#6c757d;color:white;font-size:0.8em;">${userName.substring(0,1).toUpperCase()}</div>`;
                 return `
                     <div class="d-flex align-items-center mb-1">
-                        <img src="${avatarUrl}" class="rounded-circle me-2" width="24" height="24" alt="Avatar de ${userName}" 
-                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22grey%22><path d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'; this.onerror=null;">
+                        ${avatarUrl ? `<img src="${avatarUrl}" class="rounded-circle me-2" width="24" height="24" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholder}'">` : avatarPlaceholder}
                         <span>${userName}</span>
                     </div>`;
             }).join('');
         }
     }
 
-
-    function updateQuorumStatus(count) {
-      const statusEl = document.getElementById('quorumStatus');
-      if (!statusEl) return;
-      
-      const quorumNeeded = 3; // Puedes hacer esto configurable si quieres
-
-      if (count >= quorumNeeded) {
-        statusEl.className = 'quorum-status quorum-yes';
-        statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
-      } else if (count > 0) {
-        statusEl.className = 'quorum-status quorum-pending';
-        statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${quorumNeeded - count} para quorum`;
-      } else {
-        statusEl.className = 'quorum-status quorum-no';
-        statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${quorumNeeded} para hacer CN`;
-      }
+    function updateQuorumStatus(count) { /* ... (sin cambios) ... */
+        const statusEl = document.getElementById('quorumStatus');
+        if (!statusEl) return;
+        const quorumNeeded = 3; 
+        if (count >= quorumNeeded) {
+            statusEl.className = 'quorum-status quorum-yes';
+            statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+        } else if (count > 0) {
+            statusEl.className = 'quorum-status quorum-pending';
+            statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${quorumNeeded - count} para quorum`;
+        } else {
+            statusEl.className = 'quorum-status quorum-no';
+            statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${quorumNeeded} para hacer CN`;
+        }
     }
 
     async function toggleVote(barName, btnElement) {
@@ -931,7 +907,6 @@
         return;
       }
 
-      const originalButtonText = btnElement.innerHTML; // Guardar el texto/icono original
       btnElement.innerHTML = '⏳';
       btnElement.disabled = true;
 
@@ -939,425 +914,244 @@
         const userAlreadyVotedForThis = userVotes.includes(barName);
 
         if (userAlreadyVotedForThis) {
-          // --- DESVOTAR ---
-          console.log(`🗑️ Usuario ${currentUser.email} está quitando voto para ${barName}`);
-          const { error } = await supabase
-            .from('votos')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('semana_id', currentWeek.id)
-            .eq('bar', barName);
-
+          console.log(`🗑️ ${currentUser.email} quitando voto para ${barName}`);
+          const { error } = await supabase.from('votos').delete().match({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
           if (error) throw error;
-          console.log(`✅ Voto para ${barName} eliminado de la BD.`);
-          userVotes = userVotes.filter(votedBar => votedBar !== barName); // Actualizar local
+          userVotes = userVotes.filter(votedBar => votedBar !== barName); 
 
-          if (userVotes.length === 0) { // Si no quedan más votos
+          if (userVotes.length === 0) { 
             console.log('🗑️ No quedan más votos, eliminando asistencia...');
-            const { error: delAttErr } = await supabase
-              .from('asistencias')
-              .delete()
-              .eq('user_id', currentUser.id)
-              .eq('semana_id', currentWeek.id);
+            const { error: delAttErr } = await supabase.from('asistencias').delete().match({ user_id: currentUser.id, semana_id: currentWeek.id });
             if (delAttErr) console.error("Error al eliminar asistencia:", delAttErr);
-            else console.log("✅ Asistencia eliminada de la BD.");
-            userAttendance = false; // Actualizar local
+            userAttendance = false; 
           }
-
         } else {
-          // --- VOTAR ---
-          // Aquí podrías añadir lógica para limitar el número de votos si quieres
-          // Ejemplo: if (userVotes.length >= MAX_VOTES) { alert("Límite alcanzado"); throw new Error("Max votes"); }
-          console.log(`➕ Usuario ${currentUser.email} está votando por ${barName}`);
-          const { error } = await supabase
-            .from('votos')
-            .insert([{ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName }]);
-          
+          console.log(`➕ ${currentUser.email} votando por ${barName}`);
+          const { error } = await supabase.from('votos').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName }]);
           if (error) throw error;
-          console.log(`✅ Voto por ${barName} agregado a la BD.`);
-          userVotes.push(barName); // Actualizar local
+          userVotes.push(barName); 
 
-          // Asegurar asistencia si es el primer voto o si no estaba ya confirmado
           if (!userAttendance) {
             console.log('➕ Marcando asistencia por nuevo voto...');
-            // Verificar si ya existe para evitar error de duplicado (aunque upsert sería mejor si la tabla lo permite)
-            const { data: existingAtt, error: checkAttErr } = await supabase
-                .from('asistencias')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .eq('semana_id', currentWeek.id)
-                .maybeSingle();
-
+            const { data: existingAtt, error: checkAttErr } = await supabase.from('asistencias').select('id').match({ user_id: currentUser.id, semana_id: currentWeek.id }).maybeSingle();
             if (checkAttErr && checkAttErr.code !== 'PGRST116') throw checkAttErr;
-
             if (!existingAtt) {
-                const { error: insAttErr } = await supabase
-                    .from('asistencias')
-                    .insert([{ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true }]);
+                const { error: insAttErr } = await supabase.from('asistencias').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true }]);
                 if (insAttErr) console.error("Error al marcar asistencia:", insAttErr);
-                else console.log("✅ Asistencia marcada en la BD.");
             }
-            userAttendance = true; // Actualizar local
+            userAttendance = true; 
           }
         }
-
-        // Recargar todos los datos para reflejar los cambios desde la BD
-        // Esto asegura consistencia si hubo triggers o cambios concurrentes.
-        await loadVotingData(); // Esto actualizará userVotes desde BD y re-renderizará la tabla (incluyendo el botón)
-        await loadAttendanceData(); // Esto actualizará userAttendance y la lista
+        // CAMBIO: Llamar a loadVotingData y loadAttendanceData DESPUÉS de que las operaciones de BD hayan terminado
+        // y las variables locales (userVotes, userAttendance) estén actualizadas.
+        // Esto asegura que la UI se reconstruya con el estado más reciente.
+        await loadVotingData(); 
+        await loadAttendanceData();
 
       } catch (error) {
         console.error('❌ Error completo en toggleVote:', error);
         alert('Error al procesar el voto: ' + error.message);
-        // Si hay error, es más seguro recargar todo desde la BD para restaurar un estado consistente
+        // En caso de error, recargar desde la BD para asegurar consistencia
         await loadVotingData();
         await loadAttendanceData();
       } 
-      // 'finally' no es estrictamente necesario para el botón si renderBarsTable lo reconstruye siempre.
-      // Si no, aquí se restauraría el botón:
-      // finally {
-      //   if (btnElement && currentWeek?.estado === 'activa') {
-      //     btnElement.disabled = false;
-      //     // renderBarsTable se encarga de poner el texto/icono correcto.
-      //   }
-      // }
+      // El botón se reactivará y su texto se actualizará en renderBarsTable
+      // que es llamado por loadVotingData.
     }
 
     async function showVoteDetails(barName, voteCount) {
-      console.log('👀 Mostrando detalles de votos para:', barName, `(${voteCount} votos)`);
-      
-      if (voteCount === 0) {
-        console.log('ℹ️ No hay votos para este bar.');
-        // Podrías mostrar un mensaje en el modal igualmente
-        // return; 
-      }
+      console.log('👀 Detalles de votos para:', barName, `(${voteCount} votos)`);
       
       const modalEl = document.getElementById('voteDetailsModal');
-      const titleEl = document.getElementById('voteDetailsTitle');
+      const titleEl = document.getElementById('voteDetailsModalLabel'); // CAMBIO: ID del label
       const bodyEl = document.getElementById('voteDetailsBody');
 
-      if (!modalEl || !titleEl || !bodyEl) {
-        console.error('❌ Elementos del modal no encontrados');
-        return;
-      }
+      if (!modalEl || !titleEl || !bodyEl) return;
       
       titleEl.textContent = `Votos por ${barName}`;
-      bodyEl.innerHTML = '<p>Cargando votantes...</p>'; // Feedback visual
+      if (voteCount === 0) {
+          bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Nadie ha votado por este bar aún.</li>';
+      } else {
+          bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Cargando votantes...</li>';
+      }
 
-      try {
-        const { data: votesData, error } = await supabase
-          .from('votos')
-          .select(`
-            usuarios (nombre, avatar_url) 
-          `)
-          .eq('semana_id', currentWeek.id)
-          .eq('bar', barName);
+      // CAMBIO: Crear o reutilizar instancia del modal de Bootstrap
+      if (!voteDetailsModalInstance) {
+          voteDetailsModalInstance = new bootstrap.Modal(modalEl);
+      }
+      voteDetailsModalInstance.show(); // Mostrar modal ANTES de cargar datos (con mensaje de carga)
 
-        if (error) throw error;
+      if (voteCount > 0) {
+          try {
+            const { data: votesData, error } = await supabase
+              .from('votos')
+              .select(`usuarios (nombre, avatar_url)`)
+              .eq('semana_id', currentWeek.id)
+              .eq('bar', barName);
 
-        console.log('📊 Votantes encontrados:', votesData);
+            if (error) throw error;
 
-        if (!votesData || votesData.length === 0) {
-          bodyEl.innerHTML = '<p class="text-muted">Nadie ha votado por este bar aún.</p>';
-        } else {
-          const votersHtml = votesData
-            .filter(vote => vote.usuarios && vote.usuarios.nombre) 
-            .map(vote => {
-              const avatar = vote.usuarios.avatar_url || ''; // Default a string vacía
-              return `
-                <div class="d-flex align-items-center mb-2 p-2 rounded" style="background: rgba(255,255,255,0.1);">
-                  <img src="${avatar}" class="rounded-circle me-3" width="40" height="40" alt="Avatar de ${vote.usuarios.nombre}" 
-                       onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 24 24%22 fill=%22grey%22><path d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'; this.onerror=null;">
-                  <span style="font-size: 1.1rem;">${vote.usuarios.nombre}</span>
-                </div>`;
-            }).join('');
-          
-          bodyEl.innerHTML = votersHtml || '<p class="text-muted">No se pudieron cargar los nombres de los votantes.</p>';
-        }
-        
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-
-      } catch (error) {
-        console.error('❌ Error cargando detalles de votos:', error);
-        bodyEl.innerHTML = '<p class="text-danger">Error al cargar detalles: ' + error.message + '</p>';
-        const modal = new bootstrap.Modal(modalEl); // Asegurar que se muestre igual para ver el error
-        modal.show();
+            if (!votesData || votesData.length === 0) {
+              bodyEl.innerHTML = '<li class="list-group-item text-muted-light">No se encontraron detalles de votantes.</li>';
+            } else {
+              bodyEl.innerHTML = votesData
+                .filter(vote => vote.usuarios && vote.usuarios.nombre) 
+                .map(vote => {
+                  const avatar = vote.usuarios.avatar_url || ''; 
+                  const avatarPlaceholderModal = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;background-color:#6c757d;color:white;font-size:0.9em;">${(vote.usuarios.nombre || 'U').substring(0,1).toUpperCase()}</div>`;
+                  return `
+                    <li class="list-group-item d-flex align-items-center">
+                      ${avatar ? `<img src="${avatar}" class="rounded-circle me-2" width="32" height="32" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholderModal}'">` : avatarPlaceholderModal}
+                      <span>${vote.usuarios.nombre}</span>
+                    </li>`;
+                }).join('');
+            }
+          } catch (error) {
+            console.error('❌ Error cargando detalles de votos:', error);
+            bodyEl.innerHTML = '<li class="list-group-item text-danger">Error al cargar detalles.</li>';
+          }
       }
     }
     
-    // toggleAttendance (manual) - Si decides añadir un botón de asistencia manual
-    /*
-    async function toggleAttendance() {
-        if (!currentUser || !currentWeek || currentWeek.estado !== 'activa') {
-            alert("No puedes cambiar tu asistencia en este momento.");
-            return;
-        }
-        console.log("🔄 Toggleando asistencia manual...");
-        const attendanceButton = document.getElementById('attendanceBtn');
-        if(attendanceButton) attendanceButton.innerHTML = '⏳';
-
-
+    async function loadHistory() { /* ... (sin cambios significativos) ... */
+        if (!currentUser) { showAuthContainer(); return; }
+        const historyDiv = document.getElementById('historyContent');
+        if (!historyDiv) return;
+        historyDiv.innerHTML = '<p class="text-muted-light">Cargando historial...</p>';
         try {
-            if (userAttendance) { // Si está confirmado, quiere desconfirmar
-                const { error } = await supabase
-                    .from('asistencias')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('semana_id', currentWeek.id);
-                if (error) throw error;
-                userAttendance = false;
-                console.log("✅ Asistencia (manual) eliminada.");
-            } else { // Si no está confirmado, quiere confirmar
-                 const { data: existingAtt, error: checkAttErr } = await supabase
-                    .from('asistencias')
-                    .select('id')
-                    .eq('user_id', currentUser.id)
-                    .eq('semana_id', currentWeek.id)
-                    .maybeSingle();
-
-                if (checkAttErr && checkAttErr.code !== 'PGRST116') throw checkAttErr;
-
-                if (!existingAtt) {
-                    const { error } = await supabase
-                        .from('asistencias')
-                        .insert({ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true });
-                    if (error) throw error;
-                } else { // Si ya existe, actualizarlo (si la lógica lo permite)
-                    const { error } = await supabase
-                        .from('asistencias')
-                        .update({ confirmado: true })
-                        .eq('id', existingAtt.id);
-                    if (error) throw error;
-                }
-                userAttendance = true;
-                console.log("✅ Asistencia (manual) confirmada/actualizada.");
+            const { data: weeks, error } = await supabase.from('semanas_cn').select('*').eq('estado', 'finalizada').order('fecha_martes', { ascending: false }).limit(20);
+            if(error) throw error;
+            if (!weeks || weeks.length === 0) {
+                historyDiv.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>'; return;
             }
-            await loadAttendanceData(); // Recargar y actualizar UI
+            historyDiv.innerHTML = weeks.map(week => `
+            <div class="stats-card"> <div class="row">
+                <div class="col-md-3"><strong>${formatDate(week.fecha_martes)}</strong></div>
+                <div class="col-md-3">${week.hubo_quorum && week.bar_ganador ? `🏆 <strong>${week.bar_ganador}</strong>` : (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}</div>
+                <div class="col-md-3">👥 ${week.total_asistentes || 0} asistentes</div>
+                <div class="col-md-3">🗳️ ${week.total_votos || 0} votos</div>
+            </div> </div>`).join('');
         } catch (error) {
-            alert('Error al cambiar asistencia: ' + error.message);
-            console.error("❌ Error en toggleAttendance (manual):", error);
-            await loadAttendanceData(); // Revertir UI a estado de BD
+            console.error('❌ Error cargando historial:', error);
+            historyDiv.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
+            if (error.message?.includes('JWT')) handleSignOut();
         }
     }
-    */
 
+    async function loadStats() { /* ... (CAMBIO: mensajes mejorados para "sin datos") ... */
+        if (!currentUser) { return; }
+        const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
+        const noDataMsg = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+        const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
 
-    async function loadHistory() {
-      if (!currentUser) {
-        console.log('❌ Usuario no autenticado, no se puede cargar historial');
-        showAuthContainer(); // O simplemente mostrar un mensaje en el tab
-        return;
-      }
-      const historyDiv = document.getElementById('historyContent');
-      if (!historyDiv) return;
-      historyDiv.innerHTML = '<p class="text-muted">Cargando historial...</p>';
-
-      try {
-        const { data: weeks, error } = await supabase
-          .from('semanas_cn') // Vista o tabla con historial de semanas
-          .select('*')
-          .eq('estado', 'finalizada')
-          .order('fecha_martes', { ascending: false })
-          .limit(20);
-
-        if(error) throw error;
-        
-        if (!weeks || weeks.length === 0) {
-          historyDiv.innerHTML = '<p class="text-muted">No hay historial disponible aún.</p>';
-          return;
-        }
-
-        historyDiv.innerHTML = weeks.map(week => `
-          <div class="stats-card">
-            <div class="row">
-              <div class="col-md-3">
-                <strong>${formatDate(week.fecha_martes)}</strong>
-              </div>
-              <div class="col-md-3">
-                ${week.hubo_quorum && week.bar_ganador ? 
-                  `🏆 <strong>${week.bar_ganador}</strong>` : 
-                  (week.hubo_quorum ? '🤔 Sin ganador claro' : '❌ Sin quorum')
-                }
-              </div>
-              <div class="col-md-3">
-                👥 ${week.total_asistentes || 0} asistentes
-              </div>
-              <div class="col-md-3">
-                🗳️ ${week.total_votos || 0} votos
-              </div>
-            </div>
-          </div>
-        `).join('');
-      } catch (error) {
-        console.error('❌ Error cargando historial:', error);
-        historyDiv.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
-        if (error.message?.includes('JWT')) handleSignOut();
-      }
-    }
-
-    async function loadStats() {
-      if (!currentUser) {
-        console.log('❌ Usuario no autenticado, no se pueden cargar estadísticas');
-        // Podrías limpiar los divs o mostrar un mensaje
-        return;
-      }
-      // Mostrar feedback de carga
-      ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<p class="text-muted">Cargando estadísticas...</p>';
-      });
-
-      try {
-        const [
-          { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError },
-          { data: cnStatsData, error: cnStatsError }
-        ] = await Promise.all([
-          supabase
-            .from('visitas_bares') // Vista o tabla
-            .select('bar, COUNT(*) as visitas')
-            .group('bar')
-            .order('visitas', { ascending: false })
-            .limit(10),
-          supabase
-            .from('estadisticas_bares') // Vista o tabla
-            .select('*')
-            // .order('dias_desde_ultima_visita', { ascending: true, nullsFirst: false }), // Los más recientes primero
-            .order('ultima_visita', { ascending: false, nullsFirst: true }) // Las visitas más recientes primero
-            .limit(10), 
-          supabase
-            .from('semanas_cn') // Vista o tabla
-            .select('*')
-            .eq('estado', 'finalizada')
-        ]);
-
-        if (topBarsError) console.error("Error topBars:", topBarsError);
-        if (lastVisitsError) console.error("Error lastVisits:", lastVisitsError);
-        if (cnStatsError) console.error("Error cnStats:", cnStatsError);
-        
-        // Aún si hay errores parciales, intentar actualizar con lo que se tenga
-        updateStatsUI(topBarsData || [], lastVisitsData || [], cnStatsData || []);
-
-      } catch (error) {
-        console.error('❌ Error cargando una o más estadísticas:', error);
-        // Mostrar error en los divs correspondientes
         ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.innerHTML = '<p class="text-danger">Error al cargar.</p>';
+            if (el) el.innerHTML = loadingMsg;
         });
-        if (error.message?.includes('JWT')) handleSignOut();
-      }
+
+        try {
+            const [
+            { data: topBarsData, error: topBarsError },
+            { data: lastVisitsData, error: lastVisitsError },
+            { data: cnStatsData, error: cnStatsError }
+            ] = await Promise.all([
+            supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(10),
+            supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: true }).limit(10), 
+            supabase.from('semanas_cn').select('*').eq('estado', 'finalizada')
+            ]);
+
+            updateStatsUI(
+                topBarsError ? { error: true } : (topBarsData || []),
+                lastVisitsError ? { error: true } : (lastVisitsData || []),
+                cnStatsError ? { error: true } : (cnStatsData || [])
+            );
+
+        } catch (error) { // Error general de Promise.all
+            console.error('❌ Error cargando una o más estadísticas:', error);
+            ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.innerHTML = errorMsg;
+            });
+            if (error.message?.includes('JWT')) handleSignOut();
+        }
     }
 
-    function updateStatsUI(topBars, lastVisits, cnStats) {
-      const topBarsDiv = document.getElementById('topBars');
-      if (topBarsDiv) {
-        if (topBars.length === 0) {
-          topBarsDiv.innerHTML = '<p class="text-muted">No hay datos de visitas</p>';
-        } else {
-          topBarsDiv.innerHTML = topBars.map((bar, index) => 
-            `<div class="d-flex justify-content-between">
-              <span>${index + 1}. ${bar.bar}</span>
-              <span class="text-warning">${bar.visitas} visita(s)</span>
-            </div>`
-          ).join('');
-        }
-      }
+    function updateStatsUI(topBars, lastVisits, cnStats) { /* ... (CAMBIO: manejo de error y "sin datos") ... */
+        const noDataMsg = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+        const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
 
-      const lastVisitsDiv = document.getElementById('lastVisits');
-      if(lastVisitsDiv) {
-        if (lastVisits.length === 0) {
-          lastVisitsDiv.innerHTML = '<p class="text-muted">No hay datos de últimas visitas</p>';
-        } else {
-          lastVisitsDiv.innerHTML = lastVisits.map(bar => {
-            let statusClass = 'never-visited';
-            let statusText = 'Nunca visitado';
-            
-            if (bar.ultima_visita && bar.dias_desde_ultima_visita !== null) { // Asegurar que dias_desde_ultima_visita no sea null
-              const days = bar.dias_desde_ultima_visita;
-              statusText = `${formatDate(bar.ultima_visita)} (${days}d)`;
-              if (days <= 14) statusClass = 'recent-visit';
-              else if (days <= 60) statusClass = 'old-visit';
-              else statusClass = 'last-visit';
-            } else if (bar.ultima_visita) { // Tiene fecha pero no días (podría ser hoy)
-              statusText = `${formatDate(bar.ultima_visita)} (Reciente)`;
-              statusClass = 'recent-visit';
+        const topBarsDiv = document.getElementById('topBars');
+        if (topBarsDiv) {
+            if (topBars.error) topBarsDiv.innerHTML = errorMsg;
+            else if (topBars.length === 0) topBarsDiv.innerHTML = noDataMsg;
+            else {
+            topBarsDiv.innerHTML = topBars.map((bar, index) => 
+                `<div class="d-flex justify-content-between align-items-center py-1">
+                <span>${index + 1}. ${bar.bar}</span>
+                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
+                </div>`
+            ).join('');
             }
-            
-            return `<div class="d-flex justify-content-between">
-              <span>${bar.bar}</span>
-              <span class="${statusClass}">${statusText}</span>
-            </div>`;
-          }).join('');
         }
-      }
 
-      const cnStatsDiv = document.getElementById('cnStats');
-      if (cnStatsDiv) {
-        const totalCNs = cnStats.length;
-        const quorumCNs = cnStats.filter(cn => cn.hubo_quorum).length;
-        const totalAttendanceSum = cnStats.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0);
-        const avgAttendance = totalCNs > 0 ? (totalAttendanceSum / totalCNs).toFixed(1) : 0;
-        
-        cnStatsDiv.innerHTML = `
-          <div class="row text-center">
-            <div class="col-4">
-              <h3 class="text-warning">${totalCNs}</h3>
-              <small>CNs Realizadas</small>
-            </div>
-            <div class="col-4">
-              <h3 class="text-success">${quorumCNs}</h3>
-              <small>Con Quorum</small>
-            </div>
-            <div class="col-4">
-              <h3 class="text-info">${avgAttendance}</h3>
-              <small>Prom. Asistencia</small>
-            </div>
-          </div>
-        `;
-      }
+        const lastVisitsDiv = document.getElementById('lastVisits');
+        if(lastVisitsDiv) {
+            if (lastVisits.error) lastVisitsDiv.innerHTML = errorMsg;
+            else if (lastVisits.length === 0) lastVisitsDiv.innerHTML = noDataMsg;
+            else {
+            lastVisitsDiv.innerHTML = lastVisits.map(bar => {
+                let statusText = '<span class="never-visited">Nunca</span>';
+                if (bar.ultima_visita) {
+                    const days = bar.dias_desde_ultima_visita;
+                    let datePart = formatDate(bar.ultima_visita);
+                    if (days !== null && days !== undefined) { // Si tenemos días, mostrarlo
+                         statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
+                    } else { // Si no hay días (quizás es hoy o error en cálculo)
+                        statusText = `<span class="recent-visit">${datePart}</span>`;
+                    }
+                }
+                return `<div class="d-flex justify-content-between align-items-center py-1">
+                <span>${bar.bar}</span>
+                ${statusText}
+                </div>`;
+            }).join('');
+            }
+        }
+
+        const cnStatsDiv = document.getElementById('cnStats');
+        if (cnStatsDiv) {
+            if (cnStats.error) cnStatsDiv.innerHTML = errorMsg;
+            else { // No hay "sin datos" para esto, se mostrarán ceros.
+                const totalCNs = cnStats.length;
+                const quorumCNs = cnStats.filter(cn => cn.hubo_quorum).length;
+                const totalAttendanceSum = cnStats.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0);
+                const avgAttendance = totalCNs > 0 ? (totalAttendanceSum / totalCNs).toFixed(1) : 0;
+                cnStatsDiv.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-4"><h3 class="text-warning">${totalCNs}</h3><small class="text-muted-light">CNs Realizadas</small></div>
+                    <div class="col-4"><h3 class="text-success">${quorumCNs}</h3><small class="text-muted-light">Con Quorum</small></div>
+                    <div class="col-4"><h3 class="text-info">${avgAttendance}</h3><small class="text-muted-light">Prom. Asistencia</small></div>
+                </div>`;
+            }
+        }
     }
+
 
     document.addEventListener('DOMContentLoaded', function() {
       const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
       tabs.forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(event) {
           const target = event.target.getAttribute('data-bs-target');
-          console.log(`Tab cambiada a: ${target}`);
-          if (target === '#history') {
-            loadHistory();
-          } else if (target === '#stats') {
-            loadStats();
-          } else if (target === '#voting') {
-            // Podrías querer recargar datos de votación si ha pasado tiempo
-            // if (currentUser && currentWeek) {
-            //   Promise.all([loadVotingData(), loadAttendanceData()]);
-            // }
-          }
+          if (target === '#history') loadHistory();
+          else if (target === '#stats') loadStats();
         });
       });
-      init(); // Mover init aquí para asegurar que el DOM está listo para los selectores iniciales
-              // aunque init() ya se encarga de mostrar/ocultar contenedores.
+      init(); 
     });
 
     document.getElementById('googleSignIn').addEventListener('click', async () => {
       try {
-        console.log('🔐 Iniciando login con Google...');
-        
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin, // Asegúrate que esta URL esté en tu lista de URLs permitidas en Supabase
-            queryParams: {
-              access_type: 'offline', 
-              prompt: 'consent', 
-            },
-          }
-        });
-        
+        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin, queryParams: { access_type: 'offline', prompt: 'consent' } } });
         if (error) throw error;
-        console.log('🚀 Redirigiendo a Google...');
       } catch (error) {
         console.error('❌ Error al iniciar sesión con Google:', error);
         alert('Error al iniciar sesión: ' + error.message);
@@ -1366,115 +1160,54 @@
 
     async function signOut() {
       try {
-        console.log('🚪 Cerrando sesión...');
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error('❌ Error al cerrar sesión en Supabase:', error);
-          // Forzar limpieza local de todas formas
-        }
-        console.log('✅ Sesión cerrada en Supabase.');
-        handleSignOut(); // Limpia estado local y UI
+        await supabase.auth.signOut();
       } catch (error) {
-        console.error('❌ Error inesperado al cerrar sesión:', error);
-        handleSignOut(); // Forzar logout local
+        console.error('❌ Error al cerrar sesión en Supabase:', error);
+      } finally { // Asegurar que el handleSignOut local se ejecute siempre
+        handleSignOut(); 
       }
     }
 
-    function formatDate(dateString) {
-      if (!dateString) return 'Fecha no disponible';
-      try {
-        const date = new Date(dateString);
-        // Verificar si la fecha es válida
-        if (isNaN(date.getTime())) {
-            return 'Fecha inválida';
-        }
-        return date.toLocaleDateString('es-ES', { 
-          weekday: 'short', 
-          // year: 'numeric', // Omitir año si es muy largo
-          month: 'short', 
-          day: 'numeric' 
-        });
-      } catch (e) {
-        console.warn("Error formateando fecha:", dateString, e);
-        return dateString; // Devolver original si falla
-      }
+    function formatDate(dateString) { /* ... (sin cambios) ... */
+        if (!dateString) return 'Fecha no disponible';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) { return 'Fecha inválida'; }
+            return date.toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' });
+        } catch (e) { return dateString; }
     }
     
     function setupEventListeners() {
-        console.log('🔗 Configurando event listeners con delegación...');
-        
         const barsTableBody = document.getElementById('barsTable');
-
         if (barsTableBody) {
-            // Remover listener previo para evitar duplicados si esta función se llama múltiples veces
             barsTableBody.removeEventListener('click', handleTableClick); 
             barsTableBody.addEventListener('click', handleTableClick);
-            console.log('✅ Listener de clic configurado para #barsTable.');
-        } else {
-            console.warn("Elemento #barsTable no encontrado para configurar listeners de delegación.");
         }
     }
 
     function handleTableClick(event) {
         let targetElement = event.target;
-
-        // Buscar el botón o span si se hizo clic en un hijo (ej. el texto dentro del botón)
         const voteButton = targetElement.closest('[data-action="vote"]');
         const detailsSpan = targetElement.closest('[data-action="showDetails"]');
 
         if (voteButton) {
             const encodedBarName = voteButton.getAttribute('data-bar');
-            if (!encodedBarName) return;
+            if (!encodedBarName || voteButton.disabled) return;
             const barName = decodeURIComponent(encodedBarName);
-            
-            console.log('🎯 Botón de voto (delegado) clickeado para:', barName);
-            
-            if (voteButton.disabled) {
-                console.log('⚠️ Botón (delegado) ya está procesando, ignorando click');
-                return;
-            }
-            // No necesitamos el timeout de seguridad aquí si la UI se actualiza correctamente
-            toggleVote(barName, voteButton); // Pasamos el elemento botón
-
+            toggleVote(barName, voteButton); 
         } else if (detailsSpan) {
             const encodedBarName = detailsSpan.getAttribute('data-bar');
-            if (!encodedBarName) return;
             const voteCount = parseInt(detailsSpan.getAttribute('data-votes'), 10);
+            if (!encodedBarName || isNaN(voteCount)) return; // CAMBIO: No mostrar modal si no hay votos
             const barName = decodeURIComponent(encodedBarName);
-            
-            console.log('🎯 Detalles de voto (delegado) clickeado para:', barName);
-            showVoteDetails(barName, voteCount);
+            if (voteCount > 0) { // CAMBIO: Solo mostrar si hay votos
+                 showVoteDetails(barName, voteCount);
+            }
         }
     }
 
-
-    // Funciones de Debugging (opcional, pero útil)
-    window.debugState = function() {
-      console.log("======= DEBUG STATE =======");
-      console.log("Current User:", currentUser ? currentUser.email : "null");
-      console.log("Current Week:", currentWeek);
-      console.log("User Votes:", userVotes);
-      console.log("User Attendance:", userAttendance);
-      console.log("=========================");
-    }
-    window.forceReloadData = async function() {
-        if (!currentUser || !currentWeek) {
-            console.warn("No hay usuario o semana para forzar recarga.");
-            return;
-        }
-        console.log("🔄 Forzando recarga de datos...");
-        await loadVotingData();
-        await loadAttendanceData();
-        console.log("✅ Datos recargados forzadamente.");
-    }
-
-    // Hacer signOut global para el botón en HTML
     window.signOut = signOut; 
-    // Si decides usar toggleAttendance manual, hazla global:
-    // window.toggleAttendance = toggleAttendance;
-
-    // La inicialización se mueve a DOMContentLoaded para asegurar que todos los elementos base del HTML existen.
-    // init(); // No llamar aquí, se llama en DOMContentLoaded
+    // init(); // Se llama en DOMContentLoaded
   </script>
 </body>
 </html>
