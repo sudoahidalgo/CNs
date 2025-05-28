@@ -454,22 +454,29 @@
     let userVotes = []; // Cambiar de userVote a userVotes (array)
     let userAttendance = false;
 
-    // ========== INICIALIZACIÓN ==========
+    // ========== INICIALIZACIÓN CON SESIÓN PERSISTENTE ==========
     async function init() {
       console.log('🚀 Iniciando aplicación...');
       
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Verificar sesión con refresh automático
+        const { data: { session }, error } = await supabase.auth.getSession();
         console.log('📋 Sesión actual:', session ? 'Existe' : 'No existe');
+        
+        if (error) {
+          console.error('❌ Error obteniendo sesión:', error);
+        }
         
         if (session) {
           console.log('👤 Usuario encontrado:', session.user.email);
+          console.log('⏰ Sesión expira:', new Date(session.expires_at * 1000));
           await handleAuthSuccess(session);
         } else {
           console.log('🔐 Mostrando pantalla de login');
           showAuthContainer();
         }
 
+        // Listener mejorado para cambios de autenticación
         supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('🔄 Cambio de autenticación:', event, session ? session.user.email : 'Sin sesión');
           
@@ -478,20 +485,75 @@
             await handleAuthSuccess(session);
           } else if (event === 'SIGNED_OUT') {
             console.log('👋 Logout detectado');
-            showAuthContainer();
+            handleSignOut();
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            console.log('🔄 Token refrescado');
+            currentUser = session.user;
+          } else if (event === 'USER_UPDATED' && session) {
+            console.log('👤 Usuario actualizado');
+            currentUser = session.user;
           }
         });
+
+        // Auto-refresh de sesión cada 30 minutos
+        setInterval(async () => {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              console.log('🔄 Verificando sesión automáticamente...');
+              const expiresAt = new Date(session.expires_at * 1000);
+              const now = new Date();
+              const timeLeft = expiresAt.getTime() - now.getTime();
+              const minutesLeft = Math.floor(timeLeft / 1000 / 60);
+              
+              console.log(`⏰ Sesión expira en ${minutesLeft} minutos`);
+              
+              // Si quedan menos de 10 minutos, intentar refrescar
+              if (minutesLeft < 10) {
+                console.log('🔄 Refrescando sesión automáticamente...');
+                await supabase.auth.refreshSession();
+              }
+            } else {
+              console.log('❌ No hay sesión, redirigiendo a login');
+              handleSignOut();
+            }
+          } catch (error) {
+            console.error('❌ Error verificando sesión:', error);
+          }
+        }, 30 * 60 * 1000); // Cada 30 minutos
+
       } catch (error) {
         console.error('❌ Error en inicialización:', error);
         showAuthContainer();
       }
     }
 
+    function handleSignOut() {
+      console.log('🚪 Procesando logout...');
+      
+      // Limpiar variables globales
+      currentUser = null;
+      currentWeek = null;
+      userVotes = [];
+      userAttendance = false;
+      
+      // Mostrar pantalla de login
+      showAuthContainer();
+      
+      // Limpiar cualquier timer o listener activo
+      document.removeEventListener('click', handleGlobalClick);
+    }
+
     function showAuthContainer() {
       console.log('🔐 Mostrando contenedor de autenticación');
-      document.getElementById('authContainer').style.display = 'block';
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('userInfo').style.display = 'none';
+      
+      const authContainer = document.getElementById('authContainer');
+      const mainContent = document.getElementById('mainContent');
+      const userInfo = document.getElementById('userInfo');
+      
+      if (authContainer) authContainer.style.display = 'block';
+      if (mainContent) mainContent.style.display = 'none';
+      if (userInfo) userInfo.style.display = 'none';
     }
 
     async function handleAuthSuccess(session) {
@@ -506,9 +568,13 @@
         await ensureCurrentWeek();
         
         console.log('🖥️ Mostrando interfaz principal...');
-        document.getElementById('authContainer').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        document.getElementById('userInfo').style.display = 'flex';
+        const authContainer = document.getElementById('authContainer');
+        const mainContent = document.getElementById('mainContent');
+        const userInfo = document.getElementById('userInfo');
+        
+        if (authContainer) authContainer.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+        if (userInfo) userInfo.style.display = 'flex';
         
         // Verificar que los elementos existen antes de asignar valores
         const userNameEl = document.getElementById('userName');
@@ -981,62 +1047,97 @@
     }
 
     async function loadHistory() {
-      const { data: weeks } = await supabase
-        .from('semanas_cn')
-        .select('*')
-        .eq('estado', 'finalizada')
-        .order('fecha_martes', { ascending: false })
-        .limit(20);
-
-      const historyDiv = document.getElementById('historyContent');
-      
-      if (!weeks || weeks.length === 0) {
-        historyDiv.innerHTML = '<p class="text-muted">No hay historial disponible aún.</p>';
+      // Verificar autenticación
+      if (!currentUser) {
+        console.log('❌ Usuario no autenticado, no se puede cargar historial');
+        showAuthContainer();
         return;
       }
 
-      historyDiv.innerHTML = weeks.map(week => `
-        <div class="stats-card">
-          <div class="row">
-            <div class="col-md-3">
-              <strong>${formatDate(week.fecha_martes)}</strong>
-            </div>
-            <div class="col-md-3">
-              ${week.hubo_quorum ? 
-                `🏆 <strong>${week.bar_ganador}</strong>` : 
-                '❌ Sin quorum'
-              }
-            </div>
-            <div class="col-md-3">
-              👥 ${week.total_asistentes} asistentes
-            </div>
-            <div class="col-md-3">
-              🗳️ ${week.total_votos} votos
+      try {
+        const { data: weeks } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .eq('estado', 'finalizada')
+          .order('fecha_martes', { ascending: false })
+          .limit(20);
+
+        const historyDiv = document.getElementById('historyContent');
+        
+        if (!historyDiv) {
+          console.error('❌ Element historyContent not found');
+          return;
+        }
+        
+        if (!weeks || weeks.length === 0) {
+          historyDiv.innerHTML = '<p class="text-muted">No hay historial disponible aún.</p>';
+          return;
+        }
+
+        historyDiv.innerHTML = weeks.map(week => `
+          <div class="stats-card">
+            <div class="row">
+              <div class="col-md-3">
+                <strong>${formatDate(week.fecha_martes)}</strong>
+              </div>
+              <div class="col-md-3">
+                ${week.hubo_quorum ? 
+                  `🏆 <strong>${week.bar_ganador}</strong>` : 
+                  '❌ Sin quorum'
+                }
+              </div>
+              <div class="col-md-3">
+                👥 ${week.total_asistentes} asistentes
+              </div>
+              <div class="col-md-3">
+                🗳️ ${week.total_votos} votos
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      } catch (error) {
+        console.error('❌ Error cargando historial:', error);
+        if (error.message?.includes('JWT')) {
+          console.log('🔐 Sesión expirada, redirigiendo a login');
+          handleSignOut();
+        }
+      }
     }
 
     async function loadStats() {
-      const { data: topBars } = await supabase
-        .from('visitas_bares')
-        .select('bar, COUNT(*) as visitas')
-        .group('bar')
-        .order('visitas', { ascending: false })
-        .limit(10);
+      // Verificar autenticación
+      if (!currentUser) {
+        console.log('❌ Usuario no autenticado, no se pueden cargar estadísticas');
+        showAuthContainer();
+        return;
+      }
 
-      const { data: lastVisits } = await supabase
-        .from('estadisticas_bares')
-        .select('*')
-        .order('dias_desde_ultima_visita', { ascending: false });
+      try {
+        const { data: topBars } = await supabase
+          .from('visitas_bares')
+          .select('bar, COUNT(*) as visitas')
+          .group('bar')
+          .order('visitas', { ascending: false })
+          .limit(10);
 
-      const { data: cnStats } = await supabase
-        .from('semanas_cn')
-        .select('*')
-        .eq('estado', 'finalizada');
+        const { data: lastVisits } = await supabase
+          .from('estadisticas_bares')
+          .select('*')
+          .order('dias_desde_ultima_visita', { ascending: false });
 
-      updateStatsUI(topBars || [], lastVisits || [], cnStats || []);
+        const { data: cnStats } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .eq('estado', 'finalizada');
+
+        updateStatsUI(topBars || [], lastVisits || [], cnStats || []);
+      } catch (error) {
+        console.error('❌ Error cargando estadísticas:', error);
+        if (error.message?.includes('JWT')) {
+          console.log('🔐 Sesión expirada, redirigiendo a login');
+          handleSignOut();
+        }
+      }
     }
 
     function updateStatsUI(topBars, lastVisits, cnStats) {
@@ -1113,25 +1214,46 @@
       });
     });
 
-    // Funciones de autenticación
+    // Funciones de autenticación con sesión persistente
     document.getElementById('googleSignIn').addEventListener('click', async () => {
       try {
+        console.log('🔐 Iniciando login con Google...');
+        
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo: window.location.origin,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
           }
         });
+        
         if (error) throw error;
+        
+        console.log('🚀 Redirigiendo a Google...');
       } catch (error) {
+        console.error('❌ Error al iniciar sesión:', error);
         alert('Error al iniciar sesión: ' + error.message);
       }
     });
 
     async function signOut() {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        alert('Error al cerrar sesión: ' + error.message);
+      try {
+        console.log('🚪 Cerrando sesión...');
+        
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('❌ Error al cerrar sesión:', error);
+          alert('Error al cerrar sesión: ' + error.message);
+        } else {
+          console.log('✅ Sesión cerrada correctamente');
+          handleSignOut();
+        }
+      } catch (error) {
+        console.error('❌ Error inesperado al cerrar sesión:', error);
+        handleSignOut(); // Forzar logout local
       }
     }
 
