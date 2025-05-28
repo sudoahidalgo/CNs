@@ -773,6 +773,7 @@
 
     async function toggleVote(barName, btn) {
       console.log('🗳️ Intentando votar por:', barName);
+      console.log('🔍 Voto actual del usuario:', userVote);
       
       if (!currentWeek) {
         console.log('❌ No hay semana actual disponible');
@@ -808,13 +809,32 @@
             .eq('semana_id', currentWeek.id);
 
           if (error) {
-            console.error('Error eliminando voto:', error);
+            console.error('❌ Error eliminando voto:', error);
             throw error;
           }
           
           console.log('✅ Voto eliminado exitosamente');
+          
+        } else if (userVote) {
+          // Si ya tiene un voto diferente, hacer UPDATE en lugar de UPSERT
+          console.log('🔄 Cambiando voto de', userVote, 'a', barName);
+          
+          const { error } = await supabase
+            .from('votos')
+            .update({ bar: barName })
+            .eq('user_id', currentUser.id)
+            .eq('semana_id', currentWeek.id);
+
+          if (error) {
+            console.error('❌ Error actualizando voto:', error);
+            throw error;
+          }
+          
+          console.log('✅ Voto actualizado exitosamente');
+          
         } else {
-          console.log('➕ Creando/actualizando voto para:', barName);
+          // Si no tiene voto, crear uno nuevo
+          console.log('➕ Creando nuevo voto para:', barName);
           
           const voteData = {
             user_id: currentUser.id,
@@ -826,22 +846,22 @@
           
           const { error } = await supabase
             .from('votos')
-            .upsert(voteData, {
-              onConflict: 'user_id,semana_id'
-            });
+            .insert([voteData]);
 
           if (error) {
-            console.error('Error creando voto:', error);
+            console.error('❌ Error creando voto:', error);
             throw error;
           }
           
-          console.log('✅ Voto registrado exitosamente');
+          console.log('✅ Voto creado exitosamente');
         }
 
         // Recargar datos
         console.log('🔄 Recargando datos...');
-        await loadVotingData();
-        await loadAttendanceData();
+        await Promise.all([
+          loadVotingData(),
+          loadAttendanceData()
+        ]);
         console.log('✅ Datos recargados');
         
       } catch (error) {
@@ -1134,10 +1154,25 @@
       const barName = decodeURIComponent(encodedBarName);
       console.log('🎯 Botón clickeado para:', barName);
       
+      // Prevenir doble click
+      if (btn.disabled) {
+        console.log('⚠️ Botón ya está procesando, ignorando click');
+        return;
+      }
+      
       // Debug antes de votar
       debugCurrentState();
       
-      toggleVote(barName, btn);
+      // Timeout de seguridad
+      const timeout = setTimeout(() => {
+        console.log('⏰ Timeout alcanzado, restaurando botón');
+        btn.innerHTML = btn.innerHTML === '⏳' ? '💪' : btn.innerHTML;
+        btn.disabled = false;
+      }, 10000); // 10 segundos de timeout
+      
+      toggleVote(barName, btn).finally(() => {
+        clearTimeout(timeout);
+      });
     }
 
     function handleVoteDetailsClick(encodedBarName, voteCount) {
