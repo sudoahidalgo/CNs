@@ -63,12 +63,82 @@
       border: 2px solid #ffe066;
     }
     .auth-container {
-      max-width: 400px;
-      margin: 100px auto;
-      background: rgba(36,36,36,0.95);
-      border-radius: 20px;
-      padding: 30px;
+      max-width: 500px;
+      margin: 50px auto;
+      background: linear-gradient(135deg, rgba(0, 141, 78, 0.15), rgba(255, 224, 102, 0.15));
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 40px;
       text-align: center;
+      border: 2px solid rgba(255, 224, 102, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 224, 102, 0.1) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    .auth-container h2 {
+      font-size: 2.5rem;
+      color: #ffe066;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+      position: relative;
+      z-index: 1;
+    }
+    .auth-container p {
+      font-size: 1.2rem;
+      color: #ffffff;
+      margin-bottom: 35px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+      position: relative;
+      z-index: 1;
+    }
+    #googleSignIn {
+      background: linear-gradient(45deg, #4285f4, #34a853);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 15px 40px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #googleSignIn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6);
+      background: linear-gradient(45deg, #3367d6, #2d8a47);
+    }
+    #googleSignIn:active {
+      transform: translateY(-1px);
+    }
+    .google-icon {
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #4285f4;
     }
     .main-tabs {
       margin-bottom: 30px;
@@ -197,11 +267,15 @@
 
   <!-- Auth Container -->
   <div id="authContainer" class="auth-container" style="display: none;">
-    <h2 style="color: #ffe066; margin-bottom: 20px;">🍻 CN - Martes de Birras</h2>
-    <p style="color: #fff; margin-bottom: 30px;">Inicia sesión con Google para votar y confirmar asistencia</p>
+    <h2>🍻 CN - Martes de Birras</h2>
+    <p>¡Únete a la diversión!<br>Vota por tu bar favorito y confirma tu asistencia</p>
     <button id="googleSignIn" class="btn btn-primary btn-lg">
-      📱 Iniciar sesión con Google
+      <span class="google-icon">G</span>
+      Continuar con Google
     </button>
+    <div style="margin-top: 25px; font-size: 0.9rem; color: rgba(255,255,255,0.7); position: relative; z-index: 1;">
+      🔒 Inicio de sesión seguro con tu cuenta de Google
+    </div>
   </div>
 
   <!-- Main Content -->
