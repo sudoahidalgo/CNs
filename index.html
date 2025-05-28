@@ -898,36 +898,47 @@
         } else {
           console.log('➕ Agregando nuevo voto para:', barName);
           
-          const voteData = {
-            user_id: currentUser.id,
-            semana_id: currentWeek.id,
-            bar: barName
-          };
-          
-          console.log('📝 Datos del voto:', voteData);
-          
-          const { error } = await supabase
+          // Verificar primero si ya existe (doble verificación)
+          const { data: existingVote } = await supabase
             .from('votos')
-            .insert([voteData]);
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('semana_id', currentWeek.id)
+            .eq('bar', barName)
+            .single();
 
-          if (error) {
-            console.error('❌ Error creando voto:', error);
-            throw error;
+          if (existingVote) {
+            console.log('⚠️ Voto ya existe, no se agrega duplicado');
+          } else {
+            const voteData = {
+              user_id: currentUser.id,
+              semana_id: currentWeek.id,
+              bar: barName
+            };
+            
+            console.log('📝 Datos del voto:', voteData);
+            
+            const { error } = await supabase
+              .from('votos')
+              .insert([voteData]);
+
+            if (error) {
+              console.error('❌ Error creando voto:', error);
+              throw error;
+            }
+            
+            console.log('✅ Voto agregado exitosamente');
           }
-          
-          console.log('✅ Voto agregado exitosamente');
         }
 
-        // Recargar datos con delay para asegurar que el DOM esté listo
+        // Recargar datos
         console.log('🔄 Recargando datos...');
-        
-        // Primero recargar datos de votación
         await loadVotingData();
         
-        // Luego, con un pequeño delay, recargar asistencia
+        // Recargar asistencia después de un pequeño delay
         setTimeout(async () => {
           await loadAttendanceData();
-        }, 100);
+        }, 200);
         
         console.log('✅ Datos recargados');
         
@@ -1339,6 +1350,10 @@
       
       toggleVote(barName, button).finally(() => {
         clearTimeout(timeout);
+        // Forzar actualización de la UI después del voto
+        setTimeout(() => {
+          setupEventListeners(); // Re-configurar event listeners
+        }, 300);
       });
     }
 
