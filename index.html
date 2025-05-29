@@ -255,7 +255,7 @@
     }
 
     .mobile-vote-btn {
-      background: #008d4e;
+      background: #555;
       color: white;
       border: none;
       border-radius: 6px;
@@ -266,7 +266,7 @@
     }
 
     .mobile-vote-btn.voted {
-      background: #c0392b;
+      background: #008d4e;
     }
 
     .mobile-vote-btn:disabled {
@@ -328,32 +328,6 @@
       margin-bottom: 20px;
       padding-bottom: 20px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .mobile-stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .mobile-stat-card {
-      background: rgba(40, 40, 40, 0.9);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .mobile-stat-number {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ffe066;
-    }
-
-    .mobile-stat-label {
-      font-size: 0.8rem;
-      color: #adb5bd;
-      margin-top: 4px;
     }
 
     .mobile-history-item {
@@ -485,7 +459,7 @@
     }
 
     .vote-btn {
-      background: #008d4e;
+      background: #555;
       color: #fff;
       border-radius: 10px;
       font-size: 1.1rem;
@@ -499,7 +473,7 @@
     }
 
     .vote-btn.voted {
-      background: #c0392b;
+      background: #008d4e;
     }
 
     .vote-btn:disabled {
@@ -743,14 +717,24 @@
         <!-- Stats Section -->
         <div class="mobile-stats-section">
           <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
-          <div id="mobileStatsGrid" class="mobile-stats-grid">
-            <div class="mobile-stat-card">
-              <div class="mobile-stat-number" id="mobileTotalCNs">-</div>
-              <div class="mobile-stat-label">CNs Realizadas</div>
+          
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Visitados</h4>
+            <div id="mobileTopBars">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
             </div>
-            <div class="mobile-stat-card">
-              <div class="mobile-stat-number" id="mobileQuorumCNs">-</div>
-              <div class="mobile-stat-label">Con Quorum</div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Visita por Bar</h4>
+            <div id="mobileLastVisits">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -773,25 +757,22 @@
       <div class="mobile-nav-items">
         <div class="mobile-nav-item active" data-section="voting">
           <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 11H3v10h6V11zM20 11v10h-6V11h6zM4 11l4-7 4 7M15 11l4-7 4 7"/>
+            <polyline points="20,6 9,17 4,12"/>
           </svg>
           <div class="mobile-nav-label">Votación</div>
         </div>
         <div class="mobile-nav-item" data-section="attendance">
           <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M7 13l3 3 7-7"/>
-            <path d="M21 12c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3z"/>
-            <path d="M15 12c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3z"/>
-            <path d="M9 12c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3z"/>
+            <path d="M18 11v7a2 2 0 0 1-4 0v-5h-4V5a2 2 0 0 1 4 0v6h4a2 2 0 0 1 0 4Z"/>
           </svg>
           <div class="mobile-nav-label">Asistencia</div>
         </div>
         <div class="mobile-nav-item" data-section="history">
           <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="4" y1="9" x2="20" y2="9"/>
+            <line x1="4" y1="15" x2="20" y2="15"/>
+            <line x1="10" y1="3" x2="8" y2="21"/>
+            <line x1="16" y1="3" x2="14" y2="21"/>
           </svg>
           <div class="mobile-nav-label">Historial</div>
         </div>
@@ -881,7 +862,7 @@
         <div class="row">
           <div class="col-md-6">
             <div class="stats-card">
-              <h5>🏆 Bares más Visitados</h5>
+              <h5>🏆 Top 5 Bares Más Visitados</h5>
               <div id="desktopTopBars"></div>
             </div>
           </div>
@@ -889,12 +870,6 @@
             <div class="stats-card">
               <h5>⏰ Última Visita por Bar</h5>
               <div id="desktopLastVisits"></div>
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="stats-card">
-              <h5>📈 Estadísticas de CNs</h5>
-              <div id="desktopCnStats"></div>
             </div>
           </div>
         </div>
@@ -1375,7 +1350,10 @@
       const banner = document.getElementById('mobileWinnerBanner');
       if (!banner) return;
       
+      console.log('🏆 updateMobileWinner called with votes:', allVotes.length);
+      
       if (!allVotes.length) {
+        console.log('🏆 No votes, hiding banner');
         banner.style.display = 'none';
         return;
       }
@@ -1385,14 +1363,20 @@
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
       
+      console.log('🏆 Vote counts:', voteCounts);
+      
       const maxVotes = Math.max(...Object.values(voteCounts));
       const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+      
+      console.log('🏆 Winners:', winners, 'Max votes:', maxVotes);
       
       if (winners.length === 1 && maxVotes > 0) {
         banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos)`;
         banner.style.display = 'block';
+        console.log('🏆 Banner shown for winner:', winners[0]);
       } else {
         banner.style.display = 'none';
+        console.log('🏆 Banner hidden - no clear winner');
       }
     }
 
@@ -1507,7 +1491,7 @@
                     ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
                     data-bar="${encodeURIComponent(bar.name)}" 
                     data-action="vote">
-              ${userHasVotedForThisBar ? '🍺 Quitar' : '💪 Votar'}
+              ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
             </button>
           </td>
           <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
@@ -1678,21 +1662,83 @@
     // ========== MOBILE STATS & HISTORY ==========
     async function loadMobileStats() {
       try {
-        const { data: cnStatsData, error } = await supabase
-          .from('semanas_cn')
+        // Load top 5 bars
+        const { data: topBarsData, error: topBarsError } = await supabase
+          .from('visitas_bares')
+          .select('bar, COUNT(*) as visitas')
+          .group('bar')
+          .order('visitas', { ascending: false })
+          .limit(5);
+        
+        const topBarsEl = document.getElementById('mobileTopBars');
+        if (topBarsEl) {
+          if (topBarsError || !topBarsData?.length) {
+            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+          } else {
+            topBarsEl.innerHTML = topBarsData.map((bar, i) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                <span style="font-weight: 500;">${i + 1}. ${bar.bar}</span>
+                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${bar.visitas}</span>
+              </div>
+            `).join('');
+          }
+        }
+        
+        // Load last visits for ALL bars
+        const { data: lastVisitsData, error: lastVisitsError } = await supabase
+          .from('estadisticas_bares')
           .select('*')
-          .eq('estado', 'finalizada');
+          .order('ultima_visita', { ascending: false, nullsFirst: false });
         
-        if (error) throw error;
-        
-        const totalCNs = cnStatsData?.length || 0;
-        const quorumCNs = cnStatsData?.filter(cn => cn.hubo_quorum).length || 0;
-        
-        const totalEl = document.getElementById('mobileTotalCNs');
-        const quorumEl = document.getElementById('mobileQuorumCNs');
-        
-        if (totalEl) totalEl.textContent = totalCNs;
-        if (quorumEl) quorumEl.textContent = quorumCNs;
+        const lastVisitsEl = document.getElementById('mobileLastVisits');
+        if (lastVisitsEl) {
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando datos</div>';
+          } else {
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+              return {
+                name: bar.name,
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+              };
+            }).sort((a, b) => {
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            });
+            
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
+              let visitText = 'Nunca';
+              let visitClass = 'never-visited';
+              
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                const dateStr = formatDate(bar.ultima_visita);
+                if (days <= 14) {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'recent-visit';
+                } else if (days <= 60) {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'old-visit';
+                } else {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'last-visit';
+                }
+              }
+              
+              return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                  <span style="font-weight: 500;">${bar.name}</span>
+                  <span class="${visitClass}" style="font-size: 0.8rem;">${visitText}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
         
       } catch (error) {
         console.error('❌ Error loading mobile stats:', error);
@@ -1776,7 +1822,7 @@
       const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
       const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
       
-      ['desktopTopBars', 'desktopLastVisits', 'desktopCnStats'].forEach(id => {
+      ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = loadingMsg;
       });
@@ -1784,15 +1830,13 @@
       try {
         const [
           { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError },
-          { data: cnStatsData, error: cnStatsError }
+          { data: lastVisitsData, error: lastVisitsError }
         ] = await Promise.all([
-          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(10),
-          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: true }).limit(10),
-          supabase.from('semanas_cn').select('*').eq('estado', 'finalizada')
+          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
+          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false })
         ]);
         
-        // Top bars
+        // Top 5 bars
         const topBarsEl = document.getElementById('desktopTopBars');
         if (topBarsEl) {
           if (topBarsError || !topBarsData?.length) {
@@ -1806,13 +1850,29 @@
           }
         }
         
-        // Last visits
+        // All bars with last visits
         const lastVisitsEl = document.getElementById('desktopLastVisits');
         if (lastVisitsEl) {
-          if (lastVisitsError || !lastVisitsData?.length) {
-            lastVisitsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = errorMsg;
           } else {
-            lastVisitsEl.innerHTML = lastVisitsData.map(bar => {
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+              return {
+                name: bar.name,
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+              };
+            }).sort((a, b) => {
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            });
+            
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
               let statusText = '<span class="never-visited">Nunca</span>';
               if (bar.ultima_visita) {
                 const days = bar.dias_desde_ultima_visita;
@@ -1825,36 +1885,16 @@
               }
               return `
                 <div class="d-flex justify-content-between align-items-center py-1">
-                  <span>${bar.bar}</span>
+                  <span>${bar.name}</span>
                   ${statusText}
                 </div>`;
             }).join('');
           }
         }
         
-        // CN Stats
-        const cnStatsEl = document.getElementById('desktopCnStats');
-        if (cnStatsEl) {
-          if (cnStatsError) {
-            cnStatsEl.innerHTML = errorMsg;
-          } else {
-            const totalCNs = cnStatsData?.length || 0;
-            const quorumCNs = cnStatsData?.filter(cn => cn.hubo_quorum).length || 0;
-            const totalAttendanceSum = cnStatsData?.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0) || 0;
-            const avgAttendance = totalCNs > 0 ? (totalAttendanceSum / totalCNs).toFixed(1) : 0;
-            
-            cnStatsEl.innerHTML = `
-              <div class="row text-center">
-                <div class="col-4"><h3 class="text-warning">${totalCNs}</h3><small class="text-muted-light">CNs Realizadas</small></div>
-                <div class="col-4"><h3 class="text-success">${quorumCNs}</h3><small class="text-muted-light">Con Quorum</small></div>
-                <div class="col-4"><h3 class="text-info">${avgAttendance}</h3><small class="text-muted-light">Prom. Asistencia</small></div>
-              </div>`;
-          }
-        }
-        
       } catch (error) {
         console.error('❌ Error loading desktop stats:', error);
-        ['desktopTopBars', 'desktopLastVisits', 'desktopCnStats'].forEach(id => {
+        ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.innerHTML = errorMsg;
         });
