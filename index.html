@@ -2,374 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Corky Nights 🍺</title>
+  <title>CN - Martes de Birras 🍻</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><text y='96' font-size='96'>🍺</text></svg>">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    /* ========== GLOBAL STYLES ========== */
-    * {
-      box-sizing: border-box;
-    }
-    
     body, html {
       height: 100%;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-      background-attachment: fixed;
-      color: #fff;
       overflow-x: hidden;
     }
-
-    /* ========== MOBILE DESIGN ========== */
-    .mobile-layout {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    /* Mobile Header */
-    .mobile-header {
-      background: rgba(26, 26, 26, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 12px 16px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      border-bottom: 1px solid rgba(255, 224, 102, 0.2);
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .app-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #ffe066;
-      margin: 0;
-    }
-
-    .week-info {
-      font-size: 0.8rem;
-      color: #adb5bd;
-      margin-top: 2px;
-    }
-
-    .user-avatar-mobile {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid #ffe066;
-      background-color: #555;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: white;
-      font-size: 0.8rem;
-      overflow: hidden;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .user-avatar-mobile img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* User Menu Dropdown */
-    .user-menu {
-      position: absolute;
-      top: 45px;
-      right: 0;
-      background: rgba(40, 40, 40, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 8px;
-      border: 1px solid rgba(255, 224, 102, 0.3);
-      min-width: 120px;
-      z-index: 1001;
-      display: none;
-    }
-
-    .user-menu-item {
-      padding: 12px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-size: 0.9rem;
-    }
-
-    .user-menu-item:hover {
-      background: rgba(255, 224, 102, 0.1);
-    }
-
-    .user-menu-item:first-child {
-      border-radius: 8px 8px 0 0;
-    }
-
-    .user-menu-item:last-child {
-      border-radius: 0 0 8px 8px;
-    }
-
-    /* Mobile Main Content */
-    .mobile-main {
-      flex: 1;
-      padding: 80px 0 80px 0;
-      overflow-y: auto;
-    }
-
-    .mobile-section {
-      padding: 16px;
-      display: none;
-    }
-
-    .mobile-section.active {
-      display: block;
-    }
-
-    /* Winner Banner */
-    .winner-banner {
-      background: linear-gradient(135deg, #10b981, #059669);
-      margin: 0 16px 16px 16px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-      z-index: 10;
-      position: relative;
-    }
-
-    /* Mobile Bottom Navigation - Clean Icons */
-    .mobile-bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(26, 26, 26, 0.95);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255, 224, 102, 0.2);
-      padding: 8px 0;
-      z-index: 1000;
-    }
-
-    .mobile-nav-items {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .mobile-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border-radius: 8px;
-      min-width: 60px;
-    }
-
-    .mobile-nav-item.active {
-      color: #ffe066;
-    }
-
-    .mobile-nav-item:not(.active) {
-      color: #666;
-    }
-
-    .mobile-nav-icon {
-      width: 20px;
-      height: 20px;
-      margin-bottom: 4px;
-      fill: currentColor;
-      stroke: currentColor;
-    }
-
-    .mobile-nav-label {
-      font-size: 0.7rem;
-      font-weight: 500;
-    }
-
-    /* Mobile Bar List - Compact Style */
-    .mobile-bars-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .mobile-bar-item {
-      background: rgba(40, 40, 40, 0.9);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .mobile-bar-item:last-child {
-      border-bottom: none;
-    }
-
-    .mobile-bar-left {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      gap: 12px;
-    }
-
-    .mobile-bar-name {
-      font-weight: 600;
-      font-size: 0.95rem;
+    body {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', sans-serif; 
       color: #fff;
     }
-
-    .mobile-bar-visit {
-      font-size: 0.75rem;
-      color: #888;
+    .overlay {
+      position: fixed;
+      top:0; left:0; width:100vw; height:100vh;
+      background: rgba(25, 25, 25, 0.25); 
+      z-index: 1;
+      pointer-events: none;
     }
-
-    .mobile-bar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .mobile-social-icon {
-      width: 20px;
-      height: 20px;
-      opacity: 0.6;
-    }
-
-    .mobile-vote-btn {
-      background: #555;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      min-width: 70px;
-    }
-
-    .mobile-vote-btn.voted {
-      background: #008d4e;
-    }
-
-    .mobile-vote-btn:disabled {
-      background: #555;
-      color: #aaa;
-    }
-
-    .mobile-bar-votes {
-      background: rgba(255, 224, 102, 0.2);
-      color: #ffe066;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      min-width: 25px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    /* Mobile Attendance */
-    .mobile-quorum-card {
-      background: rgba(40, 40, 40, 0.9);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .mobile-attendees {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .mobile-attendee {
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px 12px;
-      border-radius: 6px;
-    }
-
-    .mobile-attendee-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #6c757d;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 0.8rem;
-      margin-right: 10px;
-    }
-
-    /* Mobile History & Stats Combined */
-    .mobile-stats-section {
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .mobile-history-item {
-      background: rgba(40, 40, 40, 0.9);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
-    }
-
-    .mobile-history-date {
-      font-weight: 600;
-      color: #ffe066;
-      font-size: 0.9rem;
-    }
-
-    .mobile-history-result {
-      font-size: 0.8rem;
-      margin-top: 4px;
-    }
-
-    /* ========== DESKTOP DESIGN (Original) ========== */
-    .desktop-layout {
+    .main-content {
+      z-index: 2;
+      position: relative;
       min-height: 100vh;
       padding: 20px;
     }
-
-    .desktop-header {
+    .header {
       text-align: center;
       margin-bottom: 30px;
     }
-
-    .desktop-header h1 {
+    .header h1 {
       font-size: 2.8rem;
       color: #ffe066;
       text-shadow: 2px 3px 8px #0008;
       margin-bottom: 10px;
       font-weight: 700;
     }
-
-    .desktop-user-info {
+    .user-info {
       position: fixed;
       top: 20px;
       right: 20px;
@@ -383,31 +59,105 @@
       gap: 10px;
       box-shadow: 0 2px 10px #0004;
     }
-
-    .desktop-user-avatar {
-      width: 36px;
+    .user-avatar {
+      width: 36px; 
       height: 36px;
       border-radius: 50%;
       border: 2px solid #ffe066;
-      background-color: #555;
+      background-color: #555; 
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       color: white;
+      overflow: hidden; 
+    }
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .auth-container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: linear-gradient(135deg, rgba(0, 141, 78, 0.15), rgba(255, 224, 102, 0.15));
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 40px;
+      text-align: center;
+      border: 2px solid rgba(255, 224, 102, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      position: relative;
       overflow: hidden;
     }
-
-    .desktop-user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 224, 102, 0.1) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
     }
-
-    .desktop-tabs {
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    .auth-container h2 {
+      font-size: 2.5rem;
+      color: #ffe066;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+      position: relative;
+      z-index: 1;
+    }
+    .auth-container p {
+      font-size: 1.2rem;
+      color: #ffffff;
+      margin-bottom: 35px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+      position: relative;
+      z-index: 1;
+    }
+    #googleSignIn {
+      background: linear-gradient(45deg, #4285f4, #34a853);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 15px 40px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #googleSignIn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6);
+      background: linear-gradient(45deg, #3367d6, #2d8a47);
+    }
+    #googleSignIn:active {
+      transform: translateY(-1px);
+    }
+    .google-icon {
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #4285f4;
+    }
+    .main-tabs {
       margin-bottom: 30px;
     }
-
     .nav-pills .nav-link {
       background: rgba(36,36,36,0.80);
       color: #ffe066;
@@ -416,38 +166,35 @@
       font-weight: 600;
       padding: 10px 20px;
     }
-
     .nav-pills .nav-link.active {
       background: #008d4e;
       color: white;
       box-shadow: 0 0 10px #008d4e99;
     }
-
-    .desktop-tab-content {
+    .tab-content {
       background: rgba(36,36,36,0.90);
       border-radius: 20px;
       padding: 25px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
-
-    .desktop-winner-box {
-      font-size: 1.8rem;
-      color: #ffe066;
-      font-weight: 700;
+    .quorum-status {
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 10px;
       margin-bottom: 20px;
-      background: rgba(0,0,0,0.50);
-      padding: 15px 25px;
-      border-radius: 15px;
       text-align: center;
+      font-weight: 600;
     }
-
+    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; border: 1px solid #4ade8033; }
+    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; border: 1px solid #f8717133; }
+    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; border: 1px solid #facc1533; }
+    
     table {
       background: rgba(36,36,36,0.95);
       border-radius: 15px;
       color: #fff;
-      overflow: hidden;
+      overflow: hidden; 
     }
-
     th {
       background: #222;
       color: #ffe066;
@@ -455,55 +202,78 @@
       letter-spacing: 0.5px;
       border-bottom: 2px solid #444;
     }
-
     td {
-      vertical-align: middle;
+        vertical-align: middle;
     }
-
+    
+    /* Estilo para fila ganadora */
+    .winner-row {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 223, 0, 0.25)) !important;
+      border: 2px solid rgba(255, 215, 0, 0.6) !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3) !important;
+      animation: goldGlow 2s ease-in-out infinite alternate;
+    }
+    
+    .winner-row td {
+      border-top: 2px solid rgba(255, 215, 0, 0.6) !important;
+      border-bottom: 2px solid rgba(255, 215, 0, 0.6) !important;
+      position: relative;
+    }
+    
+    .winner-row td:first-child::before {
+      content: '👑 ';
+      color: #ffd700;
+      font-size: 1.2em;
+      margin-right: 5px;
+    }
+    
+    @keyframes goldGlow {
+      0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+      100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
+    }
+    
     .vote-btn {
-      background: #555;
+      background: #008d4e;
       color: #fff;
       border-radius: 10px;
-      font-size: 1.1rem;
-      padding: 8px 15px;
+      font-size: 1.1rem; 
+      padding: 8px 15px; 
       border: none;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       margin: 2px;
-      min-width: 100px;
+      min-width: 100px; 
       text-align: center;
     }
-
     .vote-btn.voted {
-      background: #008d4e;
+      background: #c0392b; 
     }
-
     .vote-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       background: #555 !important;
       color: #aaa !important;
     }
-
     .vote-btn:hover:not(:disabled) {
-      filter: brightness(1.2);
+        filter: brightness(1.2);
     }
-
     .stats-card {
-      background: rgba(40,40,40,0.90);
+      background: rgba(40,40,40,0.90); 
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 20px;
       color: #fff;
       border: 1px solid #55555555;
     }
-
     .stats-card h5 {
       color: #ffe066;
       margin-bottom: 15px;
       font-weight: 600;
     }
-
+    .last-visit {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
     .icon-link {
       display: inline-block;
       vertical-align: middle;
@@ -511,325 +281,137 @@
       opacity: 0.85;
       transition: opacity 0.12s;
     }
-
     .icon-link:hover {
       opacity: 1;
       filter: drop-shadow(0 1px 2px #ffe06688);
     }
-
     .ig-icon, .fb-icon {
       width: 1.5em; height: 1.5em;
       display: inline-block;
     }
-
     .ig-icon {
       filter: drop-shadow(0 0 4px #ffe06688);
     }
-
-    /* ========== AUTH CONTAINER ========== */
-    .auth-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 32px 24px;
-      text-align: center;
-    }
-
-    .auth-card {
-      background: rgba(40, 40, 40, 0.9);
-      border-radius: 20px;
-      padding: 32px 24px;
-      max-width: 400px;
-      width: 100%;
-      border: 2px solid rgba(255, 224, 102, 0.3);
-    }
-
-    .auth-title {
-      font-size: 2rem;
-      color: #ffe066;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    .auth-subtitle {
-      color: #adb5bd;
-      margin-bottom: 32px;
-      font-size: 0.9rem;
-    }
-
-    .google-btn {
-      background: linear-gradient(45deg, #4285f4, #34a853);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-size: 1rem;
-      font-weight: 600;
-      padding: 14px 24px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      transition: all 0.3s ease;
-    }
-
-    .google-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.4);
-    }
-
-    .google-icon {
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #4285f4;
-      font-size: 0.9rem;
-    }
-
-    /* ========== UTILITY CLASSES ========== */
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-      color: #adb5bd;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #555;
-      border-top: 2px solid #ffe066;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 12px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     .recent-visit { color: #10b981; font-weight: 500; }
     .never-visited { color: #ef4444; font-weight: 600; }
     .old-visit { color: #f59e0b; font-weight: 500; }
+    .text-muted-light { color: #adb5bd !important; } 
 
-    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
-    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
-    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
-
-    /* Hide layouts initially */
-    .mobile-layout, .desktop-layout {
-      display: none;
+    #voteDetailsModal .modal-content {
+        background-color: #2a2a2a; 
+        border: 1px solid #444;
+    }
+    #voteDetailsModal .modal-header {
+        border-bottom: 1px solid #444;
+    }
+    #voteDetailsModal .modal-footer {
+        border-top: 1px solid #444;
+    }
+    #voteDetailsModal .list-group-item {
+        background-color: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #eee;
+        margin-bottom: 5px;
+        border-radius: 8px;
+    }
+    #voteDetailsModal .list-group-item img {
+        border: 1px solid #ffe066aa;
     }
 
-    /* Desktop attendance styles */
-    .attendance-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 4px 8px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
+    /* Ocultar texto "Confirmados" en desktop */
+    .attendance-title {
+      display: block;
     }
 
-    .attendance-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #6c757d;
-      color: white;
-      font-size: 0.8em;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 8px;
-      border: 1px solid #ffe066aa;
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2.2rem; }
+      .user-info { 
+        position: static;
+        margin: 15px auto; 
+        width: fit-content; 
+        flex-direction: column;
+        gap: 5px;
+      }
+      .user-info button { margin-top: 5px;}
+      table { font-size: 0.85rem; }
+      .vote-btn { font-size: 0.9rem; padding: 6px 10px; min-width: 80px;}
+      .nav-pills .nav-link { padding: 8px 12px; font-size: 0.9rem;}
+      .col-md-4, .col-md-8 { width: 100%;}
+      .order-md-1 { order: 0;}
+      .order-md-2 { order: 0;}
+      
+      /* Mostrar texto "Confirmados" en mobile */
+      .attendance-title {
+        display: block;
+      }
     }
 
-    .text-muted-light { color: #adb5bd !important; }
+    @media (min-width: 769px) {
+      /* Ocultar texto "Confirmados" en desktop */
+      .attendance-title {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Auth Screen -->
+  <div class="overlay"></div>
+  
+  <div id="userInfo" class="user-info" style="display: none;">
+    <div id="userAvatar" class="user-avatar">
+      </div>
+    <span id="userName"></span>
+    <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
+  </div>
+
   <div id="authContainer" class="auth-container" style="display: none;">
-    <div class="auth-card">
-      <h1 class="auth-title">🍺 CORKY NIGHTS</h1>
-      <p class="auth-subtitle">Vota por tu bar favorito y confirma tu asistencia</p>
-      <button id="googleSignIn" class="google-btn">
-        <div class="google-icon">G</div>
-        <span>Continuar con Google</span>
-      </button>
+    <h2>🍻 CN - Martes de Birras</h2>
+    <p>¡Únete a la diversión!<br>Vota por tu bar favorito y confirma tu asistencia</p>
+    <button id="googleSignIn" class="btn btn-primary btn-lg">
+      <span class="google-icon">G</span>
+      Continuar con Google
+    </button>
+    <div style="margin-top: 25px; font-size: 0.9rem; color: rgba(255,255,255,0.7); position: relative; z-index: 1;">
+      🔒 Inicio de sesión seguro con tu cuenta de Google
     </div>
   </div>
 
-  <!-- MOBILE LAYOUT -->
-  <div id="mobileLayout" class="mobile-layout">
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-      <div class="header-content">
-        <div>
-          <h1 class="app-title">🍺 CORKY NIGHTS</h1>
-          <div id="mobileWeekInfo" class="week-info"></div>
-        </div>
-        <div class="user-avatar-mobile" id="mobileUserAvatar">
-          <!-- User Menu -->
-          <div class="user-menu" id="mobileUserMenu">
-            <div class="user-menu-item" onclick="signOut()">
-              👋 Cerrar sesión
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Winner Banner -->
-    <div id="mobileWinnerBanner" class="winner-banner" style="display: none;"></div>
-
-    <!-- Main Content -->
-    <main class="mobile-main">
-      <!-- Votación -->
-      <section id="mobileVotingSection" class="mobile-section active">
-        <div id="mobileBarsContainer">
-          <div class="loading">
-            <div class="spinner"></div>
-            <span>Cargando bares...</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Asistencia -->
-      <section id="mobileAttendanceSection" class="mobile-section">
-        <div class="mobile-quorum-card">
-          <div id="mobileQuorumStatus" class="quorum-status"></div>
-          <div id="mobileAttendeesList" class="mobile-attendees"></div>
-        </div>
-      </section>
-
-      <!-- Historial + Stats -->
-      <section id="mobileHistorySection" class="mobile-section">
-        <!-- Stats Section -->
-        <div class="mobile-stats-section">
-          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
-          
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Visitados</h4>
-            <div id="mobileTopBars">
-              <div class="loading">
-                <div class="spinner"></div>
-                <span>Cargando...</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Visita por Bar</h4>
-            <div id="mobileLastVisits">
-              <div class="loading">
-                <div class="spinner"></div>
-                <span>Cargando...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- History Section -->
-        <div>
-          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📅 Historial</h3>
-          <div id="mobileHistoryContainer">
-            <div class="loading">
-              <div class="spinner"></div>
-              <span>Cargando historial...</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Bottom Navigation - 3 items now -->
-    <nav class="mobile-bottom-nav">
-      <div class="mobile-nav-items">
-        <div class="mobile-nav-item active" data-section="voting">
-          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"/>
-          </svg>
-          <div class="mobile-nav-label">Votación</div>
-        </div>
-        <div class="mobile-nav-item" data-section="attendance">
-          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 11v7a2 2 0 0 1-4 0v-5h-4V5a2 2 0 0 1 4 0v6h4a2 2 0 0 1 0 4Z"/>
-          </svg>
-          <div class="mobile-nav-label">Asistencia</div>
-        </div>
-        <div class="mobile-nav-item" data-section="history">
-          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="4" y1="9" x2="20" y2="9"/>
-            <line x1="4" y1="15" x2="20" y2="15"/>
-            <line x1="10" y1="3" x2="8" y2="21"/>
-            <line x1="16" y1="3" x2="14" y2="21"/>
-          </svg>
-          <div class="mobile-nav-label">Historial</div>
-        </div>
-      </div>
-    </nav>
-  </div>
-
-  <!-- DESKTOP LAYOUT -->
-  <div id="desktopLayout" class="desktop-layout">
-    <!-- Desktop User Info -->
-    <div class="desktop-user-info">
-      <div id="desktopUserAvatar" class="desktop-user-avatar"></div>
-      <span id="desktopUserName"></span>
-      <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
+  <div id="mainContent" class="main-content" style="display: none;">
+    <div class="header">
+      <h1>🍻 CN - Martes de Birras 🍻</h1>
+      <div id="semanaInfo" class="text-light"></div>
     </div>
 
-    <!-- Header -->
-    <div class="desktop-header">
-      <h1>🍺 CORKY NIGHTS 🍺</h1>
-      <div id="desktopWeekInfo" class="text-light"></div>
-    </div>
-
-    <!-- Tabs -->
-    <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
+    <ul class="nav nav-pills justify-content-center main-tabs" id="mainTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="desktop-voting-tab" data-bs-toggle="pill" data-bs-target="#desktopVoting" type="button" role="tab">
+        <button class="nav-link active" id="voting-tab" data-bs-toggle="pill" data-bs-target="#voting" type="button" role="tab">
           💪 Votación
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="desktop-history-tab" data-bs-toggle="pill" data-bs-target="#desktopHistory" type="button" role="tab">
+        <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">
           📊 Historial
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="desktop-stats-tab" data-bs-toggle="pill" data-bs-target="#desktopStats" type="button" role="tab">
+        <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button" role="tab">
           📈 Estadísticas
         </button>
       </li>
     </ul>
 
-    <!-- Tab Content -->
-    <div class="tab-content desktop-tab-content">
-      <!-- Desktop Voting -->
-      <div class="tab-pane fade show active" id="desktopVoting" role="tabpanel">
-        <div id="desktopWinner" class="desktop-winner-box" style="display:none;"></div>
+    <div class="tab-content" id="mainTabContent">
+      <div class="tab-pane fade show active" id="voting" role="tabpanel">
         <div class="row">
           <div class="col-md-4 order-md-2">
             <h4 class="text-light mb-3">👥 Asistencia</h4>
             <div class="stats-card">
-              <div id="desktopQuorumStatus" class="quorum-status mb-3"></div>
-              <div id="desktopAttendanceList">
-                <h6 class="text-warning">Confirmados (quienes votaron):</h6>
-                <div id="desktopConfirmedList" class="mb-2"></div>
-              </div>
+              <div id="quorumStatus" class="quorum-status mb-3"></div>
+              <div id="attendanceList">
+                <h6 class="text-warning attendance-title">Confirmados (quienes votaron):</h6>
+                <div id="confirmedList" class="mb-2">
+                </div>
+                </div>
             </div>
           </div>
           <div class="col-md-8 order-md-1">
@@ -845,33 +427,57 @@
                     <th>Última visita</th>
                   </tr>
                 </thead>
-                <tbody id="desktopBarsTable"></tbody>
+                <tbody id="barsTable">
+                </tbody>
               </table>
+            </div>
+            
+            <div class="modal fade" id="voteDetailsModal" tabindex="-1" aria-labelledby="voteDetailsModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="voteDetailsModalLabel">Votos por este bar</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="voteDetailsBody">
+                      </ul>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Desktop History -->
-      <div class="tab-pane fade" id="desktopHistory" role="tabpanel">
+      <div class="tab-pane fade" id="history" role="tabpanel">
         <h4 class="text-light mb-3">📅 Historial de CNs</h4>
-        <div id="desktopHistoryContent"></div>
+        <div id="historyContent">
+        </div>
       </div>
 
-      <!-- Desktop Stats -->
-      <div class="tab-pane fade" id="desktopStats" role="tabpanel">
+      <div class="tab-pane fade" id="stats" role="tabpanel">
         <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
         <div class="row">
           <div class="col-md-6">
             <div class="stats-card">
-              <h5>🏆 Top 5 Bares Más Visitados</h5>
-              <div id="desktopTopBars"></div>
+              <h5>🏆 Bares más Visitados</h5>
+              <div id="topBars"></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="stats-card">
               <h5>⏰ Última Visita por Bar</h5>
-              <div id="desktopLastVisits"></div>
+              <div id="lastVisits"></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="stats-card">
+              <h5>📈 Estadísticas de CNs</h5>
+              <div id="cnStats"></div>
             </div>
           </div>
         </div>
@@ -880,7 +486,7 @@
   </div>
 
   <script>
-    // ========== CONFIGURATION ==========
+    // ========== CONFIGURACIÓN SUPABASE ==========
     const supabaseUrl = 'https://wjwsdyrkqvxszlclitru.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -914,272 +520,117 @@
     let currentWeek = null;
     let userVotes = []; 
     let userAttendance = false;
-    let isMobile = false;
-    let currentMobileSection = 'voting';
+    let voteDetailsModalInstance = null; 
 
-    // ========== DEVICE DETECTION ==========
-    function detectDevice() {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
-      const isSmallScreen = window.innerWidth <= 768;
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      isMobile = isMobileUA || (isSmallScreen && isTouchDevice);
-      
-      console.log('📱 Device detection:', {
-        userAgent: isMobileUA,
-        screenWidth: window.innerWidth,
-        touchDevice: isTouchDevice,
-        finalDecision: isMobile ? 'MOBILE' : 'DESKTOP'
-      });
-      
-      return isMobile;
-    }
-
-    function showLayout() {
-      const mobile = document.getElementById('mobileLayout');
-      const desktop = document.getElementById('desktopLayout');
-      
-      if (isMobile) {
-        mobile.style.display = 'flex';
-        desktop.style.display = 'none';
-        setupMobileNavigation();
-        setupMobileUserMenu();
-      } else {
-        mobile.style.display = 'none';
-        desktop.style.display = 'block';
-        setupDesktopTabs();
-      }
-    }
-
-    // ========== INITIALIZATION ==========
     async function init() {
       console.log('🚀 Iniciando aplicación...');
-      
-      detectDevice();
-      
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) console.error('❌ Error obteniendo sesión:', error);
-        
-        if (session) {
-          await handleAuthSuccess(session);
-        } else {
-          showAuthContainer();
-        }
+        if (session) await handleAuthSuccess(session);
+        else showAuthContainer();
 
         supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('🔄 Auth change:', event);
-          if (event === 'SIGNED_IN' && session) {
-            await handleAuthSuccess(session);
-          } else if (event === 'SIGNED_OUT') {
-            handleSignOut();
-          } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('🔄 Cambio de autenticación:', event, session ? session.user.email : 'Sin sesión');
+          if (event === 'SIGNED_IN' && session) await handleAuthSuccess(session);
+          else if (event === 'SIGNED_OUT') handleSignOut();
+          else if (event === 'TOKEN_REFRESHED' && session) currentUser = session.user;
+          else if (event === 'USER_UPDATED' && session) {
             currentUser = session.user;
-            updateUserDisplay();
+            updateUserInfoDisplay(); 
           }
         });
-        
       } catch (error) {
         console.error('❌ Error en inicialización:', error);
         showAuthContainer();
       }
     }
 
-    function showAuthContainer() {
-      document.getElementById('authContainer').style.display = 'flex';
-      document.getElementById('mobileLayout').style.display = 'none';
-      document.getElementById('desktopLayout').style.display = 'none';
-    }
-
-    function hideAuthContainer() {
-      document.getElementById('authContainer').style.display = 'none';
-      showLayout();
-    }
-
     function handleSignOut() {
-      currentUser = null;
-      currentWeek = null;
-      userVotes = [];
-      userAttendance = false;
+      console.log('🚪 Procesando logout...');
+      currentUser = null; currentWeek = null; userVotes = []; userAttendance = false;
       showAuthContainer();
     }
 
+    function showAuthContainer() {
+      document.getElementById('authContainer').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+    
+    function updateUserInfoDisplay() {
+        if (!currentUser) return;
+        const userNameEl = document.getElementById('userName');
+        const userAvatarContainerEl = document.getElementById('userAvatar'); 
+        if (userNameEl) userNameEl.textContent = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || "Usuario";
+        if (userAvatarContainerEl) {
+            userAvatarContainerEl.innerHTML = ''; 
+            const avatarUrl = currentUser.user_metadata?.avatar_url;
+            if (avatarUrl) {
+                const img = document.createElement('img');
+                img.src = avatarUrl;
+                img.alt = "Avatar";
+                img.onerror = function() { 
+                    this.remove(); 
+                    const name = currentUser.user_metadata?.name || currentUser.email || "U";
+                    userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); 
+                    userAvatarContainerEl.style.backgroundColor = '#777'; 
+                };
+                userAvatarContainerEl.appendChild(img);
+            } else {
+                const name = currentUser.user_metadata?.name || currentUser.email || "U";
+                userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); 
+                userAvatarContainerEl.style.backgroundColor = '#777';
+            }
+        }
+    }
+
     async function handleAuthSuccess(session) {
-      console.log('🎉 Login exitoso');
+      console.log('🎉 Procesando login exitoso...');
       currentUser = session.user;
-      
       try {
         await ensureUserProfile();
         await ensureCurrentWeek();
-        await loadCurrentWeek();
-        
-        hideAuthContainer();
-        updateUserDisplay();
-        
-        if (currentWeek) {
-          await Promise.all([
-            loadVotingData(),
-            loadAttendanceData()
-          ]);
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('userInfo').style.display = 'flex';
+        updateUserInfoDisplay(); 
+        console.log('📊 Cargando datos iniciales...');
+        await loadCurrentWeek(); 
+        if (currentWeek) { 
+             await Promise.all([ loadVotingData(), loadAttendanceData() ]);
+        } else {
+            console.warn("No se pudo cargar la semana actual.");
+            document.getElementById('barsTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No se pudo cargar la información de la semana.</td></tr>';
         }
-        
-        console.log('✅ App cargada');
+        setupEventListeners(); 
+        console.log('✅ Todo cargado y configurado correctamente');
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
-        showAuthContainer();
+        showAuthContainer(); 
       }
     }
 
-    function updateUserDisplay() {
-      if (!currentUser) return;
-      
-      const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
-      const avatarUrl = currentUser.user_metadata?.avatar_url;
-      const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
-      
-      if (isMobile) {
-        const avatarEl = document.getElementById('mobileUserAvatar');
-        if (avatarEl) {
-          if (avatarUrl) {
-            avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.outerHTML='<div class=&quot;user-avatar-mobile&quot;>${firstLetter}</div>'">`;
-          } else {
-            avatarEl.innerHTML = firstLetter;
-          }
-        }
-      } else {
-        const avatarEl = document.getElementById('desktopUserAvatar');
-        const nameEl = document.getElementById('desktopUserName');
-        
-        if (avatarEl) {
-          if (avatarUrl) {
-            avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.outerHTML='<div class=&quot;desktop-user-avatar&quot;>${firstLetter}</div>'">`;
-          } else {
-            avatarEl.innerHTML = firstLetter;
-          }
-        }
-        
-        if (nameEl) {
-          nameEl.textContent = name;
-        }
-      }
-    }
-
-    // ========== MOBILE NAVIGATION ==========
-    function setupMobileNavigation() {
-      const navItems = document.querySelectorAll('.mobile-nav-item');
-      navItems.forEach(item => {
-        item.addEventListener('click', () => {
-          const section = item.dataset.section;
-          switchMobileSection(section);
-        });
-      });
-    }
-
-    function setupMobileUserMenu() {
-      const avatar = document.getElementById('mobileUserAvatar');
-      const menu = document.getElementById('mobileUserMenu');
-      
-      if (avatar && menu) {
-        avatar.addEventListener('click', (e) => {
-          e.stopPropagation();
-          menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        });
-        
-        document.addEventListener('click', () => {
-          menu.style.display = 'none';
-        });
-      }
-    }
-
-    function switchMobileSection(sectionName) {
-      document.querySelectorAll('.mobile-nav-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-      
-      document.querySelectorAll('.mobile-section').forEach(section => {
-        section.classList.remove('active');
-      });
-      document.getElementById(`mobile${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}Section`).classList.add('active');
-      
-      currentMobileSection = sectionName;
-      
-      if (sectionName === 'history' && currentUser) {
-        loadMobileHistory();
-        loadMobileStats();
-      }
-    }
-
-    // ========== DESKTOP TABS ==========
-    function setupDesktopTabs() {
-      const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
-      tabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function(event) {
-          const target = event.target.getAttribute('data-bs-target');
-          if (target === '#desktopHistory') {
-            loadDesktopHistory();
-          } else if (target === '#desktopStats') {
-            loadDesktopStats();
-          }
-        });
-      });
-    }
-
-    // ========== DATE FUNCTIONS ==========
-    function getNextTuesday() {
-      const today = new Date();
-      const dayOfWeek = today.getDay();
-      let daysUntilTuesday = dayOfWeek <= 2 ? 2 - dayOfWeek : 7 - dayOfWeek + 2;
-      const nextTuesday = new Date(today);
-      nextTuesday.setDate(today.getDate() + daysUntilTuesday);
-      return nextTuesday;
-    }
-
-    function formatTuesdayDate(date) {
-      const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = months[date.getMonth()];
-      return `${day}-${month}`;
-    }
-
-    function formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      try {
-        return new Date(dateString).toLocaleDateString('es-ES', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
-        });
-      } catch {
-        return dateString;
-      }
-    }
-
-    // ========== DATA LOADING ==========
     async function ensureUserProfile() {
       try {
-        const { data, error } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-        
+        const { data, error } = await supabase.from('usuarios').select('*').eq('id', currentUser.id).single();
         if (error && error.code !== 'PGRST116') throw error;
-        
         if (!data) {
-          const { error: insertError } = await supabase
-            .from('usuarios')
-            .insert({
-              id: currentUser.id,
-              email: currentUser.email,
-              nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
-              avatar_url: currentUser.user_metadata?.avatar_url
-            });
+          console.log('➕ Creando perfil de usuario...');
+          const { error: insertError } = await supabase.from('usuarios').insert({ id: currentUser.id, email: currentUser.email, nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0], avatar_url: currentUser.user_metadata?.avatar_url });
           if (insertError) throw insertError;
+        } else { 
+            const metadataName = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+            const metadataAvatar = currentUser.user_metadata?.avatar_url;
+            if (data.nombre !== metadataName || data.avatar_url !== metadataAvatar) {
+                console.log('🔄 Actualizando perfil de usuario...');
+                const { error: updateError } = await supabase.from('usuarios').update({ nombre: metadataName, avatar_url: metadataAvatar }).eq('id', currentUser.id);
+                if (updateError) console.error("Error actualizando perfil:", updateError);
+            }
         }
       } catch (error) {
         console.error('❌ Error en ensureUserProfile:', error);
+        throw error; 
       }
     }
 
@@ -1189,6 +640,7 @@
         await supabase.rpc('finalizar_semana_anterior');
       } catch (error) {
         console.error('❌ Error en ensureCurrentWeek:', error);
+        throw error;
       }
     }
 
@@ -1198,297 +650,143 @@
           .from('semana_actual')
           .select('*')
           .single();
-        
+
         if (error) {
-          console.error('❌ Error cargando semana:', error);
+          console.error('❌ Error cargando semana actual:', error);
+          currentWeek = null;
+          const semanaInfoEl = document.getElementById('semanaInfo');
+          if(semanaInfoEl) semanaInfoEl.innerHTML = '<span class="text-danger">Error cargando información de la semana.</span>';
           return;
         }
-        
+
         currentWeek = data;
-        
-        const nextTuesday = getNextTuesday();
-        const formattedDate = formatTuesdayDate(nextTuesday);
-        const weekText = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
-        
-        if (isMobile) {
-          const el = document.getElementById('mobileWeekInfo');
-          if (el) el.textContent = weekText;
-        } else {
-          const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `${weekText} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
+        const semanaInfoEl = document.getElementById('semanaInfo');
+        if (semanaInfoEl) {
+          semanaInfoEl.innerHTML = `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
       } catch (error) {
-        console.error('❌ Error en loadCurrentWeek:', error);
+        console.error('❌ Excepción cargando semana actual:', error);
+        currentWeek = null;
       }
     }
 
     async function loadVotingData() {
-      if (!currentUser || !currentWeek) return;
-      
+      if (!currentUser || !currentWeek) {
+        renderBarsTable([], []);
+        userVotes = [];
+        return;
+      }
+
       try {
-        const { data: votesInWeek, error } = await supabase
+        const { data: votesInWeek, error: votesError } = await supabase
           .from('votos')
           .select('bar, user_id')
           .eq('semana_id', currentWeek.id);
-        
-        if (error) throw error;
-        
+
+        if (votesError) throw votesError;
+
         userVotes = (votesInWeek || [])
           .filter(v => v.user_id === currentUser.id)
           .map(v => v.bar);
-        
-        const { data: barStats, error: statsError } = await supabase
+
+        console.log('🗳️ Votos del usuario (loadVotingData):', userVotes);
+
+        const { data: barStats, error: barStatsError } = await supabase
           .from('estadisticas_bares')
           .select('*');
-        
-        if (statsError) console.error('Error loading bar stats:', statsError);
-        
-        if (isMobile) {
-          renderMobileBars(votesInWeek || [], barStats || []);
-          updateMobileWinner(votesInWeek || []);
-        } else {
-          renderDesktopBars(votesInWeek || [], barStats || []);
-          updateDesktopWinner(votesInWeek || []);
-        }
-        
+
+        if (barStatsError) console.error('Error cargando stats de bares:', barStatsError);
+
+        renderBarsTable(votesInWeek || [], barStats || []);
       } catch (error) {
-        console.error('❌ Error en loadVotingData:', error);
+        console.error("❌ Error en loadVotingData:", error);
+        userVotes = [];
+        renderBarsTable([], []);
       }
     }
 
     async function loadAttendanceData() {
-      if (!currentUser || !currentWeek) return;
-      
+      if (!currentUser || !currentWeek) {
+        updateAttendanceUI([]);
+        updateQuorumStatus(0);
+        userAttendance = false;
+        return;
+      }
+
       try {
-        const { data: attendances, error } = await supabase
+        const { data: attendances, error: attendanceError } = await supabase
           .from('asistencias')
-          .select('user_id, confirmado, usuarios (nombre, avatar_url)')
+          .select(`user_id, confirmado, usuarios (nombre, avatar_url)`)
           .eq('semana_id', currentWeek.id)
           .eq('confirmado', true);
-        
-        if (error) throw error;
-        
+
+        if (attendanceError) throw attendanceError;
+
         userAttendance = (attendances || []).some(a => a.user_id === currentUser.id);
-        
-        if (isMobile) {
-          updateMobileAttendance(attendances || []);
-        } else {
-          updateDesktopAttendance(attendances || []);
-        }
-        
+
+        console.log('👥 Asistencia del usuario (loadAttendanceData):', userAttendance);
+
+        updateAttendanceUI(attendances || []);
+        updateQuorumStatus((attendances || []).length);
       } catch (error) {
-        console.error('❌ Error en loadAttendanceData:', error);
+        console.error("❌ Error en loadAttendanceData:", error);
+        userAttendance = false;
+        updateAttendanceUI([]);
+        updateQuorumStatus(0);
       }
     }
 
-    // ========== MOBILE RENDERING ==========
-    function renderMobileBars(allVotes, barStats) {
-      const container = document.getElementById('mobileBarsContainer');
-      if (!container) return;
-      
+    function igIcon() {
+      return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    }
+
+    function fbIcon() {
+      return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+    }
+
+    function renderBarsTable(allVotesInWeek, barStats) {
       const voteCounts = {};
-      allVotes.forEach(vote => {
+      allVotesInWeek.forEach(vote => {
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
-      
+
+      // Determinar el bar ganador
+      const maxVotes = Math.max(0, ...Object.values(voteCounts));
+      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes && maxVotes > 0);
+      const hasWinner = winners.length >= 1 && maxVotes > 0;
+
       const statsMap = {};
       barStats.forEach(stat => {
         statsMap[stat.bar] = stat;
       });
-      
+
       const sortedBars = bars.slice().sort((a, b) => {
         const aVotes = voteCounts[a.name] || 0;
         const bVotes = voteCounts[b.name] || 0;
         if (bVotes !== aVotes) return bVotes - aVotes;
         return a.name.localeCompare(b.name);
       });
-      
-      const listHTML = sortedBars.map(bar => {
-        const votes = voteCounts[bar.name] || 0;
-        const userVoted = userVotes.includes(bar.name);
-        const stats = statsMap[bar.name];
-        const isActive = currentWeek?.estado === 'activa';
-        
-        let socialLinks = '';
-        if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
-        if (bar.fb) socialLinks += `<a href="${bar.fb}" target="_blank">${fbIcon()}</a>`;
-        
-        let lastVisit = 'Nunca';
-        if (stats?.ultima_visita) {
-          const days = stats.dias_desde_ultima_visita;
-          if (days <= 14) lastVisit = `${days}d`;
-          else if (days <= 60) lastVisit = `${days}d`;
-          else lastVisit = `${days}d`;
-        }
-        
-        return `
-          <div class="mobile-bar-item">
-            <div class="mobile-bar-left">
-              <div>
-                <div class="mobile-bar-name">${bar.name}</div>
-                <div class="mobile-bar-visit">Última: ${lastVisit}</div>
-              </div>
-            </div>
-            <div class="mobile-bar-right">
-              <div class="mobile-social-icon">${socialLinks}</div>
-              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
-                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
-                ${votes}
-              </div>
-              <button class="mobile-vote-btn ${userVoted ? 'voted' : ''}"
-                      ${!isActive ? 'disabled' : ''}
-                      onclick="toggleVote('${bar.name}', this)">
-                ${userVoted ? '🍺' : '💪'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      container.innerHTML = `<div class="mobile-bars-list">${listHTML}</div>`;
-      
-      // Update winner immediately after rendering
-      console.log('🏆 About to update winner after rendering bars');
-      updateMobileWinner(allVotes);
-    }
 
-    function updateMobileWinner(allVotes) {
-      const banner = document.getElementById('mobileWinnerBanner');
-      
-      if (!banner) {
-        console.log('❌ Banner element not found!');
-        return;
-      }
-      
-      console.log('🏆 Updating winner banner with', allVotes.length, 'votes');
-      
-      if (!allVotes || allVotes.length === 0) {
-        banner.style.display = 'none';
-        console.log('🏆 Hidden - no votes');
-        return;
-      }
-      
-      // Count votes by bar
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        if (vote.bar) {
-          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-        }
-      });
-      
-      console.log('🏆 Vote tallies:', voteCounts);
-      
-      const entries = Object.entries(voteCounts);
-      if (entries.length === 0) {
-        banner.style.display = 'none';
-        console.log('🏆 Hidden - no valid votes');
-        return;
-      }
-      
-      // Find maximum votes
-      const maxVotes = Math.max(...entries.map(([bar, count]) => count));
-      const winners = entries.filter(([bar, count]) => count === maxVotes).map(([bar]) => bar);
-      
-      console.log('🏆 Max votes:', maxVotes, 'Winners:', winners);
-      
-      // Show only if exactly one winner with at least 1 vote
-      if (winners.length === 1 && maxVotes > 0) {
-        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} ${maxVotes === 1 ? 'voto' : 'votos'})`;
-        banner.style.display = 'block';
-        console.log('✅ Banner SHOWN:', winners[0]);
-      } else {
-        banner.style.display = 'none';
-        console.log('🏆 Hidden - tie or no votes');
-      }
-    }
-
-    function updateMobileAttendance(attendances) {
-      const statusEl = document.getElementById('mobileQuorumStatus');
-      const listEl = document.getElementById('mobileAttendeesList');
-      
-      const count = attendances.length;
-      const needed = 3;
-      
-      if (statusEl) {
-        let statusClass = '';
-        let statusText = '';
-        
-        if (count >= needed) {
-          statusClass = 'quorum-yes';
-          statusText = `✅ ¡Hay quorum! ${count} confirmados`;
-        } else if (count > 0) {
-          statusClass = 'quorum-pending';
-          statusText = `⏳ ${count} confirmados, faltan ${needed - count}`;
-        } else {
-          statusClass = 'quorum-no';
-          statusText = `❌ Se necesitan ${needed} para hacer CN`;
-        }
-        
-        statusEl.className = `quorum-status ${statusClass}`;
-        statusEl.textContent = statusText;
-      }
-      
-      if (listEl) {
-        if (!attendances.length) {
-          listEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">Nadie ha confirmado asistencia aún</div>';
-          return;
-        }
-        
-        listEl.innerHTML = attendances.map(att => {
-          let userName = 'Usuario';
-          if (att.usuarios?.nombre) {
-            userName = att.usuarios.nombre.toString().trim().replace(/^['">]+|['">]+$/g, '');
-            if (!userName) userName = 'Usuario';
-          }
-          
-          const avatarUrl = att.usuarios?.avatar_url;
-          const firstLetter = userName.charAt(0).toUpperCase();
-          
-          return `
-            <div class="mobile-attendee">
-              <div class="mobile-attendee-avatar">
-                ${avatarUrl ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML='${firstLetter}'">` : firstLetter}
-              </div>
-              <div>${userName}</div>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    // ========== DESKTOP RENDERING ==========
-    function renderDesktopBars(allVotes, barStats) {
-      const tbody = document.getElementById('desktopBarsTable');
+      const tbody = document.getElementById('barsTable');
       if (!tbody) return;
-      
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
-      
-      const statsMap = {};
-      barStats.forEach(stat => {
-        statsMap[stat.bar] = stat;
-      });
-      
-      const sortedBars = bars.slice().sort((a, b) => {
-        const aVotes = voteCounts[a.name] || 0;
-        const bVotes = voteCounts[b.name] || 0;
-        if (bVotes !== aVotes) return bVotes - aVotes;
-        return a.name.localeCompare(b.name);
-      });
-      
+
       tbody.innerHTML = '';
-      
-      if (sortedBars.length === 0) {
+
+      if (sortedBars.length === 0 && (!currentWeek || currentWeek.estado !== 'activa')) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">La votación no está activa o no hay bares configurados.</td></tr>';
+        return;
+      }
+
+      if (sortedBars.length === 0 ) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
         return;
       }
-      
+
       sortedBars.forEach(bar => {
         const votesForBar = voteCounts[bar.name] || 0;
         const userHasVotedForThisBar = userVotes.includes(bar.name);
         const stats = statsMap[bar.name];
+        const isWinner = hasWinner && winners.includes(bar.name);
 
         let socialLinks = '';
         if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
@@ -1505,21 +803,27 @@
         }
 
         const row = document.createElement('tr');
+        if (isWinner) {
+          row.classList.add('winner-row');
+        }
+
         row.innerHTML = `
           <td style="font-weight: 600;">${bar.name}</td>
           <td>${socialLinks}</td>
           <td>
-            <button class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
-                    ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                    data-bar="${encodeURIComponent(bar.name)}" 
-                    data-action="vote">
-              ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
+            <button 
+              class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
+              ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
+              data-bar="${encodeURIComponent(bar.name)}"
+              data-action="vote">
+              ${userHasVotedForThisBar ? '🍺 Quitar' : '💪 Votar'}
             </button>
           </td>
           <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
-            <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}">
-              ${votesForBar}
-            </span>
+            <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}" style="cursor: ${votesForBar > 0 ? 'pointer' : 'default'};" 
+                  data-bar="${encodeURIComponent(bar.name)}" 
+                  data-votes="${votesForBar}"
+                  data-action="showDetails">${votesForBar}</span>
           </td>
           <td class="last-visit">${lastVisitText}</td>
         `;
@@ -1527,288 +831,201 @@
       });
     }
 
-    function updateDesktopWinner(allVotes) {
-      const winnerDiv = document.getElementById("desktopWinner");
-      if (!winnerDiv) return;
-      
-      if (!allVotes || allVotes.length === 0) {
-        winnerDiv.style.display = "none";
-        return;
-      }
-      
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
-      
-      const maxVotes = Math.max(0, ...Object.values(voteCounts));
-      if (maxVotes === 0) {
-        winnerDiv.style.display = "none";
-        return;
-      }
-      
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
-      if (winners.length === 1) {
-        winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
-      } else if (winners.length > 1) {
-        const names = winners.map(w => `<strong>${w}</strong>`).join(" y ");
-        winnerDiv.innerHTML = `🤝 Empate actual: ${names} (${maxVotes} votos c/u) 🤝`;
+    function updateAttendanceUI(attendances) {
+      const confirmedListEl = document.getElementById('confirmedList');
+      if (!confirmedListEl) return;
+
+      if (!attendances || attendances.length === 0) {
+        confirmedListEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
       } else {
-        winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
-      }
-      winnerDiv.style.display = "block";
-    }
+        confirmedListEl.innerHTML = attendances.map(att => {
+          const userName = att.usuarios?.nombre || 'Usuario Desconocido';
+          const avatarUrl = att.usuarios?.avatar_url || '';
+          const avatarPlaceholder = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;background-color:#6c757d;color:white;font-size:0.8em;">${userName.substring(0,1).toUpperCase()}</div>`;
 
-    function updateDesktopAttendance(attendances) {
-      const statusEl = document.getElementById('desktopQuorumStatus');
-      const listEl = document.getElementById('desktopConfirmedList');
-      
-      const count = attendances.length;
-      const needed = 3;
-      
-      if (statusEl) {
-        if (count >= needed) {
-          statusEl.className = 'quorum-status quorum-yes';
-          statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
-        } else if (count > 0) {
-          statusEl.className = 'quorum-status quorum-pending';
-          statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${needed - count} para quorum`;
-        } else {
-          statusEl.className = 'quorum-status quorum-no';
-          statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${needed} para hacer CN`;
-        }
-      }
-      
-      if (listEl) {
-        if (!attendances || attendances.length === 0) {
-          listEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
-        } else {
-          listEl.innerHTML = attendances.map(att => {
-            let userName = 'Usuario Desconocido';
-            
-            if (att.usuarios && att.usuarios.nombre) {
-              userName = att.usuarios.nombre.toString().trim();
-              userName = userName.replace(/^['">]+|['">]+$/g, '');
-              if (userName.length === 0) {
-                userName = 'Usuario';
-              }
-            }
-            
-            const avatarUrl = att.usuarios?.avatar_url || '';
-            const firstLetter = userName.substring(0, 1).toUpperCase();
-            
-            const avatarHtml = avatarUrl ? 
-              `<img src="${avatarUrl}" class="attendance-avatar" alt="Avatar" onerror="this.outerHTML='<div class=&quot;attendance-avatar&quot;>${firstLetter}</div>'">` :
-              `<div class="attendance-avatar">${firstLetter}</div>`;
-            
-            return `
-              <div class="attendance-item">
-                ${avatarHtml}
+          return `
+            <div class="d-flex align-items-center mb-1">
+                ${avatarUrl ? `<img src="${avatarUrl}" class="rounded-circle me-2" width="24" height="24" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholder}'">` : avatarPlaceholder}
                 <span>${userName}</span>
-              </div>`;
-          }).join('');
-        }
+            </div>`;
+        }).join('');
       }
     }
 
-    // ========== VOTE HANDLING ==========
+    function updateQuorumStatus(count) {
+      const statusEl = document.getElementById('quorumStatus');
+      if (!statusEl) return;
+
+      const quorumNeeded = 3;
+      if (count >= quorumNeeded) {
+        statusEl.className = 'quorum-status quorum-yes';
+        statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+      } else if (count > 0) {
+        statusEl.className = 'quorum-status quorum-pending';
+        statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${quorumNeeded - count} para quorum`;
+      } else {
+        statusEl.className = 'quorum-status quorum-no';
+        statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${quorumNeeded} para hacer CN`;
+      }
+    }
+
     async function toggleVote(barName, btnElement) {
+      console.log(`⏯️ toggleVote para: '${barName}', currentUser: ${currentUser?.id}, currentWeek: ${currentWeek?.id}`);
       if (!currentWeek || currentWeek.estado !== 'activa' || !currentUser) {
-        alert('No se puede votar en este momento');
+        alert('No se puede votar en este momento. Verifica que la votación esté activa y hayas iniciado sesión.');
         return;
       }
 
-      const originalText = btnElement.textContent;
-      btnElement.textContent = '⏳';
+      const originalButtonHTML = btnElement.innerHTML;
+      btnElement.innerHTML = '⏳';
       btnElement.disabled = true;
 
       try {
-        const userVoted = userVotes.includes(barName);
-        
-        if (userVoted) {
-          const { error } = await supabase
+        const userAlreadyVotedForThis = userVotes.includes(barName);
+        let dbOperationSuccessful = false;
+
+        if (userAlreadyVotedForThis) {
+          console.log(`🗑️ ${currentUser.email} intentando quitar voto para '${barName}'`);
+          const criteria = { 
+              user_id: currentUser.id, 
+              semana_id: currentWeek.id, 
+              bar: barName 
+          };
+          console.log("Criterios para delete:", criteria);
+
+          const { data: deletedData, error: deleteError } = await supabase
             .from('votos')
             .delete()
-            .match({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
+            .match(criteria)
+            .select(); 
+
+          if (deleteError) {
+            console.error(`❌ Error al eliminar voto de Supabase para '${barName}':`, deleteError);
+            throw deleteError; 
+          }
           
-          if (error) throw error;
-          
-          userVotes = userVotes.filter(v => v !== barName);
-          
-          if (userVotes.length === 0) {
-            await supabase
-              .from('asistencias')
-              .delete()
-              .match({ user_id: currentUser.id, semana_id: currentWeek.id });
-            userAttendance = false;
+          console.log(`✅ Resultado de Supabase.delete para '${barName}':`, deletedData);
+          if (deletedData && deletedData.length > 0) {
+              console.log(`✅ Voto para '${barName}' confirmado como eliminado de la BD.`);
+              dbOperationSuccessful = true;
+              userVotes = userVotes.filter(votedBar => votedBar !== barName); 
+              if (userVotes.length === 0) { 
+                console.log('🗑️ No quedan más votos, eliminando asistencia...');
+                const { error: delAttErr } = await supabase.from('asistencias').delete().match({ user_id: currentUser.id, semana_id: currentWeek.id });
+                if (delAttErr) console.error("Error al eliminar asistencia:", delAttErr);
+                else console.log("✅ Asistencia eliminada de la BD.");
+                userAttendance = false; 
+              }
+          } else {
+              console.warn(`⚠️ No se eliminó ninguna fila de la BD para '${barName}'. El voto podría no haber existido o los criterios no coincidieron. Revisa RLS y los datos en la tabla 'votos'.`);
           }
         } else {
-          const { error } = await supabase
-            .from('votos')
-            .insert({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
-          
-          if (error) throw error;
-          
-          userVotes.push(barName);
-          
+          console.log(`➕ ${currentUser.email} votando por '${barName}'`);
+          const { error } = await supabase.from('votos').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName }]);
+          if (error) {
+            console.error(`❌ Error al insertar voto en Supabase para '${barName}':`, error);
+            throw error;
+          }
+          console.log(`✅ Voto por '${barName}' agregado a la BD.`);
+          dbOperationSuccessful = true;
+          userVotes.push(barName); 
+
           if (!userAttendance) {
-            const { data: existing } = await supabase
-              .from('asistencias')
-              .select('id')
-              .match({ user_id: currentUser.id, semana_id: currentWeek.id })
-              .single();
-            
-            if (!existing) {
-              await supabase
-                .from('asistencias')
-                .insert({ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true });
+            console.log('➕ Marcando asistencia por nuevo voto...');
+            const { data: existingAtt, error: checkAttErr } = await supabase.from('asistencias').select('id').match({ user_id: currentUser.id, semana_id: currentWeek.id }).maybeSingle();
+            if (checkAttErr && checkAttErr.code !== 'PGRST116') throw checkAttErr;
+            if (!existingAtt) {
+                const { error: insAttErr } = await supabase.from('asistencias').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true }]);
+                if (insAttErr) console.error("Error al marcar asistencia:", insAttErr);
+                else console.log("✅ Asistencia marcada en la BD.");
             }
-            userAttendance = true;
+            userAttendance = true; 
           }
         }
         
-        await Promise.all([loadVotingData(), loadAttendanceData()]);
-        
+        console.log('🔄 Recargando datos después de toggleVote...');
+        await loadVotingData(); 
+        await loadAttendanceData();
+        console.log('✅ Datos recargados.');
+
       } catch (error) {
-        console.error('❌ Error en toggleVote:', error);
-        alert('Error al procesar voto: ' + error.message);
-        btnElement.textContent = originalText;
-        btnElement.disabled = false;
-      }
+        console.error(`❌ Error completo en toggleVote para '${barName}':`, error);
+        alert('Error al procesar el voto: ' + error.message + '. Revisa la consola para más detalles.');
+        if(btnElement){
+            btnElement.innerHTML = originalButtonHTML;
+            btnElement.disabled = false;
+        }
+        console.log('🔄 Intentando recargar datos después de error para restaurar consistencia...');
+        await loadVotingData();
+        await loadAttendanceData();
+      } 
     }
 
     async function showVoteDetails(barName, voteCount) {
-      alert(`${voteCount} personas han votado por ${barName}`);
-    }
+      console.log('👀 Detalles de votos para:', barName, `(${voteCount} votos)`);
+      const modalEl = document.getElementById('voteDetailsModal');
+      const titleEl = document.getElementById('voteDetailsModalLabel');
+      const bodyEl = document.getElementById('voteDetailsBody');
 
-    // ========== MOBILE STATS & HISTORY ==========
-    async function loadMobileStats() {
-      try {
-        // Load top 5 bars
-        const { data: topBarsData, error: topBarsError } = await supabase
-          .from('visitas_bares')
-          .select('bar, COUNT(*) as visitas')
-          .group('bar')
-          .order('visitas', { ascending: false })
-          .limit(5);
-        
-        const topBarsEl = document.getElementById('mobileTopBars');
-        if (topBarsEl) {
-          if (topBarsError || !topBarsData?.length) {
-            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+      if (!modalEl || !titleEl || !bodyEl) return;
+
+      titleEl.textContent = `Votos por ${barName}`;
+
+      if (voteCount === 0) {
+        bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Nadie ha votado por este bar aún.</li>';
+      } else {
+        bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Cargando votantes...</li>';
+      }
+
+      if (!voteDetailsModalInstance) {
+        voteDetailsModalInstance = new bootstrap.Modal(modalEl);
+      }
+      voteDetailsModalInstance.show();
+
+      if (voteCount > 0) {
+        try {
+          const { data: votesData, error } = await supabase
+            .from('votos')
+            .select(`usuarios (nombre, avatar_url)`)
+            .eq('semana_id', currentWeek.id)
+            .eq('bar', barName);
+
+          if (error) throw error;
+
+          if (!votesData || votesData.length === 0) {
+            bodyEl.innerHTML = '<li class="list-group-item text-muted-light">No se encontraron detalles de votantes.</li>';
           } else {
-            topBarsEl.innerHTML = topBarsData.map((bar, i) => `
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                <span style="font-weight: 500;">${i + 1}. ${bar.bar}</span>
-                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${bar.visitas}</span>
-              </div>
-            `).join('');
+            bodyEl.innerHTML = votesData
+              .filter(vote => vote.usuarios && vote.usuarios.nombre)
+              .map(vote => {
+                const avatar = vote.usuarios.avatar_url || '';
+                const avatarPlaceholderModal = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;background-color:#6c757d;color:white;font-size:0.9em;">${(vote.usuarios.nombre || 'U').substring(0,1).toUpperCase()}</div>`;
+
+                return `
+                  <li class="list-group-item d-flex align-items-center">
+                    ${avatar ? `<img src="${avatar}" class="rounded-circle me-2" width="32" height="32" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholderModal}'">` : avatarPlaceholderModal}
+                    <span>${vote.usuarios.nombre}</span>
+                  </li>`;
+              }).join('');
           }
+        } catch (error) {
+          console.error('❌ Error cargando detalles de votos:', error);
+          bodyEl.innerHTML = '<li class="list-group-item text-danger">Error al cargar detalles.</li>';
         }
-        
-        // Load last visits for ALL bars
-        const { data: lastVisitsData, error: lastVisitsError } = await supabase
-          .from('estadisticas_bares')
-          .select('*')
-          .order('ultima_visita', { ascending: false, nullsFirst: false });
-        
-        const lastVisitsEl = document.getElementById('mobileLastVisits');
-        if (lastVisitsEl) {
-          if (lastVisitsError) {
-            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando datos</div>';
-          } else {
-            // Get all bars and merge with visit data
-            const allBarsWithVisits = bars.map(bar => {
-              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
-              return {
-                name: bar.name,
-                ultima_visita: visitData?.ultima_visita,
-                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
-              };
-            }).sort((a, b) => {
-              // Sort by most recent visit first, then by name
-              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
-              if (!a.ultima_visita) return 1;
-              if (!b.ultima_visita) return -1;
-              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
-            });
-            
-            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
-              let visitText = 'Nunca';
-              let visitClass = 'never-visited';
-              
-              if (bar.ultima_visita) {
-                const days = bar.dias_desde_ultima_visita;
-                const dateStr = formatDate(bar.ultima_visita);
-                if (days <= 14) {
-                  visitText = `${dateStr} (${days}d)`;
-                  visitClass = 'recent-visit';
-                } else if (days <= 60) {
-                  visitText = `${dateStr} (${days}d)`;
-                  visitClass = 'old-visit';
-                } else {
-                  visitText = `${dateStr} (${days}d)`;
-                  visitClass = 'last-visit';
-                }
-              }
-              
-              return `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                  <span style="font-weight: 500;">${bar.name}</span>
-                  <span class="${visitClass}" style="font-size: 0.8rem;">${visitText}</span>
-                </div>
-              `;
-            }).join('');
-          }
-        }
-        
-      } catch (error) {
-        console.error('❌ Error loading mobile stats:', error);
       }
     }
 
-    async function loadMobileHistory() {
-      const container = document.getElementById('mobileHistoryContainer');
-      if (!container) return;
-      
-      try {
-        const { data: weeks, error } = await supabase
-          .from('semanas_cn')
-          .select('*')
-          .eq('estado', 'finalizada')
-          .order('fecha_martes', { ascending: false })
-          .limit(10);
-        
-        if (error) throw error;
-        
-        if (!weeks?.length) {
-          container.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">No hay historial disponible</div>';
-          return;
-        }
-        
-        container.innerHTML = weeks.map(week => `
-          <div class="mobile-history-item">
-            <div class="mobile-history-date">${formatDate(week.fecha_martes)}</div>
-            <div class="mobile-history-result">
-              ${week.hubo_quorum && week.bar_ganador ? 
-                `🏆 ${week.bar_ganador}` : 
-                (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}
-              • 👥 ${week.total_asistentes || 0} • 🗳️ ${week.total_votos || 0}
-            </div>
-          </div>
-        `).join('');
-        
-      } catch (error) {
-        console.error('❌ Error loading mobile history:', error);
-        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px;">Error cargando historial</div>';
+    async function loadHistory() {
+      if (!currentUser) {
+        showAuthContainer();
+        return;
       }
-    }
 
-    // ========== DESKTOP STATS & HISTORY ==========
-    async function loadDesktopHistory() {
-      const container = document.getElementById('desktopHistoryContent');
-      if (!container) return;
-      
+      const historyDiv = document.getElementById('historyContent');
+      if (!historyDiv) return;
+
+      historyDiv.innerHTML = '<p class="text-muted-light">Cargando historial...</p>';
+
       try {
         const { data: weeks, error } = await supabase
           .from('semanas_cn')
@@ -1816,15 +1033,15 @@
           .eq('estado', 'finalizada')
           .order('fecha_martes', { ascending: false })
           .limit(20);
-        
-        if (error) throw error;
-        
-        if (!weeks?.length) {
-          container.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
+
+        if(error) throw error;
+
+        if (!weeks || weeks.length === 0) {
+          historyDiv.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
           return;
         }
-        
-        container.innerHTML = weeks.map(week => `
+
+        historyDiv.innerHTML = weeks.map(week => `
           <div class="stats-card">
             <div class="row">
               <div class="col-md-3"><strong>${formatDate(week.fecha_martes)}</strong></div>
@@ -1833,157 +1050,199 @@
               <div class="col-md-3">🗳️ ${week.total_votos || 0} votos</div>
             </div>
           </div>`).join('');
-          
       } catch (error) {
-        console.error('❌ Error loading desktop history:', error);
-        container.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
+        console.error('❌ Error cargando historial:', error);
+        historyDiv.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
+        if (error.message?.includes('JWT')) handleSignOut();
       }
     }
 
-    async function loadDesktopStats() {
+    async function loadStats() {
+      if (!currentUser) {
+        return;
+      }
+
       const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
       const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
-      
-      ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+
+      ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = loadingMsg;
       });
-      
+
       try {
         const [
           { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError }
+          { data: lastVisitsData, error: lastVisitsError },
+          { data: cnStatsData, error: cnStatsError }
         ] = await Promise.all([
-          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
-          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false })
+          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(10),
+          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: true }).limit(10),
+          supabase.from('semanas_cn').select('*').eq('estado', 'finalizada')
         ]);
-        
-        // Top 5 bars
-        const topBarsEl = document.getElementById('desktopTopBars');
-        if (topBarsEl) {
-          if (topBarsError || !topBarsData?.length) {
-            topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-          } else {
-            topBarsEl.innerHTML = topBarsData.map((bar, index) => `
-              <div class="d-flex justify-content-between align-items-center py-1">
-                <span>${index + 1}. ${bar.bar}</span>
-                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
-              </div>`).join('');
-          }
-        }
-        
-        // All bars with last visits
-        const lastVisitsEl = document.getElementById('desktopLastVisits');
-        if (lastVisitsEl) {
-          if (lastVisitsError) {
-            lastVisitsEl.innerHTML = errorMsg;
-          } else {
-            // Get all bars and merge with visit data
-            const allBarsWithVisits = bars.map(bar => {
-              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
-              return {
-                name: bar.name,
-                ultima_visita: visitData?.ultima_visita,
-                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
-              };
-            }).sort((a, b) => {
-              // Sort by most recent visit first, then by name
-              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
-              if (!a.ultima_visita) return 1;
-              if (!b.ultima_visita) return -1;
-              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
-            });
-            
-            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
-              let statusText = '<span class="never-visited">Nunca</span>';
-              if (bar.ultima_visita) {
-                const days = bar.dias_desde_ultima_visita;
-                let datePart = formatDate(bar.ultima_visita);
-                if (days !== null && days !== undefined) {
-                  statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
-                } else {
-                  statusText = `<span class="recent-visit">${datePart}</span>`;
-                }
-              }
-              return `
-                <div class="d-flex justify-content-between align-items-center py-1">
-                  <span>${bar.name}</span>
-                  ${statusText}
-                </div>`;
-            }).join('');
-          }
-        }
-        
+
+        updateStatsUI(
+          topBarsError ? { error: true } : (topBarsData || []),
+          lastVisitsError ? { error: true } : (lastVisitsData || []),
+          cnStatsError ? { error: true } : (cnStatsData || [])
+        );
       } catch (error) {
-        console.error('❌ Error loading desktop stats:', error);
-        ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+        console.error('❌ Error cargando una o más estadísticas:', error);
+        ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.innerHTML = errorMsg;
         });
+        if (error.message?.includes('JWT')) handleSignOut();
       }
     }
 
-    // ========== UTILITY FUNCTIONS ==========
-    function igIcon() {
-      return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    function updateStatsUI(topBars, lastVisits, cnStats) {
+      const noDataMsg = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+      const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
+
+      const topBarsDiv = document.getElementById('topBars');
+      if (topBarsDiv) {
+        if (topBars.error) topBarsDiv.innerHTML = errorMsg;
+        else if (topBars.length === 0) topBarsDiv.innerHTML = noDataMsg;
+        else {
+          topBarsDiv.innerHTML = topBars.map((bar, index) => `<div class="d-flex justify-content-between align-items-center py-1">
+            <span>${index + 1}. ${bar.bar}</span>
+            <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
+            </div>`).join('');
+        }
+      }
+
+      const lastVisitsDiv = document.getElementById('lastVisits');
+      if(lastVisitsDiv) {
+        if (lastVisits.error) lastVisitsDiv.innerHTML = errorMsg;
+        else if (lastVisits.length === 0) lastVisitsDiv.innerHTML = noDataMsg;
+        else {
+          lastVisitsDiv.innerHTML = lastVisits.map(bar => {
+            let statusText = '<span class="never-visited">Nunca</span>';
+            if (bar.ultima_visita) {
+              const days = bar.dias_desde_ultima_visita;
+              let datePart = formatDate(bar.ultima_visita);
+              if (days !== null && days !== undefined) {
+                statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
+              } else {
+                statusText = `<span class="recent-visit">${datePart}</span>`;
+              }
+            }
+            return `<div class="d-flex justify-content-between align-items-center py-1">
+            <span>${bar.bar}</span>
+            ${statusText}
+            </div>`;
+          }).join('');
+        }
+      }
+
+      const cnStatsDiv = document.getElementById('cnStats');
+      if (cnStatsDiv) {
+        if (cnStats.error) cnStatsDiv.innerHTML = errorMsg;
+        else {
+          const totalCNs = cnStats.length;
+          const quorumCNs = cnStats.filter(cn => cn.hubo_quorum).length;
+          const totalAttendanceSum = cnStats.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0);
+          const avgAttendance = totalCNs > 0 ? (totalAttendanceSum / totalCNs).toFixed(1) : 0;
+
+          cnStatsDiv.innerHTML = `
+            <div class="row text-center">
+                <div class="col-4"><h3 class="text-warning">${totalCNs}</h3><small class="text-muted-light">CNs Realizadas</small></div>
+                <div class="col-4"><h3 class="text-success">${quorumCNs}</h3><small class="text-muted-light">Con Quorum</small></div>
+                <div class="col-4"><h3 class="text-info">${avgAttendance}</h3><small class="text-muted-light">Prom. Asistencia</small></div>
+            </div>`;
+        }
+      }
     }
 
-    function fbIcon() {
-      return `<svg class="mobile-social-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
+      tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+          const target = event.target.getAttribute('data-bs-target');
+          if (target === '#history') loadHistory();
+          else if (target === '#stats') loadStats();
+        });
+      });
+      init(); 
+    });
+
+    document.getElementById('googleSignIn').addEventListener('click', async () => {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent'
+            }
+          }
+        });
+        if (error) throw error;
+      } catch (error) {
+        console.error('❌ Error al iniciar sesión con Google:', error);
+        alert('Error al iniciar sesión: ' + error.message);
+      }
+    });
 
     async function signOut() {
       try {
         await supabase.auth.signOut();
       } catch (error) {
-        console.error('❌ Error signing out:', error);
+        console.error('❌ Error al cerrar sesión en Supabase:', error);
+      } finally {
+        handleSignOut();
       }
     }
 
-    // ========== EVENT LISTENERS ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('googleSignIn').addEventListener('click', async () => {
-        try {
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: window.location.origin
-            }
-          });
-          if (error) throw error;
-        } catch (error) {
-          console.error('❌ Error signing in:', error);
-          alert('Error al iniciar sesión: ' + error.message);
+    function formatDate(dateString) {
+      if (!dateString) return 'Fecha no disponible';
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          return 'Fecha inválida';
         }
-      });
+        return date.toLocaleDateString('es-ES', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch (e) {
+        return dateString;
+      }
+    }
 
-      // Handle desktop table clicks
-      document.addEventListener('click', (event) => {
-        const voteButton = event.target.closest('[data-action="vote"]');
-        if (voteButton && !isMobile) {
-          const encodedBarName = voteButton.getAttribute('data-bar');
-          if (!encodedBarName || voteButton.disabled) return;
-          
-          const barName = decodeURIComponent(encodedBarName);
-          toggleVote(barName, voteButton);
+    function setupEventListeners() {
+      const barsTableBody = document.getElementById('barsTable');
+      if (barsTableBody) {
+        barsTableBody.removeEventListener('click', handleTableClick);
+        barsTableBody.addEventListener('click', handleTableClick);
+      }
+    }
+
+    function handleTableClick(event) {
+      let targetElement = event.target;
+      const voteButton = targetElement.closest('[data-action="vote"]');
+      const detailsSpan = targetElement.closest('[data-action="showDetails"]');
+
+      if (voteButton) {
+        const encodedBarName = voteButton.getAttribute('data-bar');
+        if (!encodedBarName || voteButton.disabled) return;
+        const barName = decodeURIComponent(encodedBarName);
+        toggleVote(barName, voteButton);
+      } else if (detailsSpan) {
+        const encodedBarName = detailsSpan.getAttribute('data-bar');
+        const voteCount = parseInt(detailsSpan.getAttribute('data-votes'), 10);
+        if (!encodedBarName || isNaN(voteCount)) return;
+        const barName = decodeURIComponent(encodedBarName);
+        if (voteCount > 0) {
+          showVoteDetails(barName, voteCount);
         }
-      });
+      }
+    }
 
-      window.addEventListener('resize', () => {
-        const wasMobile = isMobile;
-        detectDevice();
-        if (wasMobile !== isMobile && currentUser) {
-          showLayout();
-          updateUserDisplay();
-        }
-      });
-
-      init();
-    });
-
-    window.toggleVote = toggleVote;
-    window.showVoteDetails = showVoteDetails;
-    window.signOut = signOut;
+    window.signOut = signOut; 
   </script>
 </body>
 </html>
