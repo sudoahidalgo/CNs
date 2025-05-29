@@ -2,177 +2,831 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>CN - Martes de Birras 🍻</title>
+  <title>Corky Nights 🍺</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><text y='96' font-size='96'>🍺</text></svg>">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    body, html { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
-    body {
+    /* ========== GLOBAL STYLES ========== */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body, html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       background-attachment: fixed;
-      font-family: 'Inter', sans-serif; 
       color: #fff;
+      overflow-x: hidden;
     }
-    .overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(25, 25, 25, 0.25); z-index: 1; pointer-events: none; }
-    .main-content { z-index: 2; position: relative; min-height: 100vh; padding: 20px; }
-    .header { text-align: center; margin-bottom: 30px; }
-    .header h1 { font-size: 2.8rem; color: #ffe066; text-shadow: 2px 3px 8px #0008; margin-bottom: 10px; font-weight: 700; }
-    .user-info { position: fixed; top: 20px; right: 20px; z-index: 1051; background: rgba(34,34,34,0.90); border-radius: 15px; padding: 10px 15px; color: #ffe066; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px #0004; }
-    .user-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ffe066; background-color: #555; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; overflow: hidden; }
-    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .auth-container { max-width: 500px; margin: 50px auto; background: linear-gradient(135deg, rgba(0, 141, 78, 0.15), rgba(255, 224, 102, 0.15)); backdrop-filter: blur(15px); border-radius: 25px; padding: 40px; text-align: center; border: 2px solid rgba(255, 224, 102, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden; }
-    .auth-container::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255, 224, 102, 0.1) 0%, transparent 70%); animation: pulse 3s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
-    .auth-container h2 { font-size: 2.5rem; color: #ffe066; margin-bottom: 15px; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7); position: relative; z-index: 1; }
-    .auth-container p { font-size: 1.2rem; color: #ffffff; margin-bottom: 35px; text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); position: relative; z-index: 1; }
-    #googleSignIn { background: linear-gradient(45deg, #4285f4, #34a853); border: none; border-radius: 15px; color: white; font-size: 1.3rem; font-weight: 600; padding: 15px 40px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4); position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; }
-    #googleSignIn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6); background: linear-gradient(45deg, #3367d6, #2d8a47); }
-    #googleSignIn:active { transform: translateY(-1px); }
-    #googleSignIn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .google-icon { width: 24px; height: 24px; background: white; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #4285f4; }
-    .main-tabs { margin-bottom: 30px; }
-    .nav-pills .nav-link { background: rgba(36,36,36,0.80); color: #ffe066; border-radius: 15px; margin: 0 5px; font-weight: 600; padding: 10px 20px; }
-    .nav-pills .nav-link.active { background: #008d4e; color: white; box-shadow: 0 0 10px #008d4e99; }
-    .tab-content { background: rgba(36,36,36,0.90); border-radius: 20px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-    .winner-row { 
-      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.15)) !important; 
-      border: 2px solid rgba(255, 215, 0, 0.4) !important;
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3) !important;
-      animation: golden-glow 2s ease-in-out infinite alternate;
+
+    /* ========== MOBILE DESIGN ========== */
+    .mobile-layout {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Mobile Header */
+    .mobile-header {
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 224, 102, 0.2);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffe066;
+      margin: 0;
+    }
+
+    .week-info {
+      font-size: 0.8rem;
+      color: #adb5bd;
+      margin-top: 2px;
+    }
+
+    .user-avatar-mobile {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #ffe066;
+      background-color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 0.8rem;
+      overflow: hidden;
+      cursor: pointer;
       position: relative;
     }
-    .winner-row::before {
-      content: '👑';
+
+    .user-avatar-mobile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* User Menu Dropdown */
+    .user-menu {
       position: absolute;
-      left: -8px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.5em;
-      z-index: 1;
+      top: 45px;
+      right: 0;
+      background: rgba(40, 40, 40, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 224, 102, 0.3);
+      min-width: 120px;
+      z-index: 1001;
+      display: none;
     }
-    @keyframes golden-glow {
-      0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
-      100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.5), 0 0 35px rgba(255, 215, 0, 0.2); }
+
+    .user-menu-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 0.9rem;
     }
-    .attendance-card { 
-      background: rgba(40,40,40,0.90); 
-      border-radius: 15px; 
-      padding: 20px; 
-      color: #fff; 
-      border: 1px solid #55555555; 
+
+    .user-menu-item:hover {
+      background: rgba(255, 224, 102, 0.1);
     }
-    .attendance-card h5 { 
-      color: #ffe066; 
-      margin-bottom: 15px; 
-      font-weight: 600; 
+
+    .user-menu-item:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .user-menu-item:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* Mobile Main Content */
+    .mobile-main {
+      flex: 1;
+      padding: 80px 0 80px 0;
+      overflow-y: auto;
+    }
+
+    .mobile-section {
+      padding: 16px;
+      display: none;
+    }
+
+    .mobile-section.active {
+      display: block;
+    }
+
+    /* Winner Banner */
+    .winner-banner {
+      background: linear-gradient(135deg, #10b981, #059669);
+      margin: 0 16px 16px 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Mobile Bottom Navigation - Clean Icons */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 224, 102, 0.2);
+      padding: 8px 0;
+      z-index: 1000;
+    }
+
+    .mobile-nav-items {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 8px;
+      min-width: 60px;
+    }
+
+    .mobile-nav-item.active {
+      color: #ffe066;
+    }
+
+    .mobile-nav-item:not(.active) {
+      color: #666;
+    }
+
+    .mobile-nav-icon {
+      width: 20px;
+      height: 20px;
+      margin-bottom: 4px;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .mobile-nav-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    /* Mobile Bar List - Compact Style */
+    .mobile-bars-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .mobile-bar-item {
+      background: rgba(40, 40, 40, 0.9);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mobile-bar-item:last-child {
+      border-bottom: none;
+    }
+
+    .mobile-bar-left {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      gap: 12px;
+    }
+
+    .mobile-bar-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .mobile-bar-visit {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .mobile-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mobile-social-icon {
+      width: 20px;
+      height: 20px;
+      opacity: 0.6;
+    }
+
+    .mobile-vote-btn {
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 70px;
+    }
+
+    .mobile-vote-btn.voted {
+      background: #008d4e;
+    }
+
+    .mobile-vote-btn:disabled {
+      background: #555;
+      color: #aaa;
+    }
+
+    .mobile-bar-votes {
+      background: rgba(255, 224, 102, 0.2);
+      color: #ffe066;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      min-width: 25px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    /* Mobile Attendance */
+    .mobile-quorum-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
       text-align: center;
     }
-    .attendee-item {
-      background: rgba(60,60,60,0.5);
-      border-radius: 10px;
-      padding: 10px;
+
+    .mobile-attendees {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-attendee {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 12px;
+      border-radius: 6px;
+    }
+
+    .mobile-attendee-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin-right: 10px;
+    }
+
+    /* Mobile History & Stats Combined */
+    .mobile-stats-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-history-item {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 8px;
+      padding: 12px;
       margin-bottom: 8px;
+    }
+
+    .mobile-history-date {
+      font-weight: 600;
+      color: #ffe066;
+      font-size: 0.9rem;
+    }
+
+    .mobile-history-result {
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    /* ========== DESKTOP DESIGN (Original) ========== */
+    .desktop-layout {
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .desktop-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .desktop-header h1 {
+      font-size: 2.8rem;
+      color: #ffe066;
+      text-shadow: 2px 3px 8px #0008;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .desktop-user-info {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1051;
+      background: rgba(34,34,34,0.90);
+      border-radius: 15px;
+      padding: 10px 15px;
+      color: #ffe066;
       display: flex;
       align-items: center;
       gap: 10px;
+      box-shadow: 0 2px 10px #0004;
     }
-    table { background: rgba(36,36,36,0.95); border-radius: 15px; color: #fff; overflow: hidden; }
-    th { background: #222; color: #ffe066; font-size: 1.05rem; letter-spacing: 0.5px; border-bottom: 2px solid #444; }
-    td { vertical-align: middle; }
-    .vote-btn { background: #008d4e; color: #fff; border-radius: 10px; font-size: 1.1rem; padding: 8px 15px; border: none; cursor: pointer; transition: all 0.2s ease-in-out; margin: 2px; min-width: 100px; text-align: center; }
-    .vote-btn.voted { background: #c0392b; }
-    .vote-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #555 !important; color: #aaa !important; }
-    .vote-btn:hover:not(:disabled) { filter: brightness(1.2); }
-    .stats-card { background: rgba(40,40,40,0.90); border-radius: 15px; padding: 20px; margin-bottom: 20px; color: #fff; border: 1px solid #55555555; }
-    .stats-card h5 { color: #ffe066; margin-bottom: 15px; font-weight: 600; }
-    .last-visit { font-size: 0.9rem; color: #94a3b8; }
-    .icon-link { display: inline-block; vertical-align: middle; margin: 0 3px; opacity: 0.85; transition: opacity 0.12s; }
-    .icon-link:hover { opacity: 1; filter: drop-shadow(0 1px 2px #ffe06688); }
-    .ig-icon, .fb-icon { width: 1.5em; height: 1.5em; display: inline-block; }
-    .ig-icon { filter: drop-shadow(0 0 4px #ffe06688); }
+
+    .desktop-user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #ffe066;
+      background-color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      overflow: hidden;
+    }
+
+    .desktop-user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .desktop-tabs {
+      margin-bottom: 30px;
+    }
+
+    .nav-pills .nav-link {
+      background: rgba(36,36,36,0.80);
+      color: #ffe066;
+      border-radius: 15px;
+      margin: 0 5px;
+      font-weight: 600;
+      padding: 10px 20px;
+    }
+
+    .nav-pills .nav-link.active {
+      background: #008d4e;
+      color: white;
+      box-shadow: 0 0 10px #008d4e99;
+    }
+
+    .desktop-tab-content {
+      background: rgba(36,36,36,0.90);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .desktop-winner-box {
+      font-size: 1.8rem;
+      color: #ffe066;
+      font-weight: 700;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.50);
+      padding: 15px 25px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    table {
+      background: rgba(36,36,36,0.95);
+      border-radius: 15px;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    th {
+      background: #222;
+      color: #ffe066;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #444;
+    }
+
+    td {
+      vertical-align: middle;
+    }
+
+    .vote-btn {
+      background: #555;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      padding: 8px 15px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      margin: 2px;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .vote-btn.voted {
+      background: #008d4e;
+    }
+
+    .vote-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #555 !important;
+      color: #aaa !important;
+    }
+
+    .vote-btn:hover:not(:disabled) {
+      filter: brightness(1.2);
+    }
+
+    .stats-card {
+      background: rgba(40,40,40,0.90);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      color: #fff;
+      border: 1px solid #55555555;
+    }
+
+    .stats-card h5 {
+      color: #ffe066;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .icon-link {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 3px;
+      opacity: 0.85;
+      transition: opacity 0.12s;
+    }
+
+    .icon-link:hover {
+      opacity: 1;
+      filter: drop-shadow(0 1px 2px #ffe06688);
+    }
+
+    .ig-icon, .fb-icon {
+      width: 1.5em; height: 1.5em;
+      display: inline-block;
+    }
+
+    .ig-icon {
+      filter: drop-shadow(0 0 4px #ffe06688);
+    }
+
+    /* ========== AUTH CONTAINER ========== */
+    .auth-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .auth-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid rgba(255, 224, 102, 0.3);
+    }
+
+    .auth-title {
+      font-size: 2rem;
+      color: #ffe066;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .auth-subtitle {
+      color: #adb5bd;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+    }
+
+    .google-btn {
+      background: linear-gradient(45deg, #4285f4, #34a853);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px 24px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.4);
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #4285f4;
+      font-size: 0.9rem;
+    }
+
+    /* ========== UTILITY CLASSES ========== */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      color: #adb5bd;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #555;
+      border-top: 2px solid #ffe066;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     .recent-visit { color: #10b981; font-weight: 500; }
     .never-visited { color: #ef4444; font-weight: 600; }
     .old-visit { color: #f59e0b; font-weight: 500; }
-    .text-muted-light { color: #adb5bd !important; } 
-    .attended-user-vote { font-size: 0.8em; color: #bbb; margin-left: 5px; }
-    .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #ffffff33; border-radius: 50%; border-top-color: #ffe066; animation: spin 1s ease-in-out infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .debug-info { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #fff; padding: 10px; border-radius: 5px; font-size: 0.8rem; max-width: 300px; z-index: 1000; }
 
-    @media (max-width: 768px) {
-      .header h1 { font-size: 2.2rem; }
-      .user-info { position: static; margin: 15px auto; width: fit-content; flex-direction: column; gap: 5px; }
-      .user-info button { margin-top: 5px;}
-      table { font-size: 0.85rem; }
-      .vote-btn { font-size: 0.9rem; padding: 6px 10px; min-width: 80px;}
-      .nav-pills .nav-link { padding: 8px 12px; font-size: 0.9rem;}
-      .col-md-4, .col-md-8 { width: 100%;} 
-      .order-md-1 { order: 0;} 
-      .order-md-2 { order: 0;}
+    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
+    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
+
+    /* Hide layouts initially */
+    .mobile-layout, .desktop-layout {
+      display: none;
     }
+
+    /* Desktop attendance styles */
+    .attendance-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .attendance-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #6c757d;
+      color: white;
+      font-size: 0.8em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 8px;
+      border: 1px solid #ffe066aa;
+    }
+
+    .text-muted-light { color: #adb5bd !important; }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>
-  
-  <!-- User Info (mostrado cuando está autenticado) -->
-  <div id="userInfo" class="user-info" style="display: none;">
-    <div class="user-avatar" id="userAvatar"></div>
-    <div>
-      <div id="userName" style="font-weight: 600;"></div>
-      <div id="userEmail" style="font-size: 0.85em; opacity: 0.8;"></div>
-    </div>
-    <button class="btn btn-outline-light btn-sm" onclick="signOut()">Salir</button>
-  </div>
-
-  <!-- Auth Container (pantalla de login) -->
+  <!-- Auth Screen -->
   <div id="authContainer" class="auth-container" style="display: none;">
-    <h2>🍻 Martes de Birras</h2>
-    <p>Inicia sesión para votar por tu bar favorito y confirmar tu asistencia</p>
-    <button id="googleSignIn" type="button">
-      <div class="google-icon">G</div>
-      <span id="signInText">Iniciar sesión con Google</span>
-    </button>
+    <div class="auth-card">
+      <h1 class="auth-title">🍺 CORKY NIGHTS</h1>
+      <p class="auth-subtitle">Vota por tu bar favorito y confirma tu asistencia</p>
+      <button id="googleSignIn" class="google-btn">
+        <div class="google-icon">G</div>
+        <span>Continuar con Google</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Main Content (mostrado cuando está autenticado) -->
-  <div id="mainContent" class="main-content" style="display: none;">
-    <div class="header">
-      <h1>🍻 Martes de Birras</h1>
-      <p class="text-light">¡Vota por tu bar favorito para esta semana!</p>
+  <!-- MOBILE LAYOUT -->
+  <div id="mobileLayout" class="mobile-layout">
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <div class="header-content">
+        <div>
+          <h1 class="app-title">🍺 CORKY NIGHTS</h1>
+          <div id="mobileWeekInfo" class="week-info"></div>
+        </div>
+        <div class="user-avatar-mobile" id="mobileUserAvatar">
+          <!-- User Menu -->
+          <div class="user-menu" id="mobileUserMenu">
+            <div class="user-menu-item" onclick="signOut()">
+              👋 Cerrar sesión
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Winner Banner -->
+    <div id="mobileWinnerBanner" class="winner-banner" style="display: none;"></div>
+
+    <!-- Main Content -->
+    <main class="mobile-main">
+      <!-- Votación -->
+      <section id="mobileVotingSection" class="mobile-section active">
+        <div id="mobileBarsContainer">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>Cargando bares...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Asistencia -->
+      <section id="mobileAttendanceSection" class="mobile-section">
+        <div class="mobile-quorum-card">
+          <div id="mobileQuorumStatus" class="quorum-status"></div>
+          <div id="mobileAttendeesList" class="mobile-attendees"></div>
+        </div>
+      </section>
+
+      <!-- Historial + Stats -->
+      <section id="mobileHistorySection" class="mobile-section">
+        <!-- Stats Section -->
+        <div class="mobile-stats-section">
+          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
+          
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Visitados</h4>
+            <div id="mobileTopBars">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Visita por Bar</h4>
+            <div id="mobileLastVisits">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Section -->
+        <div>
+          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📅 Historial</h3>
+          <div id="mobileHistoryContainer">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Cargando historial...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation - 3 items now -->
+    <nav class="mobile-bottom-nav">
+      <div class="mobile-nav-items">
+        <div class="mobile-nav-item active" data-section="voting">
+          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
+          <div class="mobile-nav-label">Votación</div>
+        </div>
+        <div class="mobile-nav-item" data-section="attendance">
+          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 11v7a2 2 0 0 1-4 0v-5h-4V5a2 2 0 0 1 4 0v6h4a2 2 0 0 1 0 4Z"/>
+          </svg>
+          <div class="mobile-nav-label">Asistencia</div>
+        </div>
+        <div class="mobile-nav-item" data-section="history">
+          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="9" x2="20" y2="9"/>
+            <line x1="4" y1="15" x2="20" y2="15"/>
+            <line x1="10" y1="3" x2="8" y2="21"/>
+            <line x1="16" y1="3" x2="14" y2="21"/>
+          </svg>
+          <div class="mobile-nav-label">Historial</div>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- DESKTOP LAYOUT -->
+  <div id="desktopLayout" class="desktop-layout">
+    <!-- Desktop User Info -->
+    <div class="desktop-user-info">
+      <div id="desktopUserAvatar" class="desktop-user-avatar"></div>
+      <span id="desktopUserName"></span>
+      <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
     </div>
 
-    <ul class="nav nav-pills justify-content-center main-tabs" id="mainTabs" role="tablist">
+    <!-- Header -->
+    <div class="desktop-header">
+      <h1>🍺 CORKY NIGHTS 🍺</h1>
+      <div id="desktopWeekInfo" class="text-light"></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="voting-tab" data-bs-toggle="pill" data-bs-target="#voting" type="button" role="tab">
-          🗳️ Votación
+        <button class="nav-link active" id="desktop-voting-tab" data-bs-toggle="pill" data-bs-target="#desktopVoting" type="button" role="tab">
+          💪 Votación
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">
+        <button class="nav-link" id="desktop-history-tab" data-bs-toggle="pill" data-bs-target="#desktopHistory" type="button" role="tab">
           📊 Historial
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button" role="tab">
+        <button class="nav-link" id="desktop-stats-tab" data-bs-toggle="pill" data-bs-target="#desktopStats" type="button" role="tab">
           📈 Estadísticas
         </button>
       </li>
     </ul>
 
-    <div class="tab-content" id="mainTabContent">
-      <!-- Voting Tab -->
-      <div class="tab-pane fade show active" id="voting" role="tabpanel">
+    <!-- Tab Content -->
+    <div class="tab-content desktop-tab-content">
+      <!-- Desktop Voting -->
+      <div class="tab-pane fade show active" id="desktopVoting" role="tabpanel">
+        <div id="desktopWinner" class="desktop-winner-box" style="display:none;"></div>
         <div class="row">
           <div class="col-md-4 order-md-2">
             <h4 class="text-light mb-3">👥 Asistencia</h4>
-            <div class="attendance-card">
-              <h5>Confirmados</h5>
-              <div id="attendanceList">
-                <div id="confirmedList" class="mb-2"></div>
+            <div class="stats-card">
+              <div id="desktopQuorumStatus" class="quorum-status mb-3"></div>
+              <div id="desktopAttendanceList">
+                <h6 class="text-warning">Confirmados (quienes votaron):</h6>
+                <div id="desktopConfirmedList" class="mb-2"></div>
               </div>
             </div>
           </div>
@@ -189,60 +843,33 @@
                     <th>Última visita</th>
                   </tr>
                 </thead>
-                <tbody id="barsTable">
-                  <tr>
-                    <td colspan="5" class="text-center">
-                      <div class="loading-spinner"></div>
-                      <span class="ms-2">Cargando bares...</span>
-                    </td>
-                  </tr>
-                </tbody>
+                <tbody id="desktopBarsTable"></tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- History Tab -->
-      <div class="tab-pane fade" id="history" role="tabpanel">
-        <h4 class="text-light mb-3">📊 Historial de Semanas</h4>
-        <div id="historyContent">
-          <div class="text-center">
-            <div class="loading-spinner"></div>
-            <span class="ms-2">Cargando historial...</span>
-          </div>
-        </div>
+      <!-- Desktop History -->
+      <div class="tab-pane fade" id="desktopHistory" role="tabpanel">
+        <h4 class="text-light mb-3">📅 Historial de CNs</h4>
+        <div id="desktopHistoryContent"></div>
       </div>
 
-      <!-- Stats Tab -->
-      <div class="tab-pane fade" id="stats" role="tabpanel">
-        <h4 class="text-light mb-3">📈 Estadísticas Generales</h4>
+      <!-- Desktop Stats -->
+      <div class="tab-pane fade" id="desktopStats" role="tabpanel">
+        <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="stats-card">
-              <h5>🏆 Top Bares</h5>
-              <div id="topBars">
-                <div class="loading-spinner"></div>
-                <span class="ms-2">Cargando...</span>
-              </div>
+              <h5>🏆 Top 5 Bares Más Visitados</h5>
+              <div id="desktopTopBars"></div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="stats-card">
-              <h5>🕐 Últimas Visitas</h5>
-              <div id="lastVisits">
-                <div class="loading-spinner"></div>
-                <span class="ms-2">Cargando...</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="stats-card">
-              <h5>📊 Estadísticas CN</h5>
-              <div id="cnStats">
-                <div class="loading-spinner"></div>
-                <span class="ms-2">Cargando...</span>
-              </div>
+              <h5>⏰ Última Visita por Bar</h5>
+              <div id="desktopLastVisits"></div>
             </div>
           </div>
         </div>
@@ -250,92 +877,125 @@
     </div>
   </div>
 
-  <!-- Debug Info (quitar en producción) -->
-  <div id="debugInfo" class="debug-info" style="display: none;">
-    <strong>Debug Info:</strong><br>
-    <span id="debugText">Iniciando...</span>
-  </div>
-
   <script>
-    // Configuración
+    // ========== CONFIGURATION ==========
     const supabaseUrl = 'https://wjwsdyrkqvxszlclitru.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
-    
-    // Activar modo debug - cambiar a false en producción
-    const DEBUG_MODE = true;
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Inicializar Supabase
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      }
-    });
-
-    // Datos de bares - reemplazar con tus bares reales
     const bars = [
-      { name: 'Bar Central', ig: 'https://instagram.com/barcentral', fb: null },
-      { name: 'Cervecería Artesanal', ig: null, fb: 'https://facebook.com/cerveceriaartesanal' },
-      { name: 'El Rincón', ig: 'https://instagram.com/elrincon', fb: 'https://facebook.com/elrincon' },
-      { name: 'La Esquina', ig: null, fb: null },
-      { name: 'Sports Bar', ig: 'https://instagram.com/sportsbar', fb: null },
-      { name: 'Café del Centro', ig: 'https://instagram.com/cafedelcentro', fb: null },
-      { name: 'Taberna Los Amigos', ig: null, fb: 'https://facebook.com/tabernalosамigos' },
+      { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
+      { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
+      { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
+      { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
+      { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
+      { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
+      { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
+      { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
+      { name: "Rio de J", ig: "https://www.instagram.com/rioescazu/" },
+      { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
+      { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
+      { name: "Zompopas", ig: "" },
+      { name: "Casa Adrián" },
+      { name: "Casa Nino" },
+      { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
+      { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
+      { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
+      { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
+      { name: "El Pub Escazu" },
+      { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
+      { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
+      { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
     ];
 
-    // Estado global
     let currentUser = null;
     let currentWeek = null;
     let userVotes = []; 
     let userAttendance = false;
+    let isMobile = false;
+    let currentMobileSection = 'voting';
 
-    // Función para limpiar nombres problemáticos
-    function sanitizeName(name) {
-      if (!name) return 'Usuario';
-      return name.replace(/['"<>]/g, '').trim() || 'Usuario';
+    // ========== DEVICE DETECTION ==========
+    function detectDevice() {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      isMobile = isMobileUA || (isSmallScreen && isTouchDevice);
+      
+      console.log('📱 Device detection:', {
+        userAgent: isMobileUA,
+        screenWidth: window.innerWidth,
+        touchDevice: isTouchDevice,
+        finalDecision: isMobile ? 'MOBILE' : 'DESKTOP'
+      });
+      
+      return isMobile;
     }
 
-    // Función de debug
-    function debugLog(message) {
-      if (DEBUG_MODE) {
-        console.log(`🐛 [DEBUG] ${message}`);
-        const debugEl = document.getElementById('debugText');
-        if (debugEl) {
-          debugEl.innerHTML = message;
-        }
+    function showLayout() {
+      const mobile = document.getElementById('mobileLayout');
+      const desktop = document.getElementById('desktopLayout');
+      
+      if (isMobile) {
+        mobile.style.display = 'flex';
+        desktop.style.display = 'none';
+        setupMobileNavigation();
+        setupMobileUserMenu();
+      } else {
+        mobile.style.display = 'none';
+        desktop.style.display = 'block';
+        setupDesktopTabs();
       }
     }
 
-    // Mostrar/ocultar elementos
-    function showElement(id) {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'block';
-    }
+    // ========== INITIALIZATION ==========
+    async function init() {
+      console.log('🚀 Iniciando aplicación...');
+      
+      detectDevice();
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) console.error('❌ Error obteniendo sesión:', error);
+        
+        if (session) {
+          await handleAuthSuccess(session);
+        } else {
+          showAuthContainer();
+        }
 
-    function hideElement(id) {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('🔄 Auth change:', event);
+          if (event === 'SIGNED_IN' && session) {
+            await handleAuthSuccess(session);
+          } else if (event === 'SIGNED_OUT') {
+            handleSignOut();
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            currentUser = session.user;
+            updateUserDisplay();
+          }
+        });
+        
+      } catch (error) {
+        console.error('❌ Error en inicialización:', error);
+        showAuthContainer();
+      }
     }
 
     function showAuthContainer() {
-      debugLog('Mostrando pantalla de login');
-      hideElement('mainContent');
-      hideElement('userInfo');
-      showElement('authContainer');
-      if (DEBUG_MODE) showElement('debugInfo');
+      document.getElementById('authContainer').style.display = 'flex';
+      document.getElementById('mobileLayout').style.display = 'none';
+      document.getElementById('desktopLayout').style.display = 'none';
     }
 
-    function showMainContent() {
-      debugLog('Mostrando contenido principal');
-      hideElement('authContainer');
-      hideElement('debugInfo');
-      showElement('userInfo');
-      showElement('mainContent');
+    function hideAuthContainer() {
+      document.getElementById('authContainer').style.display = 'none';
+      showLayout();
     }
 
     function handleSignOut() {
-      debugLog('👋 Manejando logout');
       currentUser = null;
       currentWeek = null;
       userVotes = [];
@@ -343,348 +1003,476 @@
       showAuthContainer();
     }
 
-    function updateUserInfoDisplay() {
-      if (!currentUser) return;
-      
-      const userNameEl = document.getElementById('userName');
-      const userEmailEl = document.getElementById('userEmail');
-      const userAvatarEl = document.getElementById('userAvatar');
-      
-      if (userNameEl) userNameEl.textContent = currentUser.user_metadata?.full_name || 'Usuario';
-      if (userEmailEl) userEmailEl.textContent = currentUser.email;
-      
-      if (userAvatarEl) {
-        const avatarUrl = currentUser.user_metadata?.avatar_url;
-        if (avatarUrl) {
-          userAvatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.parentElement.innerHTML='${currentUser.email.charAt(0).toUpperCase()}'">`;
-        } else {
-          userAvatarEl.textContent = currentUser.email.charAt(0).toUpperCase();
-        }
-      }
-    }
-
-    // Inicializar la aplicación
-    async function init() {
-      debugLog('🚀 Iniciando aplicación...');
+    async function handleAuthSuccess(session) {
+      console.log('🎉 Login exitoso');
+      currentUser = session.user;
       
       try {
-        // Verificar sesión existente
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        await ensureUserProfile();
+        await ensureCurrentWeek();
+        await loadCurrentWeek();
         
-        if (sessionError) {
-          debugLog(`❌ Error obteniendo sesión: ${sessionError.message}`);
-          showAuthContainer();
-          return;
+        hideAuthContainer();
+        updateUserDisplay();
+        
+        if (currentWeek) {
+          await Promise.all([
+            loadVotingData(),
+            loadAttendanceData()
+          ]);
         }
-
-        if (session && session.user) {
-          debugLog(`✅ Sesión encontrada: ${session.user.email}`);
-          await handleAuthSuccess(session);
-        } else {
-          if (!window.location.hash.includes('access_token')) {
-            debugLog('🔐 No hay sesión activa, mostrando login');
-            showAuthContainer();
-          } else {
-            debugLog('⏳ Token detectado en URL, esperando onAuthStateChange...');
-          }
-        }
-
-        // Configurar listener de cambios de autenticación
-        supabase.auth.onAuthStateChange(async (event, session) => {
-          debugLog(`🔄 Auth event: ${event}`);
-          
-          if (event === 'INITIAL_SESSION' && session) {
-            debugLog(`🔑 Sesión persistente cargada: ${session.user.email}`);
-            await handleAuthSuccess(session);
-          } else if (event === 'SIGNED_IN' && session) {
-            debugLog(`✅ Login exitoso: ${session.user.email}`);
-            await handleAuthSuccess(session);
-          } else if (event === 'SIGNED_OUT') {
-            debugLog('👋 Logout detectado');
-            handleSignOut();
-          } else if (event === 'TOKEN_REFRESHED' && session) {
-            debugLog('🔄 Token refrescado');
-            currentUser = session.user;
-            updateUserInfoDisplay();
-          } else if (event === 'USER_UPDATED' && session) {
-            debugLog('👤 Usuario actualizado');
-            currentUser = session.user;
-            updateUserInfoDisplay();
-          }
-        });
-
+        
+        console.log('✅ App cargada');
       } catch (error) {
-        debugLog(`❌ Error en inicialización: ${error.message}`);
+        console.error('❌ Error en handleAuthSuccess:', error);
         showAuthContainer();
       }
     }
 
-    async function handleAuthSuccess(session) {
-      debugLog('🎉 Manejando autenticación exitosa');
+    function updateUserDisplay() {
+      if (!currentUser) return;
       
-      try {
-        currentUser = session.user;
-        updateUserInfoDisplay();
+      const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
+      const avatarUrl = currentUser.user_metadata?.avatar_url;
+      const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
+      
+      if (isMobile) {
+        const avatarEl = document.getElementById('mobileUserAvatar');
+        if (avatarEl) {
+          if (avatarUrl) {
+            avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.outerHTML='<div class=&quot;user-avatar-mobile&quot;>${firstLetter}</div>'">`;
+          } else {
+            avatarEl.innerHTML = firstLetter;
+          }
+        }
+      } else {
+        const avatarEl = document.getElementById('desktopUserAvatar');
+        const nameEl = document.getElementById('desktopUserName');
         
-        // Asegurar que existe el perfil del usuario
-        await ensureUserProfile();
+        if (avatarEl) {
+          if (avatarUrl) {
+            avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.outerHTML='<div class=&quot;desktop-user-avatar&quot;>${firstLetter}</div>'">`;
+          } else {
+            avatarEl.innerHTML = firstLetter;
+          }
+        }
         
-        // Cargar datos de la aplicación
-        await loadApplicationData();
-        
-        showMainContent();
-        debugLog('✅ Aplicación lista');
-        
-      } catch (error) {
-        debugLog(`❌ Error en handleAuthSuccess: ${error.message}`);
-        alert('Error al cargar la aplicación: ' + error.message);
+        if (nameEl) {
+          nameEl.textContent = name;
+        }
       }
     }
 
-    async function ensureUserProfile() {
-      debugLog('👤 Verificando perfil de usuario');
+    // ========== MOBILE NAVIGATION ==========
+    function setupMobileNavigation() {
+      const navItems = document.querySelectorAll('.mobile-nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const section = item.dataset.section;
+          switchMobileSection(section);
+        });
+      });
+    }
+
+    function setupMobileUserMenu() {
+      const avatar = document.getElementById('mobileUserAvatar');
+      const menu = document.getElementById('mobileUserMenu');
       
+      if (avatar && menu) {
+        avatar.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        document.addEventListener('click', () => {
+          menu.style.display = 'none';
+        });
+      }
+    }
+
+    function switchMobileSection(sectionName) {
+      document.querySelectorAll('.mobile-nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+      
+      document.querySelectorAll('.mobile-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(`mobile${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}Section`).classList.add('active');
+      
+      currentMobileSection = sectionName;
+      
+      if (sectionName === 'history' && currentUser) {
+        loadMobileHistory();
+        loadMobileStats();
+      }
+    }
+
+    // ========== DESKTOP TABS ==========
+    function setupDesktopTabs() {
+      const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
+      tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+          const target = event.target.getAttribute('data-bs-target');
+          if (target === '#desktopHistory') {
+            loadDesktopHistory();
+          } else if (target === '#desktopStats') {
+            loadDesktopStats();
+          }
+        });
+      });
+    }
+
+    // ========== DATE FUNCTIONS ==========
+    function getNextTuesday() {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      let daysUntilTuesday = dayOfWeek <= 2 ? 2 - dayOfWeek : 7 - dayOfWeek + 2;
+      const nextTuesday = new Date(today);
+      nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+      return nextTuesday;
+    }
+
+    function formatTuesdayDate(date) {
+      const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = months[date.getMonth()];
+      return `${day}-${month}`;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
       try {
-        const { data: existingProfile, error: selectError } = await supabase
+        return new Date(dateString).toLocaleDateString('es-ES', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch {
+        return dateString;
+      }
+    }
+
+    // ========== DATA LOADING ==========
+    async function ensureUserProfile() {
+      try {
+        const { data, error } = await supabase
           .from('usuarios')
           .select('*')
           .eq('id', currentUser.id)
-          .maybeSingle();
-
-        if (selectError && selectError.code !== 'PGRST116') {
-          throw selectError;
-        }
-
-        if (!existingProfile) {
-          debugLog('👤 Creando nuevo perfil de usuario');
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        if (!data) {
           const { error: insertError } = await supabase
             .from('usuarios')
-            .insert([{
+            .insert({
               id: currentUser.id,
               email: currentUser.email,
-              nombre: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+              nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
               avatar_url: currentUser.user_metadata?.avatar_url
-            }]);
-
+            });
           if (insertError) throw insertError;
-          debugLog('✅ Perfil de usuario creado');
         }
       } catch (error) {
-        debugLog(`❌ Error en ensureUserProfile: ${error.message}`);
-        // No lanzar error - continuar con la carga de la app
-      }
-    }
-
-    async function loadApplicationData() {
-      debugLog('📊 Cargando datos de la aplicación');
-      
-      try {
-        await ensureCurrentWeek();
-        await loadVotingData();
-        await loadAttendanceData();
-        debugLog('✅ Datos cargados exitosamente');
-      } catch (error) {
-        debugLog(`❌ Error cargando datos: ${error.message}`);
-        throw error;
+        console.error('❌ Error en ensureUserProfile:', error);
       }
     }
 
     async function ensureCurrentWeek() {
-      debugLog('📅 Verificando semana actual');
-      
       try {
-        const { data: activeWeek, error } = await supabase
-          .from('semanas')
+        await supabase.rpc('crear_semana_si_no_existe');
+        await supabase.rpc('finalizar_semana_anterior');
+      } catch (error) {
+        console.error('❌ Error en ensureCurrentWeek:', error);
+      }
+    }
+
+    async function loadCurrentWeek() {
+      try {
+        const { data, error } = await supabase
+          .from('semana_actual')
           .select('*')
-          .eq('estado', 'activa')
-          .maybeSingle();
-
-        if (error && error.code !== 'PGRST116') throw error;
-
-        if (activeWeek) {
-          currentWeek = activeWeek;
-          debugLog(`📅 Semana activa encontrada: ${activeWeek.id}`);
+          .single();
+        
+        if (error) {
+          console.error('❌ Error cargando semana:', error);
+          return;
+        }
+        
+        currentWeek = data;
+        
+        const nextTuesday = getNextTuesday();
+        const formattedDate = formatTuesdayDate(nextTuesday);
+        const weekText = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
+        
+        if (isMobile) {
+          const el = document.getElementById('mobileWeekInfo');
+          if (el) el.textContent = weekText;
         } else {
-          debugLog('📅 No hay semana activa, creando nueva');
-          const now = new Date();
-          const startOfWeek = new Date(now);
-          // Calcular el martes de esta semana (día 2, donde domingo = 0)
-          const dayOfWeek = now.getDay();
-          const daysUntilTuesday = dayOfWeek === 0 ? 2 : (2 - dayOfWeek + 7) % 7;
-          startOfWeek.setDate(now.getDate() + daysUntilTuesday);
-          
-          const { data: newWeek, error: insertError } = await supabase
-            .from('semanas')
-            .insert([{
-              fecha_martes: startOfWeek.toISOString().split('T')[0],
-              estado: 'activa'
-            }])
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-          currentWeek = newWeek;
-          debugLog(`📅 Nueva semana creada: ${newWeek.id}`);
+          const el = document.getElementById('desktopWeekInfo');
+          if (el) el.innerHTML = `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
       } catch (error) {
-        debugLog(`❌ Error en ensureCurrentWeek: ${error.message}`);
-        throw error;
+        console.error('❌ Error en loadCurrentWeek:', error);
       }
     }
 
     async function loadVotingData() {
-      debugLog('🗳️ Cargando datos de votación');
+      if (!currentUser || !currentWeek) return;
       
-      if (!currentUser || !currentWeek) {
-        renderBarsTable([], []);
-        return;
-      }
-
       try {
-        // Cargar todos los votos de la semana actual
-        const { data: allVotes, error: votesError } = await supabase
+        const { data: votesInWeek, error } = await supabase
           .from('votos')
-          .select('*')
+          .select('bar, user_id')
           .eq('semana_id', currentWeek.id);
-
-        if (votesError) throw votesError;
-
-        // Cargar votos del usuario
-        userVotes = allVotes
-          .filter(vote => vote.user_id === currentUser.id)
-          .map(vote => vote.bar);
-
-        // Cargar estadísticas de bares (ajustar según tu esquema)
+        
+        if (error) throw error;
+        
+        userVotes = (votesInWeek || [])
+          .filter(v => v.user_id === currentUser.id)
+          .map(v => v.bar);
+        
         const { data: barStats, error: statsError } = await supabase
           .from('estadisticas_bares')
           .select('*');
-
-        if (statsError) {
-          debugLog(`⚠️ Error cargando estadísticas: ${statsError.message}`);
-        }
-
-        renderBarsTable(allVotes || [], barStats || []);
         
-        debugLog('✅ Datos de votación cargados');
+        if (statsError) console.error('Error loading bar stats:', statsError);
+        
+        if (isMobile) {
+          renderMobileBars(votesInWeek || [], barStats || []);
+          updateMobileWinner(votesInWeek || []);
+        } else {
+          renderDesktopBars(votesInWeek || [], barStats || []);
+          updateDesktopWinner(votesInWeek || []);
+        }
+        
       } catch (error) {
-        debugLog(`❌ Error en loadVotingData: ${error.message}`);
-        renderBarsTable([], []);
+        console.error('❌ Error en loadVotingData:', error);
       }
     }
 
     async function loadAttendanceData() {
-      debugLog('👥 Cargando datos de asistencia');
+      if (!currentUser || !currentWeek) return;
       
-      if (!currentUser || !currentWeek) {
-        updateAttendanceUI([]);
-        return;
-      }
-
       try {
-        // Cargar todos los votos para cruzar con los asistentes
-        const { data: allVotesThisWeek, error: allVotesError } = await supabase
-          .from('votos')
-          .select('user_id, bar')
-          .eq('semana_id', currentWeek.id);
-
-        if (allVotesError) {
-          debugLog(`⚠️ Error cargando votos: ${allVotesError.message}`);
-        }
-
-        // Cargar datos de asistencia
-        const { data: attendances, error: attendanceError } = await supabase
+        const { data: attendances, error } = await supabase
           .from('asistencias')
-          .select(`user_id, confirmado, usuarios (nombre, avatar_url)`)
+          .select('user_id, confirmado, usuarios (nombre, avatar_url)')
           .eq('semana_id', currentWeek.id)
           .eq('confirmado', true);
-
-        if (attendanceError) throw attendanceError;
+        
+        if (error) throw error;
         
         userAttendance = (attendances || []).some(a => a.user_id === currentUser.id);
         
-        // Mapear votos a cada asistente
-        const attendeesWithVotes = (attendances || []).map(att => {
-          const userSpecificVotes = (allVotesThisWeek || [])
-            .filter(vote => vote.user_id === att.user_id)
-            .map(vote => vote.bar);
-          return { ...att, votedBars: userSpecificVotes };
-        });
-
-        updateAttendanceUI(attendeesWithVotes);
+        if (isMobile) {
+          updateMobileAttendance(attendances || []);
+        } else {
+          updateDesktopAttendance(attendances || []);
+        }
         
-        debugLog('✅ Datos de asistencia cargados');
       } catch (error) {
-        debugLog(`❌ Error en loadAttendanceData: ${error.message}`);
-        updateAttendanceUI([]);
+        console.error('❌ Error en loadAttendanceData:', error);
       }
     }
 
-    function igIcon() {
-      return `<svg width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2"/>
-        <path d="m16 11.37-4 4v-8.74l4 4.74z" fill="currentColor"/>
-        <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
-      </svg>`;
-    }
-
-    function fbIcon() {
-      return `<svg width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-      </svg>`;
-    }
-
-    function renderBarsTable(allVotesInWeek, barStats) {
-      const tbody = document.getElementById('barsTable');
-      if (!tbody) return;
+    // ========== MOBILE RENDERING ==========
+    function renderMobileBars(allVotes, barStats) {
+      const container = document.getElementById('mobileBarsContainer');
+      if (!container) return;
       
-      if (!currentWeek) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay semana activa.</td></tr>';
-        return;
-      }
-
-      // Contar votos por bar
       const voteCounts = {};
-      allVotesInWeek.forEach(vote => {
+      allVotes.forEach(vote => {
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
-
-      // Crear mapa de estadísticas
+      
       const statsMap = {};
       barStats.forEach(stat => {
         statsMap[stat.bar] = stat;
       });
-
-      // Ordenar bares por número de votos
+      
       const sortedBars = bars.slice().sort((a, b) => {
         const aVotes = voteCounts[a.name] || 0;
         const bVotes = voteCounts[b.name] || 0;
         if (bVotes !== aVotes) return bVotes - aVotes;
         return a.name.localeCompare(b.name);
       });
+      
+      const listHTML = sortedBars.map(bar => {
+        const votes = voteCounts[bar.name] || 0;
+        const userVoted = userVotes.includes(bar.name);
+        const stats = statsMap[bar.name];
+        const isActive = currentWeek?.estado === 'activa';
+        
+        let socialLinks = '';
+        if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
+        if (bar.fb) socialLinks += `<a href="${bar.fb}" target="_blank">${fbIcon()}</a>`;
+        
+        let lastVisit = 'Nunca';
+        if (stats?.ultima_visita) {
+          const days = stats.dias_desde_ultima_visita;
+          if (days <= 14) lastVisit = `${days}d`;
+          else if (days <= 60) lastVisit = `${days}d`;
+          else lastVisit = `${days}d`;
+        }
+        
+        return `
+          <div class="mobile-bar-item">
+            <div class="mobile-bar-left">
+              <div>
+                <div class="mobile-bar-name">${bar.name}</div>
+                <div class="mobile-bar-visit">Última: ${lastVisit}</div>
+              </div>
+            </div>
+            <div class="mobile-bar-right">
+              <div class="mobile-social-icon">${socialLinks}</div>
+              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
+                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
+                ${votes}
+              </div>
+              <button class="mobile-vote-btn ${userVoted ? 'voted' : ''}"
+                      ${!isActive ? 'disabled' : ''}
+                      onclick="toggleVote('${bar.name}', this)">
+                ${userVoted ? '🍺' : '💪'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = `<div class="mobile-bars-list">${listHTML}</div>`;
+    }
 
-      if (sortedBars.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares configurados.</td></tr>';
+    function updateMobileWinner(allVotes) {
+      const banner = document.getElementById('mobileWinnerBanner');
+      if (!banner) return;
+      
+      console.log('🏆 updateMobileWinner called with votes:', allVotes.length);
+      
+      if (!allVotes.length) {
+        console.log('🏆 No votes, hiding banner');
+        banner.style.display = 'none';
         return;
       }
+      
+      const voteCounts = {};
+      allVotes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+      
+      console.log('🏆 Vote counts:', voteCounts);
+      
+      const maxVotes = Math.max(...Object.values(voteCounts));
+      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+      
+      console.log('🏆 Winners:', winners, 'Max votes:', maxVotes);
+      
+      if (winners.length === 1 && maxVotes > 0) {
+        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos)`;
+        banner.style.display = 'block';
+        console.log('🏆 Banner shown for winner:', winners[0]);
+      } else {
+        banner.style.display = 'none';
+        console.log('🏆 Banner hidden - no clear winner');
+      }
+    }
 
+    function updateMobileAttendance(attendances) {
+      const statusEl = document.getElementById('mobileQuorumStatus');
+      const listEl = document.getElementById('mobileAttendeesList');
+      
+      const count = attendances.length;
+      const needed = 3;
+      
+      if (statusEl) {
+        let statusClass = '';
+        let statusText = '';
+        
+        if (count >= needed) {
+          statusClass = 'quorum-yes';
+          statusText = `✅ ¡Hay quorum! ${count} confirmados`;
+        } else if (count > 0) {
+          statusClass = 'quorum-pending';
+          statusText = `⏳ ${count} confirmados, faltan ${needed - count}`;
+        } else {
+          statusClass = 'quorum-no';
+          statusText = `❌ Se necesitan ${needed} para hacer CN`;
+        }
+        
+        statusEl.className = `quorum-status ${statusClass}`;
+        statusEl.textContent = statusText;
+      }
+      
+      if (listEl) {
+        if (!attendances.length) {
+          listEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">Nadie ha confirmado asistencia aún</div>';
+          return;
+        }
+        
+        listEl.innerHTML = attendances.map(att => {
+          let userName = 'Usuario';
+          if (att.usuarios?.nombre) {
+            userName = att.usuarios.nombre.toString().trim().replace(/^['">]+|['">]+$/g, '');
+            if (!userName) userName = 'Usuario';
+          }
+          
+          const avatarUrl = att.usuarios?.avatar_url;
+          const firstLetter = userName.charAt(0).toUpperCase();
+          
+          return `
+            <div class="mobile-attendee">
+              <div class="mobile-attendee-avatar">
+                ${avatarUrl ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML='${firstLetter}'">` : firstLetter}
+              </div>
+              <div>${userName}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // ========== DESKTOP RENDERING ==========
+    function renderDesktopBars(allVotes, barStats) {
+      const tbody = document.getElementById('desktopBarsTable');
+      if (!tbody) return;
+      
+      const voteCounts = {};
+      allVotes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+      
+      const statsMap = {};
+      barStats.forEach(stat => {
+        statsMap[stat.bar] = stat;
+      });
+      
+      const sortedBars = bars.slice().sort((a, b) => {
+        const aVotes = voteCounts[a.name] || 0;
+        const bVotes = voteCounts[b.name] || 0;
+        if (bVotes !== aVotes) return bVotes - aVotes;
+        return a.name.localeCompare(b.name);
+      });
+      
       tbody.innerHTML = '';
       
-      // Encontrar el máximo número de votos para destacar ganadores
-      const maxVotes = Math.max(...sortedBars.map(bar => voteCounts[bar.name] || 0));
+      if (sortedBars.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
+        return;
+      }
       
       sortedBars.forEach(bar => {
         const votesForBar = voteCounts[bar.name] || 0;
         const userHasVotedForThisBar = userVotes.includes(bar.name);
         const stats = statsMap[bar.name];
-        const isWinner = maxVotes > 0 && votesForBar === maxVotes;
 
-        // Enlaces sociales
         let socialLinks = '';
         if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
         if (bar.fb) socialLinks += `<a class="icon-link" href="${bar.fb}" target="_blank" title="Facebook">${fbIcon()}</a>`;
         if (!socialLinks) socialLinks = '<span style="color:#bbb;">—</span>';
 
-        // Información de última visita
         let lastVisitText = '<span class="never-visited">Nunca</span>';
         if (stats && stats.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
@@ -695,18 +1483,15 @@
         }
 
         const row = document.createElement('tr');
-        if (isWinner) {
-          row.className = 'winner-row';
-        }
         row.innerHTML = `
-          <td style="font-weight: 600;">${sanitizeName(bar.name)}</td>
+          <td style="font-weight: 600;">${bar.name}</td>
           <td>${socialLinks}</td>
           <td>
             <button class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
                     ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
                     data-bar="${encodeURIComponent(bar.name)}" 
                     data-action="vote">
-              ${userHasVotedForThisBar ? '🍺 Quitar' : '💪 Votar'}
+              ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
             </button>
           </td>
           <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
@@ -720,251 +1505,462 @@
       });
     }
 
-    function updateAttendanceUI(attendeesWithVotes) {
-      const confirmedListEl = document.getElementById('confirmedList');
-      if (!confirmedListEl) return;
-
-      if (!attendeesWithVotes || attendeesWithVotes.length === 0) {
-        confirmedListEl.innerHTML = '<div class="text-center text-muted-light" style="padding: 20px;"><em>Nadie ha confirmado asistencia aún</em></div>';
+    function updateDesktopWinner(allVotes) {
+      const winnerDiv = document.getElementById("desktopWinner");
+      if (!winnerDiv) return;
+      
+      if (!allVotes || allVotes.length === 0) {
+        winnerDiv.style.display = "none";
         return;
       }
-
-      confirmedListEl.innerHTML = attendeesWithVotes.map(att => {
-        const userName = sanitizeName(att.usuarios?.nombre) || 'Usuario Desconocido';
-        const avatarUrl = att.usuarios?.avatar_url || ''; 
-        const avatarPlaceholder = `<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background-color:#6c757d;color:white;font-size:0.9em;font-weight:600;">${userName.substring(0,1).toUpperCase()}</div>`;
-        
-        let votedBarsString = '';
-        if (att.votedBars && att.votedBars.length > 0) {
-          const cleanBars = att.votedBars.map(bar => sanitizeName(bar));
-          votedBarsString = `<div style="font-size:0.85em; color:#bbb; margin-top:2px;">${cleanBars.join(', ')}</div>`;
-        }
-
-        return `
-          <div class="attendee-item">
-            ${avatarUrl ? `<img src="${avatarUrl}" class="rounded-circle" width="32" height="32" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholder}'">` : avatarPlaceholder}
-            <div class="flex-grow-1">
-              <div style="font-weight: 500;">${userName}</div>
-              ${votedBarsString}
-            </div>
-          </div>`;
-      }).join('');
+      
+      const voteCounts = {};
+      allVotes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+      
+      const maxVotes = Math.max(0, ...Object.values(voteCounts));
+      if (maxVotes === 0) {
+        winnerDiv.style.display = "none";
+        return;
+      }
+      
+      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+      if (winners.length === 1) {
+        winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
+      } else if (winners.length > 1) {
+        const names = winners.map(w => `<strong>${w}</strong>`).join(" y ");
+        winnerDiv.innerHTML = `🤝 Empate actual: ${names} (${maxVotes} votos c/u) 🤝`;
+      } else {
+        winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
+      }
+      winnerDiv.style.display = "block";
     }
 
-    async function toggleVote(barName, btnElement) {
-      debugLog(`⏯️ toggleVote para: '${barName}'`);
+    function updateDesktopAttendance(attendances) {
+      const statusEl = document.getElementById('desktopQuorumStatus');
+      const listEl = document.getElementById('desktopConfirmedList');
       
+      const count = attendances.length;
+      const needed = 3;
+      
+      if (statusEl) {
+        if (count >= needed) {
+          statusEl.className = 'quorum-status quorum-yes';
+          statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+        } else if (count > 0) {
+          statusEl.className = 'quorum-status quorum-pending';
+          statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${needed - count} para quorum`;
+        } else {
+          statusEl.className = 'quorum-status quorum-no';
+          statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${needed} para hacer CN`;
+        }
+      }
+      
+      if (listEl) {
+        if (!attendances || attendances.length === 0) {
+          listEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
+        } else {
+          listEl.innerHTML = attendances.map(att => {
+            let userName = 'Usuario Desconocido';
+            
+            if (att.usuarios && att.usuarios.nombre) {
+              userName = att.usuarios.nombre.toString().trim();
+              userName = userName.replace(/^['">]+|['">]+$/g, '');
+              if (userName.length === 0) {
+                userName = 'Usuario';
+              }
+            }
+            
+            const avatarUrl = att.usuarios?.avatar_url || '';
+            const firstLetter = userName.substring(0, 1).toUpperCase();
+            
+            const avatarHtml = avatarUrl ? 
+              `<img src="${avatarUrl}" class="attendance-avatar" alt="Avatar" onerror="this.outerHTML='<div class=&quot;attendance-avatar&quot;>${firstLetter}</div>'">` :
+              `<div class="attendance-avatar">${firstLetter}</div>`;
+            
+            return `
+              <div class="attendance-item">
+                ${avatarHtml}
+                <span>${userName}</span>
+              </div>`;
+          }).join('');
+        }
+      }
+    }
+
+    // ========== VOTE HANDLING ==========
+    async function toggleVote(barName, btnElement) {
       if (!currentWeek || currentWeek.estado !== 'activa' || !currentUser) {
-        alert('No se puede votar en este momento. Verifica que la votación esté activa y hayas iniciado sesión.');
+        alert('No se puede votar en este momento');
         return;
       }
 
-      const originalButtonHTML = btnElement.innerHTML;
-      btnElement.innerHTML = '⏳';
+      const originalText = btnElement.textContent;
+      btnElement.textContent = '⏳';
       btnElement.disabled = true;
 
       try {
-        const userAlreadyVotedForThis = userVotes.includes(barName);
+        const userVoted = userVotes.includes(barName);
         
-        if (userAlreadyVotedForThis) {
-          // Quitar voto
-          debugLog(`🗑️ Quitando voto para '${barName}'`);
-          const { data: deletedData, error: deleteError } = await supabase
-            .from('votos')
-            .delete()
-            .match({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName })
-            .select();
-
-          if (deleteError) throw deleteError;
-
-          if (deletedData && deletedData.length > 0) {
-            userVotes = userVotes.filter(votedBar => votedBar !== barName);
-            
-            // Quitar asistencia si no quedan votos
-            if (userVotes.length === 0) {
-              debugLog('🗑️ Eliminando asistencia (sin votos)');
-              const { error: delAttErr } = await supabase
-                .from('asistencias')
-                .delete()
-                .match({ user_id: currentUser.id, semana_id: currentWeek.id });
-              
-              if (delAttErr) console.error("Error eliminando asistencia:", delAttErr);
-              userAttendance = false;
-            }
-          }
-        } else {
-          // Agregar voto
-          debugLog(`➕ Agregando voto para '${barName}'`);
+        if (userVoted) {
           const { error } = await supabase
             .from('votos')
-            .insert([{ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName }]);
-
+            .delete()
+            .match({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
+          
           if (error) throw error;
-
+          
+          userVotes = userVotes.filter(v => v !== barName);
+          
+          if (userVotes.length === 0) {
+            await supabase
+              .from('asistencias')
+              .delete()
+              .match({ user_id: currentUser.id, semana_id: currentWeek.id });
+            userAttendance = false;
+          }
+        } else {
+          const { error } = await supabase
+            .from('votos')
+            .insert({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
+          
+          if (error) throw error;
+          
           userVotes.push(barName);
           
-          // Asegurar que se marca la asistencia
           if (!userAttendance) {
-            debugLog('➕ Marcando asistencia');
-            const { data: existingAtt, error: checkAttErr } = await supabase
+            const { data: existing } = await supabase
               .from('asistencias')
               .select('id')
               .match({ user_id: currentUser.id, semana_id: currentWeek.id })
-              .maybeSingle();
-
-            if (checkAttErr && checkAttErr.code !== 'PGRST116') throw checkAttErr;
-
-            if (!existingAtt) {
-              const { error: insAttErr } = await supabase
+              .single();
+            
+            if (!existing) {
+              await supabase
                 .from('asistencias')
-                .insert([{ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true }]);
-              
-              if (insAttErr) throw insAttErr;
+                .insert({ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true });
             }
             userAttendance = true;
           }
         }
-
-        // Recargar datos
-        debugLog('🔄 Recargando datos...');
-        await loadVotingData();
-        await loadAttendanceData();
-        debugLog('✅ Datos recargados');
-
-      } catch (error) {
-        debugLog(`❌ Error en toggleVote: ${error.message}`);
-        alert('Error al procesar el voto: ' + error.message);
-        btnElement.innerHTML = originalButtonHTML;
-        btnElement.disabled = false;
         
-        // Intentar recargar datos para restaurar consistencia
-        try {
-          await loadVotingData();
-          await loadAttendanceData();
-        } catch (reloadError) {
-          debugLog(`❌ Error recargando datos: ${reloadError.message}`);
-        }
+        await Promise.all([loadVotingData(), loadAttendanceData()]);
+        
+      } catch (error) {
+        console.error('❌ Error en toggleVote:', error);
+        alert('Error al procesar voto: ' + error.message);
+        btnElement.textContent = originalText;
+        btnElement.disabled = false;
       }
     }
 
-    // Funciones placeholder para historial y estadísticas
-    async function loadHistory() {
-      debugLog('📊 Cargando historial');
-      const historyEl = document.getElementById('historyContent');
-      if (historyEl) {
-        historyEl.innerHTML = '<p class="text-muted-light">Historial de martes no implementado aún.</p>';
-      }
+    async function showVoteDetails(barName, voteCount) {
+      alert(`${voteCount} personas han votado por ${barName}`);
     }
 
-    async function loadStats() {
-      debugLog('📈 Cargando estadísticas');
-      const elements = ['topBars', 'lastVisits', 'cnStats'];
-      elements.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<p class="text-muted-light">Estadísticas no implementadas aún.</p>';
-      });
-    }
-
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar la app
-      init();
-
-      // Configurar listeners de tabs
-      const tabTriggerList = [].slice.call(document.querySelectorAll('#mainTabs button[data-bs-toggle="pill"]'));
-      tabTriggerList.forEach(function (tabTriggerEl) {
-        tabTriggerEl.addEventListener('shown.bs.tab', function (event) {
-          const target = event.target.getAttribute('data-bs-target');
-          if (target === '#history') {
-            loadHistory();
-          } else if (target === '#stats') {
-            loadStats();
+    // ========== MOBILE STATS & HISTORY ==========
+    async function loadMobileStats() {
+      try {
+        // Load top 5 bars
+        const { data: topBarsData, error: topBarsError } = await supabase
+          .from('visitas_bares')
+          .select('bar, COUNT(*) as visitas')
+          .group('bar')
+          .order('visitas', { ascending: false })
+          .limit(5);
+        
+        const topBarsEl = document.getElementById('mobileTopBars');
+        if (topBarsEl) {
+          if (topBarsError || !topBarsData?.length) {
+            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+          } else {
+            topBarsEl.innerHTML = topBarsData.map((bar, i) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                <span style="font-weight: 500;">${i + 1}. ${bar.bar}</span>
+                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${bar.visitas}</span>
+              </div>
+            `).join('');
           }
-        });
-      });
-
-      // Configurar handler de clics en tabla
-      const barsTable = document.getElementById('barsTable');
-      if (barsTable) {
-        barsTable.addEventListener('click', handleTableClick);
-      }
-
-      // Configurar botón de Google Sign-In
-      const googleSignInBtn = document.getElementById('googleSignIn');
-      if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-          const button = document.getElementById('googleSignIn');
-          const signInText = document.getElementById('signInText');
-          
-          if (button) button.disabled = true;
-          if (signInText) signInText.textContent = 'Iniciando sesión...';
-          
-          try {
-            debugLog('🔐 Iniciando login con Google');
+        }
+        
+        // Load last visits for ALL bars
+        const { data: lastVisitsData, error: lastVisitsError } = await supabase
+          .from('estadisticas_bares')
+          .select('*')
+          .order('ultima_visita', { ascending: false, nullsFirst: false });
+        
+        const lastVisitsEl = document.getElementById('mobileLastVisits');
+        if (lastVisitsEl) {
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando datos</div>';
+          } else {
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+              return {
+                name: bar.name,
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+              };
+            }).sort((a, b) => {
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            });
             
-            const { error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: window.location.origin,
-                queryParams: {
-                  access_type: 'offline',
-                  prompt: 'consent',
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
+              let visitText = 'Nunca';
+              let visitClass = 'never-visited';
+              
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                const dateStr = formatDate(bar.ultima_visita);
+                if (days <= 14) {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'recent-visit';
+                } else if (days <= 60) {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'old-visit';
+                } else {
+                  visitText = `${dateStr} (${days}d)`;
+                  visitClass = 'last-visit';
                 }
               }
-            });
-
-            if (error) throw error;
-            
-          } catch (error) {
-            debugLog(`❌ Error en login: ${error.message}`);
-            alert('Error al iniciar sesión: ' + error.message);
-            
-            if (button) button.disabled = false;
-            if (signInText) signInText.textContent = 'Iniciar sesión con Google';
+              
+              return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                  <span style="font-weight: 500;">${bar.name}</span>
+                  <span class="${visitClass}" style="font-size: 0.8rem;">${visitText}</span>
+                </div>
+              `;
+            }).join('');
           }
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading mobile stats:', error);
+      }
+    }
+
+    async function loadMobileHistory() {
+      const container = document.getElementById('mobileHistoryContainer');
+      if (!container) return;
+      
+      try {
+        const { data: weeks, error } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .eq('estado', 'finalizada')
+          .order('fecha_martes', { ascending: false })
+          .limit(10);
+        
+        if (error) throw error;
+        
+        if (!weeks?.length) {
+          container.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">No hay historial disponible</div>';
+          return;
+        }
+        
+        container.innerHTML = weeks.map(week => `
+          <div class="mobile-history-item">
+            <div class="mobile-history-date">${formatDate(week.fecha_martes)}</div>
+            <div class="mobile-history-result">
+              ${week.hubo_quorum && week.bar_ganador ? 
+                `🏆 ${week.bar_ganador}` : 
+                (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}
+              • 👥 ${week.total_asistentes || 0} • 🗳️ ${week.total_votos || 0}
+            </div>
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        console.error('❌ Error loading mobile history:', error);
+        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px;">Error cargando historial</div>';
+      }
+    }
+
+    // ========== DESKTOP STATS & HISTORY ==========
+    async function loadDesktopHistory() {
+      const container = document.getElementById('desktopHistoryContent');
+      if (!container) return;
+      
+      try {
+        const { data: weeks, error } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .eq('estado', 'finalizada')
+          .order('fecha_martes', { ascending: false })
+          .limit(20);
+        
+        if (error) throw error;
+        
+        if (!weeks?.length) {
+          container.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
+          return;
+        }
+        
+        container.innerHTML = weeks.map(week => `
+          <div class="stats-card">
+            <div class="row">
+              <div class="col-md-3"><strong>${formatDate(week.fecha_martes)}</strong></div>
+              <div class="col-md-3">${week.hubo_quorum && week.bar_ganador ? `🏆 <strong>${week.bar_ganador}</strong>` : (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}</div>
+              <div class="col-md-3">👥 ${week.total_asistentes || 0} asistentes</div>
+              <div class="col-md-3">🗳️ ${week.total_votos || 0} votos</div>
+            </div>
+          </div>`).join('');
+          
+      } catch (error) {
+        console.error('❌ Error loading desktop history:', error);
+        container.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
+      }
+    }
+
+    async function loadDesktopStats() {
+      const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
+      const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
+      
+      ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = loadingMsg;
+      });
+      
+      try {
+        const [
+          { data: topBarsData, error: topBarsError },
+          { data: lastVisitsData, error: lastVisitsError }
+        ] = await Promise.all([
+          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
+          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false })
+        ]);
+        
+        // Top 5 bars
+        const topBarsEl = document.getElementById('desktopTopBars');
+        if (topBarsEl) {
+          if (topBarsError || !topBarsData?.length) {
+            topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+          } else {
+            topBarsEl.innerHTML = topBarsData.map((bar, index) => `
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span>${index + 1}. ${bar.bar}</span>
+                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
+              </div>`).join('');
+          }
+        }
+        
+        // All bars with last visits
+        const lastVisitsEl = document.getElementById('desktopLastVisits');
+        if (lastVisitsEl) {
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = errorMsg;
+          } else {
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+              return {
+                name: bar.name,
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+              };
+            }).sort((a, b) => {
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            });
+            
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
+              let statusText = '<span class="never-visited">Nunca</span>';
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                let datePart = formatDate(bar.ultima_visita);
+                if (days !== null && days !== undefined) {
+                  statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
+                } else {
+                  statusText = `<span class="recent-visit">${datePart}</span>`;
+                }
+              }
+              return `
+                <div class="d-flex justify-content-between align-items-center py-1">
+                  <span>${bar.name}</span>
+                  ${statusText}
+                </div>`;
+            }).join('');
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading desktop stats:', error);
+        ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = errorMsg;
         });
       }
+    }
+
+    // ========== UTILITY FUNCTIONS ==========
+    function igIcon() {
+      return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    }
+
+    function fbIcon() {
+      return `<svg class="mobile-social-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+    }
+
+    async function signOut() {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('❌ Error signing out:', error);
+      }
+    }
+
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('googleSignIn').addEventListener('click', async () => {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin
+            }
+          });
+          if (error) throw error;
+        } catch (error) {
+          console.error('❌ Error signing in:', error);
+          alert('Error al iniciar sesión: ' + error.message);
+        }
+      });
+
+      // Handle desktop table clicks
+      document.addEventListener('click', (event) => {
+        const voteButton = event.target.closest('[data-action="vote"]');
+        if (voteButton && !isMobile) {
+          const encodedBarName = voteButton.getAttribute('data-bar');
+          if (!encodedBarName || voteButton.disabled) return;
+          
+          const barName = decodeURIComponent(encodedBarName);
+          toggleVote(barName, voteButton);
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        const wasMobile = isMobile;
+        detectDevice();
+        if (wasMobile !== isMobile && currentUser) {
+          showLayout();
+          updateUserDisplay();
+        }
+      });
+
+      init();
     });
 
-    function handleTableClick(event) {
-      const voteButton = event.target.closest('[data-action="vote"]');
-      
-      if (voteButton) {
-        const encodedBarName = voteButton.getAttribute('data-bar');
-        if (!encodedBarName || voteButton.disabled) return;
-        
-        const barName = decodeURIComponent(encodedBarName);
-        toggleVote(barName, voteButton);
-      }
-    }
-
-    // Función de logout
-    async function signOut() {
-      debugLog('👋 Cerrando sesión');
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-      } catch (error) {
-        debugLog(`❌ Error en logout: ${error.message}`);
-        alert('Error al cerrar sesión: ' + error.message);
-      }
-    }
-
-    // Funciones de utilidad
-    function formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      try {
-        return new Date(dateString).toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-      } catch (error) {
-        return 'N/A';
-      }
-    }
-
-    // Hacer signOut globalmente disponible
+    window.toggleVote = toggleVote;
+    window.showVoteDetails = showVoteDetails;
     window.signOut = signOut;
   </script>
 </body>
