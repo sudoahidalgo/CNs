@@ -9,473 +9,616 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <style>
+    /* MOBILE FIRST DESIGN */
+    * {
+      box-sizing: border-box;
+    }
+    
     body, html {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
-    }
-    body {
-      /* CAMBIO: Comentario sobre fondo.png. Si tienes problemas de carga en móvil, 
-         prueba a comentar la siguiente línea o usa una imagen más pequeña/optimizada. */
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       background-attachment: fixed;
-      font-family: 'Inter', sans-serif; 
       color: #fff;
+      overflow-x: hidden;
     }
-    .overlay {
-      position: fixed;
-      top:0; left:0; width:100vw; height:100vh;
-      background: rgba(25, 25, 25, 0.25); 
-      z-index: 1;
-      pointer-events: none;
-    }
-    .main-content {
-      z-index: 2;
-      position: relative;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      font-size: 2.8rem;
-      color: #ffe066;
-      text-shadow: 2px 3px 8px #0008;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-    .user-info {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1051; /* Un poco más alto para estar sobre el backdrop del modal */
-      background: rgba(34,34,34,0.90);
-      border-radius: 15px;
-      padding: 10px 15px;
-      color: #ffe066;
+
+    .app-container {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 2px 10px #0004;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
     }
-    .user-avatar {
-      width: 36px; 
-      height: 36px;
+
+    /* Header móvil compacto */
+    .mobile-header {
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 224, 102, 0.3);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffe066;
+      margin: 0;
+    }
+
+    .week-info {
+      font-size: 0.8rem;
+      color: #adb5bd;
+      margin-top: 2px;
+    }
+
+    .user-avatar-mobile {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 2px solid #ffe066;
-      background-color: #555; 
+      background-color: #555;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       color: white;
-      overflow: hidden; 
-    }
-    .user-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .auth-container {
-      max-width: 500px;
-      margin: 50px auto;
-      background: linear-gradient(135deg, rgba(0, 141, 78, 0.15), rgba(255, 224, 102, 0.15));
-      backdrop-filter: blur(15px);
-      border-radius: 25px;
-      padding: 40px;
-      text-align: center;
-      border: 2px solid rgba(255, 224, 102, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      position: relative;
+      font-size: 0.8rem;
       overflow: hidden;
     }
-    .auth-container::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 224, 102, 0.1) 0%, transparent 70%);
-      animation: pulse 3s ease-in-out infinite;
+
+    .user-avatar-mobile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.5; }
-      50% { transform: scale(1.1); opacity: 0.8; }
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      padding: 80px 0 80px 0; /* Space for header and bottom nav */
+      overflow-y: auto;
     }
-    .auth-container h2 {
-      font-size: 2.5rem;
-      color: #ffe066;
-      margin-bottom: 15px;
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-      position: relative;
-      z-index: 1;
+
+    .content-section {
+      padding: 16px;
+      display: none;
     }
-    .auth-container p {
-      font-size: 1.2rem;
-      color: #ffffff;
-      margin-bottom: 35px;
-      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-      position: relative;
-      z-index: 1;
+
+    .content-section.active {
+      display: block;
     }
-    #googleSignIn {
-      background: linear-gradient(45deg, #4285f4, #34a853);
-      border: none;
-      border-radius: 15px;
-      color: white;
-      font-size: 1.3rem;
+
+    /* Winner message - solo cuando hay ganador claro */
+    .winner-banner {
+      background: linear-gradient(135deg, #10b981, #059669);
+      margin: 0 16px 16px 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-align: center;
       font-weight: 600;
-      padding: 15px 40px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-      position: relative;
-      z-index: 1;
-      display: inline-flex;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 224, 102, 0.3);
+      padding: 8px 0;
+      z-index: 1000;
+    }
+
+    .nav-items {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 8px;
+      min-width: 60px;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 224, 102, 0.15);
+      color: #ffe066;
+    }
+
+    .nav-item:not(.active) {
+      color: #adb5bd;
+    }
+
+    .nav-icon {
+      font-size: 1.3rem;
+      margin-bottom: 2px;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* Voting Section */
+    .bars-grid {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+    }
+
+    .bar-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .bar-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
+      flex: 1;
+    }
+
+    .bar-votes {
+      background: rgba(255, 224, 102, 0.2);
+      color: #ffe066;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 30px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .bar-votes.has-votes:hover {
+      background: rgba(255, 224, 102, 0.3);
+    }
+
+    .bar-actions {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 12px;
     }
-    #googleSignIn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6);
-      background: linear-gradient(45deg, #3367d6, #2d8a47);
+
+    .vote-btn-mobile {
+      flex: 1;
+      background: #008d4e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
     }
-    #googleSignIn:active {
-      transform: translateY(-1px);
+
+    .vote-btn-mobile.voted {
+      background: #c0392b;
     }
-    .google-icon {
+
+    .vote-btn-mobile:disabled {
+      background: #555;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+
+    .vote-btn-mobile:not(:disabled):active {
+      transform: scale(0.95);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .social-icon {
       width: 24px;
       height: 24px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .social-icon:hover {
+      opacity: 1;
+    }
+
+    .last-visit-mobile {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    /* Attendance Section */
+    .quorum-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .quorum-status-mobile {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
+    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
+
+    .attendees-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .attendee-item {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .attendee-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin-right: 12px;
+      border: 1px solid rgba(255, 224, 102, 0.5);
+    }
+
+    .attendee-name {
+      font-weight: 500;
+    }
+
+    /* Stats Section */
+    .stats-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-title {
+      color: #ffe066;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-badge {
+      background: rgba(255, 224, 102, 0.2);
+      color: #ffe066;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    /* History Section */
+    .history-item {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .history-date {
+      font-weight: 600;
+      color: #ffe066;
+      margin-bottom: 8px;
+    }
+
+    .history-result {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .history-stats {
+      font-size: 0.8rem;
+      color: #adb5bd;
+    }
+
+    /* Auth Container */
+    .auth-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .auth-card {
+      background: rgba(40, 40, 40, 0.9);
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid rgba(255, 224, 102, 0.3);
+    }
+
+    .auth-title {
+      font-size: 2rem;
+      color: #ffe066;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .auth-subtitle {
+      color: #adb5bd;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+    }
+
+    .google-btn {
+      background: linear-gradient(45deg, #4285f4, #34a853);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px 24px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.4);
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
       background: white;
       border-radius: 4px;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       color: #4285f4;
-    }
-    .main-tabs {
-      margin-bottom: 30px;
-    }
-    .nav-pills .nav-link {
-      background: rgba(36,36,36,0.80);
-      color: #ffe066;
-      border-radius: 15px;
-      margin: 0 5px;
-      font-weight: 600;
-      padding: 10px 20px;
-    }
-    .nav-pills .nav-link.active {
-      background: #008d4e;
-      color: white;
-      box-shadow: 0 0 10px #008d4e99;
-    }
-    .tab-content {
-      background: rgba(36,36,36,0.90);
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    }
-    .winner-box {
-      font-size: 1.8rem;
-      color: #ffe066;
-      font-weight: 700;
-      margin-bottom: 20px;
-      background: rgba(0,0,0,0.50);
-      padding: 15px 25px;
-      border-radius: 15px;
-      text-align: center;
-    }
-    .quorum-status {
-      font-size: 1.1rem;
-      padding: 10px 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; border: 1px solid #4ade8033; }
-    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; border: 1px solid #f8717133; }
-    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; border: 1px solid #facc1533; }
-    table {
-      background: rgba(36,36,36,0.95);
-      border-radius: 15px;
-      color: #fff;
-      overflow: hidden; 
-    }
-    th {
-      background: #222;
-      color: #ffe066;
-      font-size: 1.05rem;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #444;
-    }
-    td {
-        vertical-align: middle;
-    }
-    .vote-btn {
-      background: #008d4e;
-      color: #fff;
-      border-radius: 10px;
-      font-size: 1.1rem; 
-      padding: 8px 15px; 
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out; /* Mejorada transición */
-      margin: 2px;
-      min-width: 100px; 
-      text-align: center;
-    }
-    .vote-btn.voted {
-      background: #c0392b; 
-    }
-    .vote-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #555 !important; /* Asegurar que el fondo cambie al deshabilitar */
-      color: #aaa !important;
-    }
-    .vote-btn:hover:not(:disabled) {
-        filter: brightness(1.2);
-    }
-    .stats-card {
-      background: rgba(40,40,40,0.90); 
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 20px;
-      color: #fff;
-      border: 1px solid #55555555;
-    }
-    .stats-card h5 {
-      color: #ffe066;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-    .last-visit {
       font-size: 0.9rem;
-      color: #94a3b8;
     }
-    .icon-link {
-      display: inline-block;
-      vertical-align: middle;
-      margin: 0 3px;
-      opacity: 0.85;
-      transition: opacity 0.12s;
+
+    /* Loading states */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      color: #adb5bd;
     }
-    .icon-link:hover {
-      opacity: 1;
-      filter: drop-shadow(0 1px 2px #ffe06688);
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #555;
+      border-top: 2px solid #ffe066;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
     }
-    .ig-icon, .fb-icon {
-      width: 1.5em; height: 1.5em;
-      display: inline-block;
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    .ig-icon {
-      filter: drop-shadow(0 0 4px #ffe06688);
+
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      .bars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .bars-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Dark colors for visit status */
     .recent-visit { color: #10b981; font-weight: 500; }
     .never-visited { color: #ef4444; font-weight: 600; }
     .old-visit { color: #f59e0b; font-weight: 500; }
-    .text-muted-light { color: #adb5bd !important; } 
-
-    /* Mejora en el avatar de asistencia */
-    .attendance-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #6c757d;
-      color: white;
-      font-size: 0.8em;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 8px;
-      border: 1px solid #ffe066aa;
-    }
-
-    .attendance-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 4px 8px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    #voteDetailsModal .modal-content {
-        background-color: #2a2a2a; 
-        border: 1px solid #444;
-    }
-    #voteDetailsModal .modal-header {
-        border-bottom: 1px solid #444;
-    }
-    #voteDetailsModal .modal-footer {
-        border-top: 1px solid #444;
-    }
-    #voteDetailsModal .list-group-item {
-        background-color: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #eee;
-        margin-bottom: 5px;
-        border-radius: 8px;
-    }
-    #voteDetailsModal .list-group-item img {
-        border: 1px solid #ffe066aa;
-    }
-
-    @media (max-width: 768px) {
-      .header h1 { font-size: 2.2rem; }
-      .user-info { 
-        position: static; /* Cambiar a estático en móviles */
-        margin: 15px auto; 
-        width: fit-content; 
-        flex-direction: column; /* Apilar elementos en móvil */
-        gap: 5px;
-      }
-      .user-info button { margin-top: 5px;}
-      table { font-size: 0.85rem; }
-      .vote-btn { font-size: 0.9rem; padding: 6px 10px; min-width: 80px;}
-      .nav-pills .nav-link { padding: 8px 12px; font-size: 0.9rem;}
-      .col-md-4, .col-md-8 { width: 100%;} /* Forzar columnas a ancho completo en móvil */
-      .order-md-1 { order: 0;} /* Resetear orden si es necesario */
-      .order-md-2 { order: 0;}
-    }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>
-  
-  <div id="userInfo" class="user-info" style="display: none;">
-    <div id="userAvatar" class="user-avatar">
+  <div class="app-container">
+    <!-- Auth Screen -->
+    <div id="authContainer" class="auth-container" style="display: none;">
+      <div class="auth-card">
+        <h1 class="auth-title">🍻 Martes de Birras</h1>
+        <p class="auth-subtitle">Vota por tu bar favorito y confirma tu asistencia</p>
+        <button id="googleSignIn" class="google-btn">
+          <div class="google-icon">G</div>
+          <span>Continuar con Google</span>
+        </button>
       </div>
-    <span id="userName"></span>
-    <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
-  </div>
-
-  <div id="authContainer" class="auth-container" style="display: none;">
-    <h2>🍻 CN - Martes de Birras</h2>
-    <p>¡Únete a la diversión!<br>Vota por tu bar favorito y confirma tu asistencia</p>
-    <button id="googleSignIn" class="btn btn-primary btn-lg">
-      <span class="google-icon">G</span>
-      Continuar con Google
-    </button>
-    <div style="margin-top: 25px; font-size: 0.9rem; color: rgba(255,255,255,0.7); position: relative; z-index: 1;">
-      🔒 Inicio de sesión seguro con tu cuenta de Google
-    </div>
-  </div>
-
-  <div id="mainContent" class="main-content" style="display: none;">
-    <div class="header">
-      <h1>🍻 CN - Martes de Birras 🍻</h1>
-      <div id="semanaInfo" class="text-light"></div>
     </div>
 
-    <ul class="nav nav-pills justify-content-center main-tabs" id="mainTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="voting-tab" data-bs-toggle="pill" data-bs-target="#voting" type="button" role="tab">
-          💪 Votación
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">
-          📊 Historial
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button" role="tab">
-          📈 Estadísticas
-        </button>
-      </li>
-    </ul>
+    <!-- Main App -->
+    <div id="mainApp" style="display: none;">
+      <!-- Mobile Header -->
+      <header class="mobile-header">
+        <div class="header-content">
+          <div>
+            <h1 class="app-title">🍻 Martes de Birras</h1>
+            <div id="weekInfo" class="week-info"></div>
+          </div>
+          <div class="user-avatar-mobile" id="userAvatarMobile" onclick="signOut()">
+          </div>
+        </div>
+      </header>
 
-    <div class="tab-content" id="mainTabContent">
-      <div class="tab-pane fade show active" id="voting" role="tabpanel">
-        <div id="winner" class="winner-box" style="display:none;"></div>
-        
-        <div class="row">
-          <div class="col-md-4 order-md-2">
-            <h4 class="text-light mb-3">👥 Asistencia</h4>
-            <div class="stats-card">
-              <div id="quorumStatus" class="quorum-status mb-3"></div>
-              <div id="attendanceList">
-                <h6 class="text-warning">Confirmados (quienes votaron):</h6>
-                <div id="confirmedList" class="mb-2">
-                </div>
-                </div>
+      <!-- Winner Banner (solo cuando hay ganador claro) -->
+      <div id="winnerBanner" class="winner-banner" style="display: none;"></div>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Votación Tab -->
+        <section id="votingSection" class="content-section active">
+          <div id="barsContainer" class="bars-grid">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Cargando bares...</span>
             </div>
           </div>
-          <div class="col-md-8 order-md-1">
-            <h4 class="text-light mb-3">🗳️ Votación de Bares</h4>
-            <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle">
-                <thead>
-                  <tr>
-                    <th>Bar</th>
-                    <th>Redes</th>
-                    <th>Votar</th>
-                    <th>Votos</th>
-                    <th>Última visita</th>
-                  </tr>
-                </thead>
-                <tbody id="barsTable">
-                </tbody>
-              </table>
+        </section>
+
+        <!-- Asistencia Tab -->
+        <section id="attendanceSection" class="content-section">
+          <div class="quorum-card">
+            <div id="quorumStatusMobile" class="quorum-status-mobile"></div>
+            <div id="attendeesListMobile" class="attendees-list"></div>
+          </div>
+        </section>
+
+        <!-- Historial Tab -->
+        <section id="historySection" class="content-section">
+          <div id="historyContainer">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Cargando historial...</span>
             </div>
-            
-            <div class="modal fade" id="voteDetailsModal" tabindex="-1" aria-labelledby="voteDetailsModalLabel" aria-hidden="true">
-              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="voteDetailsModalLabel">Votos por este bar</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                  </div>
-                  <div class="modal-body">
-                    <ul class="list-group list-group-flush" id="voteDetailsBody">
-                      </ul>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                  </div>
+          </div>
+        </section>
+
+        <!-- Estadísticas Tab -->
+        <section id="statsSection" class="content-section">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-title">🏆 Top Bares</div>
+              <div id="topBarsMobile">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Cargando...</span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">⏰ Últimas Visitas</div>
+              <div id="lastVisitsMobile">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Cargando...</span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">📊 Estadísticas CN</div>
+              <div id="cnStatsMobile">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Cargando...</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
-      <div class="tab-pane fade" id="history" role="tabpanel">
-        <h4 class="text-light mb-3">📅 Historial de CNs</h4>
-        <div id="historyContent">
-        </div>
-      </div>
-
-      <div class="tab-pane fade" id="stats" role="tabpanel">
-        <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="stats-card">
-              <h5>🏆 Bares más Visitados</h5>
-              <div id="topBars"></div>
-            </div>
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav">
+        <div class="nav-items">
+          <div class="nav-item active" data-section="voting">
+            <div class="nav-icon">🗳️</div>
+            <div class="nav-label">Votación</div>
           </div>
-          <div class="col-md-6">
-            <div class="stats-card">
-              <h5>⏰ Última Visita por Bar</h5>
-              <div id="lastVisits"></div>
-            </div>
+          <div class="nav-item" data-section="attendance">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">Asistencia</div>
           </div>
-          <div class="col-12">
-            <div class="stats-card">
-              <h5>📈 Estadísticas de CNs</h5>
-              <div id="cnStats"></div>
-            </div>
+          <div class="nav-item" data-section="history">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Historial</div>
+          </div>
+          <div class="nav-item" data-section="stats">
+            <div class="nav-icon">📈</div>
+            <div class="nav-label">Stats</div>
           </div>
         </div>
-      </div>
+      </nav>
     </div>
   </div>
 
@@ -514,117 +657,185 @@
     let currentWeek = null;
     let userVotes = []; 
     let userAttendance = false;
-    let voteDetailsModalInstance = null; 
+    let currentSection = 'voting';
 
+    // ========== INITIALIZATION ==========
     async function init() {
-      console.log('🚀 Iniciando aplicación...');
+      console.log('🚀 Iniciando aplicación móvil...');
+      
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) console.error('❌ Error obteniendo sesión:', error);
-        if (session) await handleAuthSuccess(session);
-        else showAuthContainer();
+        
+        if (session) {
+          await handleAuthSuccess(session);
+        } else {
+          showAuthContainer();
+        }
 
+        // Auth state listener
         supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('🔄 Cambio de autenticación:', event, session ? session.user.email : 'Sin sesión');
-          if (event === 'SIGNED_IN' && session) await handleAuthSuccess(session);
-          else if (event === 'SIGNED_OUT') handleSignOut();
-          else if (event === 'TOKEN_REFRESHED' && session) currentUser = session.user;
-          else if (event === 'USER_UPDATED' && session) {
+          console.log('🔄 Auth change:', event);
+          if (event === 'SIGNED_IN' && session) {
+            await handleAuthSuccess(session);
+          } else if (event === 'SIGNED_OUT') {
+            handleSignOut();
+          } else if (event === 'TOKEN_REFRESHED' && session) {
             currentUser = session.user;
-            updateUserInfoDisplay(); 
+            updateUserDisplay();
           }
         });
+
+        // Setup navigation
+        setupBottomNavigation();
+        
       } catch (error) {
         console.error('❌ Error en inicialización:', error);
         showAuthContainer();
       }
     }
 
+    function showAuthContainer() {
+      document.getElementById('authContainer').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+    }
+
+    function showMainApp() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+    }
+
     function handleSignOut() {
-      console.log('🚪 Procesando logout...');
-      currentUser = null; currentWeek = null; userVotes = []; userAttendance = false;
+      currentUser = null;
+      currentWeek = null;
+      userVotes = [];
+      userAttendance = false;
       showAuthContainer();
     }
 
-    function showAuthContainer() {
-      document.getElementById('authContainer').style.display = 'block';
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('userInfo').style.display = 'none';
-    }
-    
-    function updateUserInfoDisplay() {
-        if (!currentUser) return;
-        const userNameEl = document.getElementById('userName');
-        const userAvatarContainerEl = document.getElementById('userAvatar'); 
-        if (userNameEl) userNameEl.textContent = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || "Usuario";
-        if (userAvatarContainerEl) {
-            userAvatarContainerEl.innerHTML = ''; 
-            const avatarUrl = currentUser.user_metadata?.avatar_url;
-            if (avatarUrl) {
-                const img = document.createElement('img');
-                img.src = avatarUrl;
-                img.alt = "Avatar";
-                img.onerror = function() { 
-                    this.remove(); 
-                    const name = currentUser.user_metadata?.name || currentUser.email || "U";
-                    userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); 
-                    userAvatarContainerEl.style.backgroundColor = '#777'; 
-                };
-                userAvatarContainerEl.appendChild(img);
-            } else {
-                const name = currentUser.user_metadata?.name || currentUser.email || "U";
-                userAvatarContainerEl.textContent = name.substring(0, 1).toUpperCase(); 
-                userAvatarContainerEl.style.backgroundColor = '#777';
-            }
-        }
-    }
-
     async function handleAuthSuccess(session) {
-      console.log('🎉 Procesando login exitoso...');
+      console.log('🎉 Login exitoso');
       currentUser = session.user;
+      
       try {
         await ensureUserProfile();
         await ensureCurrentWeek();
-        document.getElementById('authContainer').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        document.getElementById('userInfo').style.display = 'flex';
-        updateUserInfoDisplay(); 
-        console.log('📊 Cargando datos iniciales...');
-        await loadCurrentWeek(); 
-        if (currentWeek) { 
-             await Promise.all([ loadVotingData(), loadAttendanceData() ]);
-        } else {
-            console.warn("No se pudo cargar la semana actual.");
-            document.getElementById('barsTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No se pudo cargar la información de la semana.</td></tr>';
+        await loadCurrentWeek();
+        
+        showMainApp();
+        updateUserDisplay();
+        
+        // Load initial data
+        if (currentWeek) {
+          await Promise.all([
+            loadVotingData(),
+            loadAttendanceData()
+          ]);
         }
-        setupEventListeners(); 
-        console.log('✅ Todo cargado y configurado correctamente');
+        
+        console.log('✅ App cargada');
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
-        showAuthContainer(); 
+        showAuthContainer();
       }
     }
 
+    function updateUserDisplay() {
+      if (!currentUser) return;
+      
+      const avatarEl = document.getElementById('userAvatarMobile');
+      if (avatarEl) {
+        const avatarUrl = currentUser.user_metadata?.avatar_url;
+        if (avatarUrl) {
+          avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.outerHTML='<div class=&quot;user-avatar-mobile&quot;>${(currentUser.email || 'U').charAt(0).toUpperCase()}</div>'">`;
+        } else {
+          avatarEl.textContent = (currentUser.email || 'U').charAt(0).toUpperCase();
+        }
+      }
+    }
+
+    // ========== NAVIGATION ==========
+    function setupBottomNavigation() {
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const section = item.dataset.section;
+          switchToSection(section);
+        });
+      });
+    }
+
+    function switchToSection(sectionName) {
+      // Update navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+      
+      // Update content
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(`${sectionName}Section`).classList.add('active');
+      
+      currentSection = sectionName;
+      
+      // Load data for section if needed
+      if (sectionName === 'history' && currentUser) {
+        loadHistory();
+      } else if (sectionName === 'stats' && currentUser) {
+        loadStats();
+      }
+    }
+
+    // ========== DATE FUNCTIONS ==========
+    function getNextTuesday() {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      let daysUntilTuesday;
+      
+      if (dayOfWeek <= 2) {
+        daysUntilTuesday = 2 - dayOfWeek;
+      } else {
+        daysUntilTuesday = 7 - dayOfWeek + 2;
+      }
+      
+      const nextTuesday = new Date(today);
+      nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+      return nextTuesday;
+    }
+
+    function formatTuesdayDate(date) {
+      const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = months[date.getMonth()];
+      return `${day}-${month}`;
+    }
+
+    // ========== DATA LOADING ==========
     async function ensureUserProfile() {
       try {
-        const { data, error } = await supabase.from('usuarios').select('*').eq('id', currentUser.id).single();
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        
         if (error && error.code !== 'PGRST116') throw error;
+        
         if (!data) {
-          console.log('➕ Creando perfil de usuario...');
-          const { error: insertError } = await supabase.from('usuarios').insert({ id: currentUser.id, email: currentUser.email, nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0], avatar_url: currentUser.user_metadata?.avatar_url });
+          const { error: insertError } = await supabase
+            .from('usuarios')
+            .insert({
+              id: currentUser.id,
+              email: currentUser.email,
+              nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
+              avatar_url: currentUser.user_metadata?.avatar_url
+            });
           if (insertError) throw insertError;
-        } else { 
-            const metadataName = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
-            const metadataAvatar = currentUser.user_metadata?.avatar_url;
-            if (data.nombre !== metadataName || data.avatar_url !== metadataAvatar) {
-                console.log('🔄 Actualizando perfil de usuario...');
-                const { error: updateError } = await supabase.from('usuarios').update({ nombre: metadataName, avatar_url: metadataAvatar }).eq('id', currentUser.id);
-                if (updateError) console.error("Error actualizando perfil:", updateError);
-            }
         }
       } catch (error) {
         console.error('❌ Error en ensureUserProfile:', error);
-        throw error; 
       }
     }
 
@@ -634,40 +845,7 @@
         await supabase.rpc('finalizar_semana_anterior');
       } catch (error) {
         console.error('❌ Error en ensureCurrentWeek:', error);
-        throw error;
       }
-    }
-
-    // MEJORA: Función para obtener el próximo martes
-    function getNextTuesday() {
-      const today = new Date();
-      const dayOfWeek = today.getDay(); // 0 = Domingo, 1 = Lunes, ..., 2 = Martes
-      let daysUntilTuesday;
-      
-      if (dayOfWeek <= 2) {
-        // Si es domingo, lunes o martes, el próximo martes es esta semana
-        daysUntilTuesday = 2 - dayOfWeek;
-      } else {
-        // Si es miércoles a sábado, el próximo martes es la próxima semana
-        daysUntilTuesday = 7 - dayOfWeek + 2;
-      }
-      
-      const nextTuesday = new Date(today);
-      nextTuesday.setDate(today.getDate() + daysUntilTuesday);
-      return nextTuesday;
-    }
-
-    // MEJORA: Función para formatear fecha del martes en formato dd-mmmm
-    function formatTuesdayDate(date) {
-      const months = [
-        'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-        'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
-      ];
-      
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = months[date.getMonth()];
-      
-      return `${day}-${month}`;
     }
 
     async function loadCurrentWeek() {
@@ -678,116 +856,94 @@
           .single();
         
         if (error) {
-          console.error('❌ Error cargando semana actual:', error);
-          currentWeek = null;
-          const semanaInfoEl = document.getElementById('semanaInfo');
-          if(semanaInfoEl) semanaInfoEl.innerHTML = '<span class="text-danger">Error cargando información de la semana.</span>';
+          console.error('❌ Error cargando semana:', error);
           return;
         }
         
         currentWeek = data;
-        const semanaInfoEl = document.getElementById('semanaInfo');
-        if (semanaInfoEl) {
-          // MEJORA: Mostrar el próximo martes en lugar del lunes
+        
+        // Update week info
+        const weekInfoEl = document.getElementById('weekInfo');
+        if (weekInfoEl) {
           const nextTuesday = getNextTuesday();
           const formattedDate = formatTuesdayDate(nextTuesday);
-          
-          semanaInfoEl.innerHTML = `Próximo martes ${formattedDate} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
+          weekInfoEl.textContent = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
         }
       } catch (error) {
-        console.error('❌ Excepción cargando semana actual:', error);
-        currentWeek = null;
+        console.error('❌ Error en loadCurrentWeek:', error);
       }
     }
 
     async function loadVotingData() {
-      if (!currentUser || !currentWeek) {
-        renderBarsTable([], []);
-        updateWinner([]);
-        userVotes = [];
-        return;
-      }
+      if (!currentUser || !currentWeek) return;
       
       try {
-        const { data: votesInWeek, error: votesError } = await supabase
+        const { data: votesInWeek, error } = await supabase
           .from('votos')
           .select('bar, user_id')
           .eq('semana_id', currentWeek.id);
         
-        if (votesError) throw votesError;
+        if (error) throw error;
         
         userVotes = (votesInWeek || [])
           .filter(v => v.user_id === currentUser.id)
           .map(v => v.bar);
         
-        console.log('🗳️ Votos del usuario (loadVotingData):', userVotes);
-        
-        const { data: barStats, error: barStatsError } = await supabase
+        const { data: barStats, error: statsError } = await supabase
           .from('estadisticas_bares')
           .select('*');
         
-        if (barStatsError) console.error('Error cargando stats de bares:', barStatsError);
+        if (statsError) console.error('Error loading bar stats:', statsError);
         
-        renderBarsTable(votesInWeek || [], barStats || []);
-        updateWinner(votesInWeek || []);
+        renderBarsGrid(votesInWeek || [], barStats || []);
+        updateWinnerBanner(votesInWeek || []);
+        
       } catch (error) {
-        console.error("❌ Error en loadVotingData:", error);
-        userVotes = [];
-        renderBarsTable([], []);
-        updateWinner([]);
+        console.error('❌ Error en loadVotingData:', error);
+        document.getElementById('barsContainer').innerHTML = '<div class="loading">Error cargando datos</div>';
       }
     }
 
     async function loadAttendanceData() {
-      if (!currentUser || !currentWeek) {
-        updateAttendanceUI([]);
-        updateQuorumStatus(0);
-        userAttendance = false;
-        return;
-      }
+      if (!currentUser || !currentWeek) return;
       
       try {
-        const { data: attendances, error: attendanceError } = await supabase
+        const { data: attendances, error } = await supabase
           .from('asistencias')
-          .select(`user_id, confirmado, usuarios (nombre, avatar_url)`)
+          .select('user_id, confirmado, usuarios (nombre, avatar_url)')
           .eq('semana_id', currentWeek.id)
           .eq('confirmado', true);
         
-        if (attendanceError) throw attendanceError;
+        if (error) throw error;
         
         userAttendance = (attendances || []).some(a => a.user_id === currentUser.id);
         
-        console.log('👥 Asistencia del usuario (loadAttendanceData):', userAttendance);
-        
         updateAttendanceUI(attendances || []);
         updateQuorumStatus((attendances || []).length);
+        
       } catch (error) {
-        console.error("❌ Error en loadAttendanceData:", error);
-        userAttendance = false;
-        updateAttendanceUI([]);
-        updateQuorumStatus(0);
+        console.error('❌ Error en loadAttendanceData:', error);
       }
     }
 
-    function igIcon() {
-      return `<svg class="ig-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
-    }
-
-    function fbIcon() {
-      return `<svg class="fb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
-    }
-
-    function renderBarsTable(allVotesInWeek, barStats) {
+    // ========== UI RENDERING ==========
+    function renderBarsGrid(allVotes, barStats) {
+      const container = document.getElementById('barsContainer');
+      if (!container) return;
+      
+      // Count votes
       const voteCounts = {};
-      allVotesInWeek.forEach(vote => {
+      allVotes.forEach(vote => {
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
       
+      // Create stats map
       const statsMap = {};
       barStats.forEach(stat => {
         statsMap[stat.bar] = stat;
       });
       
+      // Sort bars by votes
       const sortedBars = bars.slice().sort((a, b) => {
         const aVotes = voteCounts[a.name] || 0;
         const bVotes = voteCounts[b.name] || 0;
@@ -795,310 +951,205 @@
         return a.name.localeCompare(b.name);
       });
       
-      const tbody = document.getElementById('barsTable');
-      if (!tbody) return;
-      
-      tbody.innerHTML = '';
-      
-      if (sortedBars.length === 0 && (!currentWeek || currentWeek.estado !== 'activa')) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">La votación no está activa o no hay bares configurados.</td></tr>';
-        return;
-      }
-      
-      if (sortedBars.length === 0 ) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
-        return;
-      }
-      
-      sortedBars.forEach(bar => {
-        const votesForBar = voteCounts[bar.name] || 0;
-        const userHasVotedForThisBar = userVotes.includes(bar.name);
+      container.innerHTML = sortedBars.map(bar => {
+        const votes = voteCounts[bar.name] || 0;
+        const userVoted = userVotes.includes(bar.name);
         const stats = statsMap[bar.name];
-
+        const isActive = currentWeek?.estado === 'activa';
+        
+        // Social links
         let socialLinks = '';
-        if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
-        if (bar.fb) socialLinks += `<a class="icon-link" href="${bar.fb}" target="_blank" title="Facebook">${fbIcon()}</a>`;
-        if (!socialLinks) socialLinks = '<span style="color:#bbb;">—</span>';
-
-        let lastVisitText = '<span class="never-visited">Nunca</span>';
-        if (stats && stats.ultima_visita) {
+        if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
+        if (bar.fb) socialLinks += `<a href="${bar.fb}" target="_blank">${fbIcon()}</a>`;
+        
+        // Last visit
+        let lastVisit = '<span class="never-visited">Nunca</span>';
+        if (stats?.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
           const dateStr = formatDate(stats.ultima_visita);
-          if (days <= 14) lastVisitText = `<span class="recent-visit">${dateStr} (${days}d)</span>`;
-          else if (days <= 60) lastVisitText = `<span class="old-visit">${dateStr} (${days}d)</span>`;
-          else lastVisitText = `<span class="last-visit">${dateStr} (${days}d)</span>`;
+          if (days <= 14) lastVisit = `<span class="recent-visit">${dateStr} (${days}d)</span>`;
+          else if (days <= 60) lastVisit = `<span class="old-visit">${dateStr} (${days}d)</span>`;
+          else lastVisit = `<span class="last-visit">${dateStr} (${days}d)</span>`;
         }
-
-        const row = `
-          <tr>
-            <td style="font-weight: 600;">${bar.name}</td>
-            <td>${socialLinks}</td>
-            <td>
-              <button 
-                class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
-                ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                data-bar="${encodeURIComponent(bar.name)}"
-                data-action="vote">
-                ${userHasVotedForThisBar ? '🍺 Quitar' : '💪 Votar'}
+        
+        return `
+          <div class="bar-card">
+            <div class="bar-header">
+              <div class="bar-name">${bar.name}</div>
+              <div class="bar-votes ${votes > 0 ? 'has-votes' : ''}" 
+                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
+                ${votes}
+              </div>
+            </div>
+            <div class="bar-actions">
+              <button class="vote-btn-mobile ${userVoted ? 'voted' : ''}"
+                      ${!isActive ? 'disabled' : ''}
+                      onclick="toggleVote('${bar.name}', this)">
+                ${userVoted ? '🍺 Quitar' : '💪 Votar'}
               </button>
-            </td>
-            <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
-              <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}" style="cursor: ${votesForBar > 0 ? 'pointer' : 'default'};" 
-                    data-bar="${encodeURIComponent(bar.name)}" 
-                    data-votes="${votesForBar}"
-                    data-action="showDetails">${votesForBar}</span>
-            </td>
-            <td class="last-visit">${lastVisitText}</td>
-          </tr>
+              <div class="social-links">${socialLinks}</div>
+            </div>
+            <div class="last-visit-mobile">Última visita: ${lastVisit}</div>
+          </div>
         `;
-        tbody.innerHTML += row;
-      });
+      }).join('');
     }
 
-    function updateWinner(allVotesInWeek) {
-      const winnerDiv = document.getElementById("winner");
-      if (!winnerDiv) return;
+    // Winner banner - solo mostrar cuando hay un ganador claro (no empate)
+    function updateWinnerBanner(allVotes) {
+      const banner = document.getElementById('winnerBanner');
+      if (!banner) return;
       
-      if (!allVotesInWeek || allVotesInWeek.length === 0) {
-        winnerDiv.style.display = "none";
+      if (!allVotes.length) {
+        banner.style.display = 'none';
         return;
       }
       
       const voteCounts = {};
-      allVotesInWeek.forEach(vote => {
+      allVotes.forEach(vote => {
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
       
-      const maxVotes = Math.max(0, ...Object.values(voteCounts));
-      if (maxVotes === 0 && Object.keys(voteCounts).length === 0) {
-        winnerDiv.style.display = "none";
+      const maxVotes = Math.max(...Object.values(voteCounts));
+      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+      
+      // Solo mostrar si hay UN ganador claro (no empate)
+      if (winners.length === 1 && maxVotes > 0) {
+        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos)`;
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function updateAttendanceUI(attendances) {
+      const container = document.getElementById('attendeesListMobile');
+      if (!container) return;
+      
+      if (!attendances.length) {
+        container.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">Nadie ha confirmado asistencia aún</div>';
         return;
       }
       
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
-      if (winners.length === 1) {
-        winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
-      } else if (winners.length > 1) {
-        const names = winners.map(w => `<strong>${w}</strong>`).join(" y ");
-        winnerDiv.innerHTML = `🤝 Empate actual: ${names} (${maxVotes} votos c/u) 🤝`;
-      } else {
-        winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
-      }
-      winnerDiv.style.display = "block";
-    }
-
-    // FIX: Mejora en la función de visualización de asistencia
-    function updateAttendanceUI(attendances) {
-      const confirmedListEl = document.getElementById('confirmedList');
-      if (!confirmedListEl) return;
-      
-      if (!attendances || attendances.length === 0) {
-        confirmedListEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
-      } else {
-        confirmedListEl.innerHTML = attendances.map(att => {
-          // FIX: Mejor manejo de nombres para evitar caracteres extraños
-          let userName = 'Usuario Desconocido';
-          
-          if (att.usuarios && att.usuarios.nombre) {
-            // Limpiar el nombre de caracteres extraños
-            userName = att.usuarios.nombre.toString().trim();
-            // Remover caracteres no deseados como comillas, símbolos, etc.
-            userName = userName.replace(/^['">]+|['">]+$/g, '');
-            if (userName.length === 0) {
-              userName = 'Usuario';
-            }
-          }
-          
-          const avatarUrl = att.usuarios?.avatar_url || '';
-          const firstLetter = userName.substring(0, 1).toUpperCase();
-          
-          // Crear avatar con mejor estructura
-          const avatarHtml = avatarUrl ? 
-            `<img src="${avatarUrl}" class="attendance-avatar" alt="Avatar" onerror="this.outerHTML='<div class=&quot;attendance-avatar&quot;>${firstLetter}</div>'">` :
-            `<div class="attendance-avatar">${firstLetter}</div>`;
-          
-          return `
-            <div class="attendance-item">
-              ${avatarHtml}
-              <span>${userName}</span>
-            </div>`;
-        }).join('');
-      }
+      container.innerHTML = attendances.map(att => {
+        let userName = 'Usuario';
+        if (att.usuarios?.nombre) {
+          userName = att.usuarios.nombre.toString().trim().replace(/^['">]+|['">]+$/g, '');
+          if (!userName) userName = 'Usuario';
+        }
+        
+        const avatarUrl = att.usuarios?.avatar_url;
+        const firstLetter = userName.charAt(0).toUpperCase();
+        
+        return `
+          <div class="attendee-item">
+            <div class="attendee-avatar">
+              ${avatarUrl ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML='${firstLetter}'">` : firstLetter}
+            </div>
+            <div class="attendee-name">${userName}</div>
+          </div>
+        `;
+      }).join('');
     }
 
     function updateQuorumStatus(count) {
-      const statusEl = document.getElementById('quorumStatus');
+      const statusEl = document.getElementById('quorumStatusMobile');
       if (!statusEl) return;
       
-      const quorumNeeded = 3;
-      if (count >= quorumNeeded) {
-        statusEl.className = 'quorum-status quorum-yes';
-        statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+      const needed = 3;
+      
+      if (count >= needed) {
+        statusEl.className = 'quorum-status-mobile quorum-yes';
+        statusEl.textContent = `✅ ¡Hay quorum! ${count} confirmados`;
       } else if (count > 0) {
-        statusEl.className = 'quorum-status quorum-pending';
-        statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${quorumNeeded - count} para quorum`;
+        statusEl.className = 'quorum-status-mobile quorum-pending';
+        statusEl.textContent = `⏳ ${count} confirmados, faltan ${needed - count}`;
       } else {
-        statusEl.className = 'quorum-status quorum-no';
-        statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${quorumNeeded} para hacer CN`;
+        statusEl.className = 'quorum-status-mobile quorum-no';
+        statusEl.textContent = `❌ Se necesitan ${needed} para hacer CN`;
       }
     }
 
+    // ========== VOTE HANDLING ==========
     async function toggleVote(barName, btnElement) {
-      console.log(`⏯️ toggleVote para: '${barName}', currentUser: ${currentUser?.id}, currentWeek: ${currentWeek?.id}`);
       if (!currentWeek || currentWeek.estado !== 'activa' || !currentUser) {
-        alert('No se puede votar en este momento. Verifica que la votación esté activa y hayas iniciado sesión.');
+        alert('No se puede votar en este momento');
         return;
       }
 
-      const originalButtonHTML = btnElement.innerHTML;
-      btnElement.innerHTML = '⏳';
+      const originalText = btnElement.textContent;
+      btnElement.textContent = '⏳';
       btnElement.disabled = true;
 
       try {
-        const userAlreadyVotedForThis = userVotes.includes(barName);
-        let dbOperationSuccessful = false;
-
-        if (userAlreadyVotedForThis) {
-          console.log(`🗑️ ${currentUser.email} intentando quitar voto para '${barName}'`);
-          const criteria = { 
-              user_id: currentUser.id, 
-              semana_id: currentWeek.id, 
-              bar: barName 
-          };
-          console.log("Criterios para delete:", criteria);
-
-          const { data: deletedData, error: deleteError } = await supabase
+        const userVoted = userVotes.includes(barName);
+        
+        if (userVoted) {
+          // Remove vote
+          const { error } = await supabase
             .from('votos')
             .delete()
-            .match(criteria)
-            .select(); 
-
-          if (deleteError) {
-            console.error(`❌ Error al eliminar voto de Supabase para '${barName}':`, deleteError);
-            throw deleteError; 
-          }
-          
-          console.log(`✅ Resultado de Supabase.delete para '${barName}':`, deletedData);
-          if (deletedData && deletedData.length > 0) {
-              console.log(`✅ Voto para '${barName}' confirmado como eliminado de la BD.`);
-              dbOperationSuccessful = true;
-              userVotes = userVotes.filter(votedBar => votedBar !== barName); 
-              if (userVotes.length === 0) { 
-                console.log('🗑️ No quedan más votos, eliminando asistencia...');
-                const { error: delAttErr } = await supabase.from('asistencias').delete().match({ user_id: currentUser.id, semana_id: currentWeek.id });
-                if (delAttErr) console.error("Error al eliminar asistencia:", delAttErr);
-                else console.log("✅ Asistencia eliminada de la BD.");
-                userAttendance = false; 
-              }
-          } else {
-              console.warn(`⚠️ No se eliminó ninguna fila de la BD para '${barName}'. El voto podría no haber existido o los criterios no coincidieron. Revisa RLS y los datos en la tabla 'votos'.`);
-          }
-        } else {
-          console.log(`➕ ${currentUser.email} votando por '${barName}'`);
-          const { error } = await supabase.from('votos').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName }]);
-          if (error) {
-            console.error(`❌ Error al insertar voto en Supabase para '${barName}':`, error);
-            throw error;
-          }
-          console.log(`✅ Voto por '${barName}' agregado a la BD.`);
-          dbOperationSuccessful = true;
-          userVotes.push(barName); 
-
-          if (!userAttendance) {
-            console.log('➕ Marcando asistencia por nuevo voto...');
-            const { data: existingAtt, error: checkAttErr } = await supabase.from('asistencias').select('id').match({ user_id: currentUser.id, semana_id: currentWeek.id }).maybeSingle();
-            if (checkAttErr && checkAttErr.code !== 'PGRST116') throw checkAttErr;
-            if (!existingAtt) {
-                const { error: insAttErr } = await supabase.from('asistencias').insert([{ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true }]);
-                if (insAttErr) console.error("Error al marcar asistencia:", insAttErr);
-                else console.log("✅ Asistencia marcada en la BD.");
-            }
-            userAttendance = true; 
-          }
-        }
-        
-        console.log('🔄 Recargando datos después de toggleVote...');
-        await loadVotingData(); 
-        await loadAttendanceData();
-        console.log('✅ Datos recargados.');
-
-      } catch (error) {
-        console.error(`❌ Error completo en toggleVote para '${barName}':`, error);
-        alert('Error al procesar el voto: ' + error.message + '. Revisa la consola para más detalles.');
-        if(btnElement){
-            btnElement.innerHTML = originalButtonHTML;
-            btnElement.disabled = false;
-        }
-        console.log('🔄 Intentando recargar datos después de error para restaurar consistencia...');
-        await loadVotingData();
-        await loadAttendanceData();
-      } 
-    }
-
-    async function showVoteDetails(barName, voteCount) {
-      console.log('👀 Detalles de votos para:', barName, `(${voteCount} votos)`);
-      const modalEl = document.getElementById('voteDetailsModal');
-      const titleEl = document.getElementById('voteDetailsModalLabel');
-      const bodyEl = document.getElementById('voteDetailsBody');
-      
-      if (!modalEl || !titleEl || !bodyEl) return;
-      
-      titleEl.textContent = `Votos por ${barName}`;
-      
-      if (voteCount === 0) {
-        bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Nadie ha votado por este bar aún.</li>';
-      } else {
-        bodyEl.innerHTML = '<li class="list-group-item text-muted-light">Cargando votantes...</li>';
-      }
-      
-      if (!voteDetailsModalInstance) {
-        voteDetailsModalInstance = new bootstrap.Modal(modalEl);
-      }
-      voteDetailsModalInstance.show();
-      
-      if (voteCount > 0) {
-        try {
-          const { data: votesData, error } = await supabase
-            .from('votos')
-            .select(`usuarios (nombre, avatar_url)`)
-            .eq('semana_id', currentWeek.id)
-            .eq('bar', barName);
+            .match({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
           
           if (error) throw error;
           
-          if (!votesData || votesData.length === 0) {
-            bodyEl.innerHTML = '<li class="list-group-item text-muted-light">No se encontraron detalles de votantes.</li>';
-          } else {
-            bodyEl.innerHTML = votesData
-              .filter(vote => vote.usuarios && vote.usuarios.nombre)
-              .map(vote => {
-                const avatar = vote.usuarios.avatar_url || '';
-                const avatarPlaceholderModal = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;background-color:#6c757d;color:white;font-size:0.9em;">${(vote.usuarios.nombre || 'U').substring(0,1).toUpperCase()}</div>`;
-                
-                return `
-                    <li class="list-group-item d-flex align-items-center">
-                      ${avatar ? `<img src="${avatar}" class="rounded-circle me-2" width="32" height="32" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholderModal}'">` : avatarPlaceholderModal}
-                      <span>${vote.usuarios.nombre}</span>
-                    </li>`;
-              }).join('');
+          userVotes = userVotes.filter(v => v !== barName);
+          
+          // Remove attendance if no votes left
+          if (userVotes.length === 0) {
+            await supabase
+              .from('asistencias')
+              .delete()
+              .match({ user_id: currentUser.id, semana_id: currentWeek.id });
+            userAttendance = false;
           }
-        } catch (error) {
-          console.error('❌ Error cargando detalles de votos:', error);
-          bodyEl.innerHTML = '<li class="list-group-item text-danger">Error al cargar detalles.</li>';
+        } else {
+          // Add vote
+          const { error } = await supabase
+            .from('votos')
+            .insert({ user_id: currentUser.id, semana_id: currentWeek.id, bar: barName });
+          
+          if (error) throw error;
+          
+          userVotes.push(barName);
+          
+          // Ensure attendance
+          if (!userAttendance) {
+            const { data: existing } = await supabase
+              .from('asistencias')
+              .select('id')
+              .match({ user_id: currentUser.id, semana_id: currentWeek.id })
+              .single();
+            
+            if (!existing) {
+              await supabase
+                .from('asistencias')
+                .insert({ user_id: currentUser.id, semana_id: currentWeek.id, confirmado: true });
+            }
+            userAttendance = true;
+          }
         }
+        
+        // Reload data
+        await Promise.all([loadVotingData(), loadAttendanceData()]);
+        
+      } catch (error) {
+        console.error('❌ Error en toggleVote:', error);
+        alert('Error al procesar voto: ' + error.message);
+        btnElement.textContent = originalText;
+        btnElement.disabled = false;
       }
     }
 
+    async function showVoteDetails(barName, voteCount) {
+      // Simplified modal or alert for mobile
+      alert(`${voteCount} personas han votado por ${barName}`);
+    }
+
+    // ========== STATS & HISTORY ==========
     async function loadHistory() {
-      if (!currentUser) {
-        showAuthContainer();
-        return;
-      }
-      
-      const historyDiv = document.getElementById('historyContent');
-      if (!historyDiv) return;
-      
-      historyDiv.innerHTML = '<p class="text-muted-light">Cargando historial...</p>';
+      const container = document.getElementById('historyContainer');
+      if (!container) return;
       
       try {
         const { data: weeks, error } = await supabase
@@ -1106,219 +1157,161 @@
           .select('*')
           .eq('estado', 'finalizada')
           .order('fecha_martes', { ascending: false })
-          .limit(20);
+          .limit(10);
         
-        if(error) throw error;
+        if (error) throw error;
         
-        if (!weeks || weeks.length === 0) {
-          historyDiv.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
+        if (!weeks?.length) {
+          container.innerHTML = '<div class="loading">No hay historial disponible</div>';
           return;
         }
         
-        historyDiv.innerHTML = weeks.map(week => `
-            <div class="stats-card">
-              <div class="row">
-                <div class="col-md-3"><strong>${formatDate(week.fecha_martes)}</strong></div>
-                <div class="col-md-3">${week.hubo_quorum && week.bar_ganador ? `🏆 <strong>${week.bar_ganador}</strong>` : (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}</div>
-                <div class="col-md-3">👥 ${week.total_asistentes || 0} asistentes</div>
-                <div class="col-md-3">🗳️ ${week.total_votos || 0} votos</div>
-              </div>
-            </div>`).join('');
+        container.innerHTML = weeks.map(week => `
+          <div class="history-item">
+            <div class="history-date">${formatDate(week.fecha_martes)}</div>
+            <div class="history-result">
+              ${week.hubo_quorum && week.bar_ganador ? 
+                `🏆 Ganador: ${week.bar_ganador}` : 
+                (week.hubo_quorum ? '🤔 Sin ganador claro' : '❌ Sin quorum')}
+            </div>
+            <div class="history-stats">
+              👥 ${week.total_asistentes || 0} asistentes • 🗳️ ${week.total_votos || 0} votos
+            </div>
+          </div>
+        `).join('');
+        
       } catch (error) {
-        console.error('❌ Error cargando historial:', error);
-        historyDiv.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
-        if (error.message?.includes('JWT')) handleSignOut();
+        console.error('❌ Error loading history:', error);
+        container.innerHTML = '<div class="loading">Error cargando historial</div>';
       }
     }
 
     async function loadStats() {
-      if (!currentUser) {
-        return;
-      }
-      
-      const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
-      const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
-      
-      ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = loadingMsg;
-      });
-      
       try {
-        const [
-          { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError },
-          { data: cnStatsData, error: cnStatsError }
-        ] = await Promise.all([
-          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(10),
-          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: true }).limit(10),
+        const [topBarsRes, lastVisitsRes, cnStatsRes] = await Promise.all([
+          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
+          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: true }).limit(5),
           supabase.from('semanas_cn').select('*').eq('estado', 'finalizada')
         ]);
         
-        updateStatsUI(
-          topBarsError ? { error: true } : (topBarsData || []),
-          lastVisitsError ? { error: true } : (lastVisitsData || []),
-          cnStatsError ? { error: true } : (cnStatsData || [])
-        );
-      } catch (error) {
-        console.error('❌ Error cargando una o más estadísticas:', error);
-        ['topBars', 'lastVisits', 'cnStats'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.innerHTML = errorMsg;
-        });
-        if (error.message?.includes('JWT')) handleSignOut();
-      }
-    }
-
-    function updateStatsUI(topBars, lastVisits, cnStats) {
-      const noDataMsg = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-      const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
-      
-      const topBarsDiv = document.getElementById('topBars');
-      if (topBarsDiv) {
-        if (topBars.error) topBarsDiv.innerHTML = errorMsg;
-        else if (topBars.length === 0) topBarsDiv.innerHTML = noDataMsg;
-        else {
-          topBarsDiv.innerHTML = topBars.map((bar, index) => `<div class="d-flex justify-content-between align-items-center py-1">
-                <span>${index + 1}. ${bar.bar}</span>
-                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
-                </div>`).join('');
-        }
-      }
-      
-      const lastVisitsDiv = document.getElementById('lastVisits');
-      if(lastVisitsDiv) {
-        if (lastVisits.error) lastVisitsDiv.innerHTML = errorMsg;
-        else if (lastVisits.length === 0) lastVisitsDiv.innerHTML = noDataMsg;
-        else {
-          lastVisitsDiv.innerHTML = lastVisits.map(bar => {
-            let statusText = '<span class="never-visited">Nunca</span>';
-            if (bar.ultima_visita) {
-              const days = bar.dias_desde_ultima_visita;
-              let datePart = formatDate(bar.ultima_visita);
-              if (days !== null && days !== undefined) {
-                statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
-              } else {
-                statusText = `<span class="recent-visit">${datePart}</span>`;
-              }
-            }
-            return `<div class="d-flex justify-content-between align-items-center py-1">
-                <span>${bar.bar}</span>
-                ${statusText}
-                </div>`;
-          }).join('');
-        }
-      }
-      
-      const cnStatsDiv = document.getElementById('cnStats');
-      if (cnStatsDiv) {
-        if (cnStats.error) cnStatsDiv.innerHTML = errorMsg;
-        else {
-          const totalCNs = cnStats.length;
-          const quorumCNs = cnStats.filter(cn => cn.hubo_quorum).length;
-          const totalAttendanceSum = cnStats.reduce((sum, cn) => sum + (cn.total_asistentes || 0), 0);
-          const avgAttendance = totalCNs > 0 ? (totalAttendanceSum / totalCNs).toFixed(1) : 0;
-          
-          cnStatsDiv.innerHTML = `
-                <div class="row text-center">
-                    <div class="col-4"><h3 class="text-warning">${totalCNs}</h3><small class="text-muted-light">CNs Realizadas</small></div>
-                    <div class="col-4"><h3 class="text-success">${quorumCNs}</h3><small class="text-muted-light">Con Quorum</small></div>
-                    <div class="col-4"><h3 class="text-info">${avgAttendance}</h3><small class="text-muted-light">Prom. Asistencia</small></div>
-                </div>`;
-        }
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const tabs = document.querySelectorAll('[data-bs-toggle="pill"]');
-      tabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function(event) {
-          const target = event.target.getAttribute('data-bs-target');
-          if (target === '#history') loadHistory();
-          else if (target === '#stats') loadStats();
-        });
-      });
-      init(); 
-    });
-
-    document.getElementById('googleSignIn').addEventListener('click', async () => {
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin,
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent'
-            }
+        // Top bars
+        const topBarsEl = document.getElementById('topBarsMobile');
+        if (topBarsEl) {
+          if (topBarsRes.data?.length) {
+            topBarsEl.innerHTML = topBarsRes.data.map((bar, i) => `
+              <div class="stat-item">
+                <span>${i + 1}. ${bar.bar}</span>
+                <span class="stat-badge">${bar.visitas}</span>
+              </div>
+            `).join('');
+          } else {
+            topBarsEl.innerHTML = '<div style="text-align:center;color:#adb5bd;">Sin datos</div>';
           }
-        });
-        if (error) throw error;
+        }
+        
+        // Last visits
+        const lastVisitsEl = document.getElementById('lastVisitsMobile');
+        if (lastVisitsEl) {
+          if (lastVisitsRes.data?.length) {
+            lastVisitsEl.innerHTML = lastVisitsRes.data.map(bar => {
+              let visitText = 'Nunca';
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                if (days <= 14) visitText = `${days}d`;
+                else if (days <= 60) visitText = `${days}d`;
+                else visitText = `${days}d`;
+              }
+              return `
+                <div class="stat-item">
+                  <span>${bar.bar}</span>
+                  <span class="stat-badge">${visitText}</span>
+                </div>
+              `;
+            }).join('');
+          } else {
+            lastVisitsEl.innerHTML = '<div style="text-align:center;color:#adb5bd;">Sin datos</div>';
+          }
+        }
+        
+        // CN Stats
+        const cnStatsEl = document.getElementById('cnStatsMobile');
+        if (cnStatsEl) {
+          const totalCNs = cnStatsRes.data?.length || 0;
+          const withQuorum = cnStatsRes.data?.filter(cn => cn.hubo_quorum).length || 0;
+          
+          cnStatsEl.innerHTML = `
+            <div class="stat-item">
+              <span>CNs realizadas</span>
+              <span class="stat-badge">${totalCNs}</span>
+            </div>
+            <div class="stat-item">
+              <span>Con quorum</span>
+              <span class="stat-badge">${withQuorum}</span>
+            </div>
+          `;
+        }
+        
       } catch (error) {
-        console.error('❌ Error al iniciar sesión con Google:', error);
-        alert('Error al iniciar sesión: ' + error.message);
+        console.error('❌ Error loading stats:', error);
       }
-    });
+    }
+
+    // ========== UTILITY FUNCTIONS ==========
+    function igIcon() {
+      return `<svg class="social-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2"/><path d="M16 11.37-4 4v-8.74l4 4.74z" fill="currentColor"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>`;
+    }
+
+    function fbIcon() {
+      return `<svg class="social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleDateString('es-ES', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch {
+        return dateString;
+      }
+    }
 
     async function signOut() {
       try {
         await supabase.auth.signOut();
       } catch (error) {
-        console.error('❌ Error al cerrar sesión en Supabase:', error);
-      } finally {
-        handleSignOut();
+        console.error('❌ Error signing out:', error);
       }
     }
 
-    function formatDate(dateString) {
-      if (!dateString) return 'Fecha no disponible';
-      try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) {
-          return 'Fecha inválida';
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      // Google Sign In
+      document.getElementById('googleSignIn').addEventListener('click', async () => {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin
+            }
+          });
+          if (error) throw error;
+        } catch (error) {
+          console.error('❌ Error signing in:', error);
+          alert('Error al iniciar sesión: ' + error.message);
         }
-        return date.toLocaleDateString('es-ES', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
-        });
-      } catch (e) {
-        return dateString;
-      }
-    }
+      });
 
-    function setupEventListeners() {
-      const barsTableBody = document.getElementById('barsTable');
-      if (barsTableBody) {
-        barsTableBody.removeEventListener('click', handleTableClick);
-        barsTableBody.addEventListener('click', handleTableClick);
-      }
-    }
+      // Initialize app
+      init();
+    });
 
-    function handleTableClick(event) {
-      let targetElement = event.target;
-      const voteButton = targetElement.closest('[data-action="vote"]');
-      const detailsSpan = targetElement.closest('[data-action="showDetails"]');
-      
-      if (voteButton) {
-        const encodedBarName = voteButton.getAttribute('data-bar');
-        if (!encodedBarName || voteButton.disabled) return;
-        
-        const barName = decodeURIComponent(encodedBarName);
-        toggleVote(barName, voteButton);
-      } else if (detailsSpan) {
-        const encodedBarName = detailsSpan.getAttribute('data-bar');
-        const voteCount = parseInt(detailsSpan.getAttribute('data-votes'), 10);
-        if (!encodedBarName || isNaN(voteCount)) return;
-        
-        const barName = decodeURIComponent(encodedBarName);
-        if (voteCount > 0) {
-          showVoteDetails(barName, voteCount);
-        }
-      }
-    }
-
-    window.signOut = signOut; 
+    // Make functions globally available
+    window.toggleVote = toggleVote;
+    window.showVoteDetails = showVoteDetails;
+    window.signOut = signOut;
   </script>
 </body>
 </html>
