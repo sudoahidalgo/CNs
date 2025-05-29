@@ -824,8 +824,8 @@
     <nav class="mobile-bottom-nav">
       <div class="mobile-nav-items">
         <div class="mobile-nav-item active" data-section="voting">
-          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"/>
+          <svg class="mobile-nav-icon" viewBox="0 0 256 256" fill="currentColor">
+            <path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm-34.34,77.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"/>
           </svg>
           <div class="mobile-nav-label">Votación</div>
         </div>
@@ -1214,10 +1214,35 @@
     function formatDate(dateString) {
       if (!dateString) return 'N/A';
       try {
-        return new Date(dateString).toLocaleDateString('es-ES', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
+        const date = new Date(dateString);
+        // Check if it's a Tuesday (day 2)
+        if (date.getDay() === 2) {
+          return date.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+          });
+        } else {
+          return date.toLocaleDateString('es-ES', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+      } catch {
+        return dateString;
+      }
+    }
+
+    function formatTuesdayDateLong(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
         });
       } catch {
         return dateString;
@@ -1283,7 +1308,7 @@
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -1579,13 +1604,13 @@
       if (statusEl) {
         if (count >= needed) {
           statusEl.className = 'quorum-status quorum-yes';
-          statusEl.innerHTML = `✅ ¡HAY QUORUM! ${count} personas confirmadas`;
+          statusEl.innerHTML = `✅ ¡HAY QUORUM!`;
         } else if (count > 0) {
           statusEl.className = 'quorum-status quorum-pending';
-          statusEl.innerHTML = `⏳ ${count} confirmada(s), falta(n) ${needed - count} para quorum`;
+          statusEl.innerHTML = `⏳ Esperando más confirmaciones`;
         } else {
           statusEl.className = 'quorum-status quorum-no';
-          statusEl.innerHTML = `❌ Sin confirmaciones aún. Se necesitan ${needed} para hacer CN`;
+          statusEl.innerHTML = `❌ Sin confirmaciones aún`;
         }
       }
       
@@ -1798,7 +1823,7 @@
         
         container.innerHTML = weeks.map(week => `
           <div class="mobile-history-item">
-            <div class="mobile-history-date">${formatDate(week.fecha_martes)}</div>
+            <div class="mobile-history-date">${formatTuesdayDateLong(week.fecha_martes)}</div>
             <div class="mobile-history-result">
               ${week.hubo_quorum && week.bar_ganador ? 
                 `🏆 ${week.bar_ganador}` : 
@@ -1837,7 +1862,7 @@
         container.innerHTML = weeks.map(week => `
           <div class="stats-card">
             <div class="row">
-              <div class="col-md-3"><strong>${formatDate(week.fecha_martes)}</strong></div>
+              <div class="col-md-3"><strong>${formatTuesdayDateLong(week.fecha_martes)}</strong></div>
               <div class="col-md-3">${week.hubo_quorum && week.bar_ganador ? `🏆 <strong>${week.bar_ganador}</strong>` : (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}</div>
               <div class="col-md-3">👥 ${week.total_asistentes || 0} asistentes</div>
               <div class="col-md-3">🗳️ ${week.total_votos || 0} votos</div>
