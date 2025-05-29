@@ -146,6 +146,8 @@
       font-weight: 600;
       font-size: 0.9rem;
       box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      z-index: 10;
+      position: relative;
     }
 
     /* Mobile Bottom Navigation - Clean Icons */
@@ -1213,7 +1215,7 @@
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del ${formatDate(currentWeek.fecha_martes)} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
+          if (el) el.innerHTML = `${weekText} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -1344,39 +1346,59 @@
       }).join('');
       
       container.innerHTML = `<div class="mobile-bars-list">${listHTML}</div>`;
+      
+      // Update winner immediately after rendering
+      console.log('🏆 About to update winner after rendering bars');
+      updateMobileWinner(allVotes);
     }
 
     function updateMobileWinner(allVotes) {
       const banner = document.getElementById('mobileWinnerBanner');
-      if (!banner) return;
       
-      console.log('🏆 updateMobileWinner called with votes:', allVotes.length);
-      
-      if (!allVotes.length) {
-        console.log('🏆 No votes, hiding banner');
-        banner.style.display = 'none';
+      if (!banner) {
+        console.log('❌ Banner element not found!');
         return;
       }
       
+      console.log('🏆 Updating winner banner with', allVotes.length, 'votes');
+      
+      if (!allVotes || allVotes.length === 0) {
+        banner.style.display = 'none';
+        console.log('🏆 Hidden - no votes');
+        return;
+      }
+      
+      // Count votes by bar
       const voteCounts = {};
       allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        if (vote.bar) {
+          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        }
       });
       
-      console.log('🏆 Vote counts:', voteCounts);
+      console.log('🏆 Vote tallies:', voteCounts);
       
-      const maxVotes = Math.max(...Object.values(voteCounts));
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+      const entries = Object.entries(voteCounts);
+      if (entries.length === 0) {
+        banner.style.display = 'none';
+        console.log('🏆 Hidden - no valid votes');
+        return;
+      }
       
-      console.log('🏆 Winners:', winners, 'Max votes:', maxVotes);
+      // Find maximum votes
+      const maxVotes = Math.max(...entries.map(([bar, count]) => count));
+      const winners = entries.filter(([bar, count]) => count === maxVotes).map(([bar]) => bar);
       
+      console.log('🏆 Max votes:', maxVotes, 'Winners:', winners);
+      
+      // Show only if exactly one winner with at least 1 vote
       if (winners.length === 1 && maxVotes > 0) {
-        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos)`;
+        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} ${maxVotes === 1 ? 'voto' : 'votos'})`;
         banner.style.display = 'block';
-        console.log('🏆 Banner shown for winner:', winners[0]);
+        console.log('✅ Banner SHOWN:', winners[0]);
       } else {
         banner.style.display = 'none';
-        console.log('🏆 Banner hidden - no clear winner');
+        console.log('🏆 Hidden - tie or no votes');
       }
     }
 
