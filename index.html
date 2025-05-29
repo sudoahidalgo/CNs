@@ -25,6 +25,26 @@
       overflow-x: hidden;
     }
 
+    /* ========== WINNER HIGHLIGHTING ========== */
+    .winner-highlight {
+      border: 2px solid #ffd700 !important;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05)) !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3) !important;
+    }
+
+    .crown-icon {
+      color: #ffd700;
+      margin-left: 8px;
+      font-size: 1.2em;
+      display: inline-block;
+      animation: crownGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes crownGlow {
+      from { text-shadow: 0 0 5px #ffd700; }
+      to { text-shadow: 0 0 10px #ffd700, 0 0 15px #ffd700; }
+    }
+
     /* ========== MOBILE DESIGN ========== */
     .mobile-layout {
       display: flex;
@@ -36,7 +56,7 @@
     .mobile-header {
       background: rgba(26, 26, 26, 0.95);
       backdrop-filter: blur(10px);
-      padding: 12px 16px;
+      padding: 16px;
       position: fixed;
       top: 0;
       left: 0;
@@ -52,7 +72,7 @@
     }
 
     .app-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: #ffe066;
       margin: 0;
@@ -65,8 +85,8 @@
     }
 
     .user-avatar-mobile {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       border: 2px solid #ffe066;
       background-color: #555;
@@ -75,7 +95,7 @@
       justify-content: center;
       font-weight: bold;
       color: white;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       overflow: hidden;
       cursor: pointer;
       position: relative;
@@ -94,18 +114,19 @@
       right: 0;
       background: rgba(40, 40, 40, 0.95);
       backdrop-filter: blur(10px);
-      border-radius: 8px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 224, 102, 0.3);
-      min-width: 120px;
+      min-width: 140px;
       z-index: 1001;
       display: none;
     }
 
     .user-menu-item {
-      padding: 12px 16px;
+      padding: 14px 18px;
       cursor: pointer;
       transition: background 0.2s;
       font-size: 0.9rem;
+      color: #fff;
     }
 
     .user-menu-item:hover {
@@ -113,22 +134,22 @@
     }
 
     .user-menu-item:first-child {
-      border-radius: 8px 8px 0 0;
+      border-radius: 12px 12px 0 0;
     }
 
     .user-menu-item:last-child {
-      border-radius: 0 0 8px 8px;
+      border-radius: 0 0 12px 12px;
     }
 
     /* Mobile Main Content */
     .mobile-main {
       flex: 1;
-      padding: 80px 0 80px 0;
+      padding: 100px 0 100px 0;
       overflow-y: auto;
     }
 
     .mobile-section {
-      padding: 16px;
+      padding: 20px 16px;
       display: none;
     }
 
@@ -136,19 +157,7 @@
       display: block;
     }
 
-    /* Winner Banner */
-    .winner-banner {
-      background: linear-gradient(135deg, #10b981, #059669);
-      margin: 0 16px 16px 16px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    }
-
-    /* Mobile Bottom Navigation - Clean Icons */
+    /* Mobile Bottom Navigation */
     .mobile-bottom-nav {
       position: fixed;
       bottom: 0;
@@ -157,7 +166,7 @@
       background: rgba(26, 26, 26, 0.95);
       backdrop-filter: blur(10px);
       border-top: 1px solid rgba(255, 224, 102, 0.2);
-      padding: 8px 0;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
       z-index: 1000;
     }
 
@@ -167,6 +176,7 @@
       align-items: center;
       max-width: 500px;
       margin: 0 auto;
+      padding: 0 16px;
     }
 
     .mobile-nav-item {
@@ -176,12 +186,13 @@
       padding: 8px 12px;
       cursor: pointer;
       transition: all 0.2s ease;
-      border-radius: 8px;
+      border-radius: 12px;
       min-width: 60px;
     }
 
     .mobile-nav-item.active {
       color: #ffe066;
+      background: rgba(255, 224, 102, 0.1);
     }
 
     .mobile-nav-item:not(.active) {
@@ -189,56 +200,80 @@
     }
 
     .mobile-nav-icon {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       margin-bottom: 4px;
       fill: currentColor;
       stroke: currentColor;
     }
 
     .mobile-nav-label {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 500;
     }
 
-    /* Mobile Bar List - Compact Style */
-    .mobile-bars-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
+    /* Mobile Bar List - Improved Design */
+    .mobile-bars-container {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .mobile-bar-item {
-      background: rgba(40, 40, 40, 0.9);
-      padding: 12px 16px;
+      background: rgba(40, 40, 40, 0.8);
+      padding: 18px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.2s ease;
     }
 
     .mobile-bar-item:last-child {
       border-bottom: none;
     }
 
+    .mobile-bar-item:hover {
+      background: rgba(50, 50, 50, 0.8);
+    }
+
     .mobile-bar-left {
       display: flex;
       align-items: center;
       flex: 1;
-      gap: 12px;
+      gap: 16px;
+    }
+
+    .mobile-bar-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 224, 102, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffe066;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .mobile-bar-info {
+      flex: 1;
+      min-width: 0;
     }
 
     .mobile-bar-name {
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 1rem;
       color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
     }
 
     .mobile-bar-visit {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #888;
     }
 
@@ -246,72 +281,97 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .mobile-social-links {
+      display: flex;
+      gap: 8px;
     }
 
     .mobile-social-icon {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .mobile-social-icon:hover {
+      opacity: 1;
     }
 
     .mobile-vote-btn {
-      background: #555;
+      background: #4a5568;
       color: white;
       border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
       font-weight: 600;
-      min-width: 70px;
+      min-width: 80px;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
 
     .mobile-vote-btn.voted {
       background: #008d4e;
+      transform: scale(1.02);
     }
 
     .mobile-vote-btn:disabled {
       background: #555;
       color: #aaa;
+      cursor: not-allowed;
+    }
+
+    .mobile-vote-btn:hover:not(:disabled) {
+      filter: brightness(1.1);
     }
 
     .mobile-bar-votes {
       background: rgba(255, 224, 102, 0.2);
       color: #ffe066;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 6px 10px;
+      border-radius: 8px;
       font-weight: 600;
-      font-size: 0.8rem;
-      min-width: 25px;
+      font-size: 0.85rem;
+      min-width: 30px;
       text-align: center;
       cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-bar-votes:hover {
+      background: rgba(255, 224, 102, 0.3);
     }
 
     /* Mobile Attendance */
     .mobile-quorum-card {
       background: rgba(40, 40, 40, 0.9);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
       text-align: center;
     }
 
     .mobile-attendees {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     .mobile-attendee {
       display: flex;
       align-items: center;
       background: rgba(255, 255, 255, 0.05);
-      padding: 10px 12px;
-      border-radius: 6px;
+      padding: 12px 16px;
+      border-radius: 12px;
     }
 
     .mobile-attendee-avatar {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: #6c757d;
       display: flex;
@@ -319,36 +379,37 @@
       justify-content: center;
       color: white;
       font-weight: bold;
-      font-size: 0.8rem;
-      margin-right: 10px;
+      font-size: 0.85rem;
+      margin-right: 12px;
+      border: 2px solid rgba(255, 224, 102, 0.3);
     }
 
-    /* Mobile History & Stats Combined */
+    /* Mobile History & Stats */
     .mobile-stats-section {
-      margin-bottom: 20px;
-      padding-bottom: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .mobile-history-item {
       background: rgba(40, 40, 40, 0.9);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
     }
 
     .mobile-history-date {
       font-weight: 600;
       color: #ffe066;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     .mobile-history-result {
-      font-size: 0.8rem;
-      margin-top: 4px;
+      font-size: 0.85rem;
+      margin-top: 6px;
     }
 
-    /* ========== DESKTOP DESIGN (Original) ========== */
+    /* ========== DESKTOP DESIGN (Centered Tables) ========== */
     .desktop-layout {
       min-height: 100vh;
       padding: 20px;
@@ -428,17 +489,7 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
 
-    .desktop-winner-box {
-      font-size: 1.8rem;
-      color: #ffe066;
-      font-weight: 700;
-      margin-bottom: 20px;
-      background: rgba(0,0,0,0.50);
-      padding: 15px 25px;
-      border-radius: 15px;
-      text-align: center;
-    }
-
+    /* Centered Tables */
     table {
       background: rgba(36,36,36,0.95);
       border-radius: 15px;
@@ -452,10 +503,12 @@
       font-size: 1.05rem;
       letter-spacing: 0.5px;
       border-bottom: 2px solid #444;
+      text-align: center;
     }
 
     td {
       vertical-align: middle;
+      text-align: center;
     }
 
     .vote-btn {
@@ -619,9 +672,27 @@
     .never-visited { color: #ef4444; font-weight: 600; }
     .old-visit { color: #f59e0b; font-weight: 500; }
 
-    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; }
-    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; }
-    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; }
+    .quorum-yes { 
+      background: rgba(0, 141, 78, 0.3); 
+      color: #4ade80; 
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      font-weight: 600;
+    }
+    .quorum-no { 
+      background: rgba(239, 68, 68, 0.3); 
+      color: #f87171; 
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      font-weight: 600;
+    }
+    .quorum-pending { 
+      background: rgba(234, 179, 8, 0.3); 
+      color: #facc15; 
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      font-weight: 600;
+    }
 
     /* Hide layouts initially */
     .mobile-layout, .desktop-layout {
@@ -633,14 +704,14 @@
       display: flex;
       align-items: center;
       margin-bottom: 8px;
-      padding: 4px 8px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.05);
     }
 
     .attendance-avatar {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       background-color: #6c757d;
       color: white;
@@ -649,8 +720,8 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      margin-right: 8px;
-      border: 1px solid #ffe066aa;
+      margin-right: 10px;
+      border: 2px solid rgba(255, 224, 102, 0.3);
     }
 
     .text-muted-light { color: #adb5bd !important; }
@@ -688,9 +759,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Winner Banner -->
-    <div id="mobileWinnerBanner" class="winner-banner" style="display: none;"></div>
 
     <!-- Main Content -->
     <main class="mobile-main">
@@ -752,7 +820,7 @@
       </section>
     </main>
 
-    <!-- Bottom Navigation - 3 items now -->
+    <!-- Bottom Navigation -->
     <nav class="mobile-bottom-nav">
       <div class="mobile-nav-items">
         <div class="mobile-nav-item active" data-section="voting">
@@ -763,7 +831,10 @@
         </div>
         <div class="mobile-nav-item" data-section="attendance">
           <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 11v7a2 2 0 0 1-4 0v-5h-4V5a2 2 0 0 1 4 0v6h4a2 2 0 0 1 0 4Z"/>
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
           <div class="mobile-nav-label">Asistencia</div>
         </div>
@@ -818,14 +889,13 @@
     <div class="tab-content desktop-tab-content">
       <!-- Desktop Voting -->
       <div class="tab-pane fade show active" id="desktopVoting" role="tabpanel">
-        <div id="desktopWinner" class="desktop-winner-box" style="display:none;"></div>
         <div class="row">
           <div class="col-md-4 order-md-2">
             <h4 class="text-light mb-3">👥 Asistencia</h4>
             <div class="stats-card">
               <div id="desktopQuorumStatus" class="quorum-status mb-3"></div>
               <div id="desktopAttendanceList">
-                <h6 class="text-warning">Confirmados (quienes votaron):</h6>
+                <h6 class="text-warning">Confirmados:</h6>
                 <div id="desktopConfirmedList" class="mb-2"></div>
               </div>
             </div>
@@ -1243,10 +1313,8 @@
         
         if (isMobile) {
           renderMobileBars(votesInWeek || [], barStats || []);
-          updateMobileWinner(votesInWeek || []);
         } else {
           renderDesktopBars(votesInWeek || [], barStats || []);
-          updateDesktopWinner(votesInWeek || []);
         }
         
       } catch (error) {
@@ -1279,6 +1347,21 @@
       }
     }
 
+    // ========== WINNER DETECTION ==========
+    function getWinningBars(allVotes) {
+      if (!allVotes.length) return [];
+      
+      const voteCounts = {};
+      allVotes.forEach(vote => {
+        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+      });
+      
+      const maxVotes = Math.max(...Object.values(voteCounts));
+      if (maxVotes === 0) return [];
+      
+      return Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
+    }
+
     // ========== MOBILE RENDERING ==========
     function renderMobileBars(allVotes, barStats) {
       const container = document.getElementById('mobileBarsContainer');
@@ -1301,11 +1384,14 @@
         return a.name.localeCompare(b.name);
       });
       
+      const winningBars = getWinningBars(allVotes);
+      
       const listHTML = sortedBars.map(bar => {
         const votes = voteCounts[bar.name] || 0;
         const userVoted = userVotes.includes(bar.name);
         const stats = statsMap[bar.name];
         const isActive = currentWeek?.estado === 'activa';
+        const isWinner = winningBars.includes(bar.name) && votes > 0;
         
         let socialLinks = '';
         if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
@@ -1320,15 +1406,18 @@
         }
         
         return `
-          <div class="mobile-bar-item">
+          <div class="mobile-bar-item ${isWinner ? 'winner-highlight' : ''}">
             <div class="mobile-bar-left">
-              <div>
-                <div class="mobile-bar-name">${bar.name}</div>
+              <div class="mobile-bar-icon">🍺</div>
+              <div class="mobile-bar-info">
+                <div class="mobile-bar-name">
+                  ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
+                </div>
                 <div class="mobile-bar-visit">Última: ${lastVisit}</div>
               </div>
             </div>
             <div class="mobile-bar-right">
-              <div class="mobile-social-icon">${socialLinks}</div>
+              <div class="mobile-social-links">${socialLinks}</div>
               <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
                    ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
                 ${votes}
@@ -1343,41 +1432,7 @@
         `;
       }).join('');
       
-      container.innerHTML = `<div class="mobile-bars-list">${listHTML}</div>`;
-    }
-
-    function updateMobileWinner(allVotes) {
-      const banner = document.getElementById('mobileWinnerBanner');
-      if (!banner) return;
-      
-      console.log('🏆 updateMobileWinner called with votes:', allVotes.length);
-      
-      if (!allVotes.length) {
-        console.log('🏆 No votes, hiding banner');
-        banner.style.display = 'none';
-        return;
-      }
-      
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
-      
-      console.log('🏆 Vote counts:', voteCounts);
-      
-      const maxVotes = Math.max(...Object.values(voteCounts));
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
-      
-      console.log('🏆 Winners:', winners, 'Max votes:', maxVotes);
-      
-      if (winners.length === 1 && maxVotes > 0) {
-        banner.innerHTML = `🏆 Ganador: <strong>${winners[0]}</strong> (${maxVotes} votos)`;
-        banner.style.display = 'block';
-        console.log('🏆 Banner shown for winner:', winners[0]);
-      } else {
-        banner.style.display = 'none';
-        console.log('🏆 Banner hidden - no clear winner');
-      }
+      container.innerHTML = `<div class="mobile-bars-container">${listHTML}</div>`;
     }
 
     function updateMobileAttendance(attendances) {
@@ -1456,6 +1511,8 @@
         return a.name.localeCompare(b.name);
       });
       
+      const winningBars = getWinningBars(allVotes);
+      
       tbody.innerHTML = '';
       
       if (sortedBars.length === 0) {
@@ -1467,6 +1524,7 @@
         const votesForBar = voteCounts[bar.name] || 0;
         const userHasVotedForThisBar = userVotes.includes(bar.name);
         const stats = statsMap[bar.name];
+        const isWinner = winningBars.includes(bar.name) && votesForBar > 0;
 
         let socialLinks = '';
         if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
@@ -1483,8 +1541,14 @@
         }
 
         const row = document.createElement('tr');
+        if (isWinner) {
+          row.classList.add('winner-highlight');
+        }
+        
         row.innerHTML = `
-          <td style="font-weight: 600;">${bar.name}</td>
+          <td style="font-weight: 600;">
+            ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
+          </td>
           <td>${socialLinks}</td>
           <td>
             <button class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
@@ -1494,7 +1558,7 @@
               ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
             </button>
           </td>
-          <td class="text-center" style="font-size: 1.2em; font-weight: 700;">
+          <td style="font-size: 1.2em; font-weight: 700;">
             <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}">
               ${votesForBar}
             </span>
@@ -1503,38 +1567,6 @@
         `;
         tbody.appendChild(row);
       });
-    }
-
-    function updateDesktopWinner(allVotes) {
-      const winnerDiv = document.getElementById("desktopWinner");
-      if (!winnerDiv) return;
-      
-      if (!allVotes || allVotes.length === 0) {
-        winnerDiv.style.display = "none";
-        return;
-      }
-      
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
-      
-      const maxVotes = Math.max(0, ...Object.values(voteCounts));
-      if (maxVotes === 0) {
-        winnerDiv.style.display = "none";
-        return;
-      }
-      
-      const winners = Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
-      if (winners.length === 1) {
-        winnerDiv.innerHTML = `🏆 Ganador actual: <strong>${winners[0]}</strong> (${maxVotes} votos) 🏆`;
-      } else if (winners.length > 1) {
-        const names = winners.map(w => `<strong>${w}</strong>`).join(" y ");
-        winnerDiv.innerHTML = `🤝 Empate actual: ${names} (${maxVotes} votos c/u) 🤝`;
-      } else {
-        winnerDiv.innerHTML = `🤔 Aún no hay un bar ganador claro. ¡Vota!`;
-      }
-      winnerDiv.style.display = "block";
     }
 
     function updateDesktopAttendance(attendances) {
@@ -1559,7 +1591,7 @@
       
       if (listEl) {
         if (!attendances || attendances.length === 0) {
-          listEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
+          listEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia aún.</em>';
         } else {
           listEl.innerHTML = attendances.map(att => {
             let userName = 'Usuario Desconocido';
