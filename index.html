@@ -177,17 +177,6 @@
       padding: 25px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
-    .quorum-status {
-      font-size: 1.1rem;
-      padding: 10px 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .quorum-yes { background: rgba(0, 141, 78, 0.3); color: #4ade80; border: 1px solid #4ade8033; }
-    .quorum-no { background: rgba(239, 68, 68, 0.3); color: #f87171; border: 1px solid #f8717133; }
-    .quorum-pending { background: rgba(234, 179, 8, 0.3); color: #facc15; border: 1px solid #facc1533; }
     
     table {
       background: rgba(36,36,36,0.95);
@@ -318,11 +307,6 @@
         border: 1px solid #ffe066aa;
     }
 
-    /* Ocultar texto "Confirmados" en desktop */
-    .attendance-title {
-      display: block;
-    }
-
     @media (max-width: 768px) {
       .header h1 { font-size: 2.2rem; }
       .user-info { 
@@ -339,18 +323,6 @@
       .col-md-4, .col-md-8 { width: 100%;}
       .order-md-1 { order: 0;}
       .order-md-2 { order: 0;}
-      
-      /* Mostrar texto "Confirmados" en mobile */
-      .attendance-title {
-        display: block;
-      }
-    }
-
-    @media (min-width: 769px) {
-      /* Ocultar texto "Confirmados" en desktop */
-      .attendance-title {
-        display: none;
-      }
     }
   </style>
 </head>
@@ -406,12 +378,8 @@
           <div class="col-md-4 order-md-2">
             <h4 class="text-light mb-3">👥 Asistencia</h4>
             <div class="stats-card">
-              <div id="quorumStatus" class="quorum-status mb-3"></div>
-              <div id="attendanceList">
-                <h6 class="text-warning attendance-title">Confirmados (quienes votaron):</h6>
-                <div id="confirmedList" class="mb-2">
-                </div>
-                </div>
+              <div id="confirmedList" class="mb-2">
+              </div>
             </div>
           </div>
           <div class="col-md-8 order-md-1">
@@ -708,7 +676,6 @@
     async function loadAttendanceData() {
       if (!currentUser || !currentWeek) {
         updateAttendanceUI([]);
-        updateQuorumStatus(0);
         userAttendance = false;
         return;
       }
@@ -727,12 +694,10 @@
         console.log('👥 Asistencia del usuario (loadAttendanceData):', userAttendance);
 
         updateAttendanceUI(attendances || []);
-        updateQuorumStatus((attendances || []).length);
       } catch (error) {
         console.error("❌ Error en loadAttendanceData:", error);
         userAttendance = false;
         updateAttendanceUI([]);
-        updateQuorumStatus(0);
       }
     }
 
@@ -836,7 +801,7 @@
       if (!confirmedListEl) return;
 
       if (!attendances || attendances.length === 0) {
-        confirmedListEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia (nadie ha votado).</em>';
+        confirmedListEl.innerHTML = '<em class="text-muted-light">Nadie ha confirmado asistencia aún.</em>';
       } else {
         confirmedListEl.innerHTML = attendances.map(att => {
           const userName = att.usuarios?.nombre || 'Usuario Desconocido';
@@ -844,7 +809,7 @@
           const avatarPlaceholder = `<div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;background-color:#6c757d;color:white;font-size:0.8em;">${userName.substring(0,1).toUpperCase()}</div>`;
 
           return `
-            <div class="d-flex align-items-center mb-1">
+            <div class="d-flex align-items-center mb-2 p-2" style="background: rgba(255,255,255,0.05); border-radius: 8px;">
                 ${avatarUrl ? `<img src="${avatarUrl}" class="rounded-circle me-2" width="24" height="24" alt="Avatar" onerror="this.outerHTML='${avatarPlaceholder}'">` : avatarPlaceholder}
                 <span>${userName}</span>
             </div>`;
