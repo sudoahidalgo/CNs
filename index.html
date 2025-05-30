@@ -763,7 +763,6 @@
   </style>
 </head>
 <body>
-  <!-- Auth Screen -->
   <div id="authContainer" class="auth-container" style="display: none;">
     <div class="auth-card">
       <h1 class="auth-title">🍺 CORKY NIGHTS</h1>
@@ -775,9 +774,7 @@
     </div>
   </div>
 
-  <!-- MOBILE LAYOUT -->
   <div id="mobileLayout" class="mobile-layout">
-    <!-- Mobile Header -->
     <header class="mobile-header">
       <div class="header-content">
         <div>
@@ -785,7 +782,6 @@
           <div id="mobileWeekInfo" class="week-info"></div>
         </div>
         <div class="user-avatar-mobile" id="mobileUserAvatar">
-          <!-- User Menu -->
           <div class="user-menu" id="mobileUserMenu">
             <div class="user-menu-item" onclick="signOut()">
               👋 Cerrar sesión
@@ -795,9 +791,7 @@
       </div>
     </header>
 
-    <!-- Main Content -->
     <main class="mobile-main">
-      <!-- Votación -->
       <section id="mobileVotingSection" class="mobile-section active">
         <div id="mobileBarsContainer">
           <div class="loading">
@@ -807,7 +801,6 @@
         </div>
       </section>
 
-      <!-- Asistencia -->
       <section id="mobileAttendanceSection" class="mobile-section">
         <div class="mobile-quorum-card">
           <div id="mobileQuorumStatus" class="quorum-status"></div>
@@ -815,9 +808,7 @@
         </div>
       </section>
 
-      <!-- Historial + Stats -->
       <section id="mobileHistorySection" class="mobile-section">
-        <!-- Stats Section -->
         <div class="mobile-stats-section">
           <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
           
@@ -866,7 +857,6 @@
       </section>
     </main>
 
-    <!-- Bottom Navigation -->
     <nav class="mobile-bottom-nav">
       <div class="mobile-nav-items">
         <div class="mobile-nav-item active" data-section="voting">
@@ -897,22 +887,18 @@
     </nav>
   </div>
 
-  <!-- DESKTOP LAYOUT -->
   <div id="desktopLayout" class="desktop-layout">
-    <!-- Desktop User Info -->
     <div class="desktop-user-info">
       <div id="desktopUserAvatar" class="desktop-user-avatar"></div>
       <span id="desktopUserName"></span>
       <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
     </div>
 
-    <!-- Header -->
     <div class="desktop-header">
       <h1>🍺 CORKY NIGHTS 🍺</h1>
       <div id="desktopWeekInfo" class="text-light"></div>
     </div>
 
-    <!-- Tabs -->
     <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="desktop-voting-tab" data-bs-toggle="pill" data-bs-target="#desktopVoting" type="button" role="tab">
@@ -931,9 +917,7 @@
       </li>
     </ul>
 
-    <!-- Tab Content -->
     <div class="tab-content desktop-tab-content">
-      <!-- Desktop Voting -->
       <div class="tab-pane fade show active" id="desktopVoting" role="tabpanel">
         <div class="row">
           <div class="col-md-4 order-md-2">
@@ -965,11 +949,9 @@
         </div>
       </div>
 
-      <!-- Desktop History -->
       <div class="tab-pane fade" id="desktopHistory" role="tabpanel">
         <h4 class="text-light mb-3">📊 Historial y Estadísticas</h4>
         
-        <!-- Statistics Section -->
         <div class="row">
           <div class="col-md-6 mb-3">
             <div class="stats-card">
@@ -1003,13 +985,11 @@
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      <!-- Desktop Admin -->
       <div class="tab-pane fade" id="desktopAdmin" role="tabpanel">
         <h4 class="text-light mb-3">🔧 Administración de Bares</h4>
         
-        <!-- Add Bar Form -->
         <div class="row mb-4">
           <div class="col-12">
             <div class="stats-card">
@@ -1042,7 +1022,6 @@
           </div>
         </div>
 
-        <!-- Bars List -->
         <div class="row">
           <div class="col-12">
             <div class="stats-card">
@@ -1058,8 +1037,7 @@
                     </tr>
                   </thead>
                   <tbody id="adminBarsTable">
-                    <!-- Will be populated by JavaScript -->
-                  </tbody>
+                    </tbody>
                 </table>
               </div>
             </div>
@@ -1195,24 +1173,29 @@
           ]);
         }
         
-        // Add click handler for desktop history tab
+        // El listener para 'shown.bs.tab' en setupDesktopTabs() se encargará de cargar
+        // las estadísticas cuando la pestaña de historial se muestre.
+        // El siguiente bloque que añadía un listener de 'click' directo es redundante y se ha eliminado.
+        /*
         const historyTab = document.getElementById('desktop-history-tab');
         if (historyTab) {
           historyTab.addEventListener('click', () => {
             setTimeout(() => {
               console.log('👆 Click en pestaña Historial - forzando carga...');
-              loadDesktopHistory();
+              loadDesktopHistory(); // Llamaba a la función incorrecta
             }, 50);
           });
         }
+        */
+        
         setTimeout(() => {
           if (!isMobile) {
-            console.log('⚡ Iniciando pre-carga de estadísticas desktop...');
-            loadDesktopHistory();
+            console.log('⚡ Iniciando pre-carga de estadísticas desktop (desde handleAuthSuccess)...');
+            loadDesktopStats(); // CORREGIDO: Llamar a loadDesktopStats para pre-carga
           } else {
             loadMobileStats();
           }
-        }, 500); // Increased timeout to ensure DOM is ready
+        }, 500); 
         
         console.log('✅ App cargada');
       } catch (error) {
@@ -1229,7 +1212,7 @@
       const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
       
       // Check if user is admin
-      isAdmin = currentUser.email === 'ahidalgod@gmail.com';
+      isAdmin = currentUser.email === 'ahidalgod@gmail.com'; 
       
       // Show/hide admin tab based on admin status
       const adminTab = document.getElementById('desktop-admin-tab');
@@ -1316,8 +1299,8 @@
         tab.addEventListener('shown.bs.tab', function(event) {
           const target = event.target.getAttribute('data-bs-target');
           if (target === '#desktopHistory') {
-            console.log('🔄 Cargando estadísticas desktop...');
-            loadDesktopHistory();
+            console.log('🔄 Cargando estadísticas desktop (desde shown.bs.tab)...');
+            loadDesktopStats(); // CORREGIDO: Llamar a loadDesktopStats()
           } else if (target === '#desktopAdmin') {
             loadAdminPanel();
           }
@@ -2162,8 +2145,15 @@
 
     // ========== DESKTOP STATS & HISTORY ==========
     async function loadDesktopHistory() {
+      // Esta función está diseñada para un div con id "desktopHistoryContent"
+      // que actualmente no existe en la pestaña de historial.
+      // Si se quiere un historial detallado, se debe añadir ese div y llamar esta función.
+      // Por ahora, loadDesktopStats() se encarga de las tarjetas de estadísticas.
       const container = document.getElementById('desktopHistoryContent');
-      if (!container) return;
+      if (!container) {
+        console.warn("⚠️ El contenedor desktopHistoryContent no fue encontrado. Si se desea un historial detallado, este div debe existir.");
+        return;
+      }
       
       try {
         const { data: weeks, error } = await supabase
@@ -2176,7 +2166,7 @@
         if (error) throw error;
         
         if (!weeks?.length) {
-          container.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
+          container.innerHTML = '<p class="text-muted-light">No hay historial detallado disponible aún.</p>';
           return;
         }
         
@@ -2192,7 +2182,7 @@
           
       } catch (error) {
         console.error('❌ Error loading desktop history:', error);
-        container.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
+        container.innerHTML = '<p class="text-danger">Error al cargar el historial detallado.</p>';
       }
     }
 
@@ -2254,6 +2244,7 @@
         if (topBarsEl) {
           if (topBarsError || !topBarsData?.length) {
             topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+            console.error('Error o sin datos para Top Bars:', topBarsError);
           } else {
             topBarsEl.innerHTML = topBarsData.map((bar, index) => `
               <div class="d-flex justify-content-between align-items-center py-1">
@@ -2268,6 +2259,7 @@
         if (userRankingEl) {
           if (userRankingError || !sortedUsers?.length) {
             userRankingEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+            console.error('Error o sin datos para User Ranking:', userRankingError);
           } else {
             userRankingEl.innerHTML = sortedUsers.map((user, index) => `
               <div class="d-flex justify-content-between align-items-center py-1">
@@ -2282,6 +2274,7 @@
         if (lastVisitsEl) {
           if (lastVisitsError) {
             lastVisitsEl.innerHTML = errorMsg;
+            console.error('Error para Last Visits:', lastVisitsError);
           } else {
             // Get all bars and merge with visit data
             const allBarsWithVisits = bars.map(bar => {
@@ -2643,11 +2636,11 @@
 
     // ========== UTILITY FUNCTIONS ==========
     function igIcon() {
-      return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+      return `<svg class="ig-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
     }
 
     function fbIcon() {
-      return `<svg class="mobile-social-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+      return `<svg class="fb-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
     }
 
     async function signOut() {
