@@ -2013,11 +2013,11 @@
     // ========== MOBILE STATS & HISTORY ==========
     async function loadMobileStats() {
       try {
-        // Calculate time-based stats
+        // Calculate time-based stats (these always work)
         const timeSinceFirst = calculateTimeSinceFirstCN();
         const anniversaryInfo = calculateDaysToAnniversary();
         
-        // Update time-based stats
+        // Update time-based stats immediately
         const timeSinceEl = document.getElementById('mobileTimeSince');
         if (timeSinceEl) {
           timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
@@ -2028,33 +2028,46 @@
           anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
         }
         
-        // Load top 5 bars
-        const { data: topBarsData, error: topBarsError } = await supabase
-          .from('visitas_bares')
-          .select('bar, COUNT(*) as visitas')
-          .group('bar')
-          .order('visitas', { ascending: false })
-          .limit(5);
+        // Load data from existing tables
+        const [
+          { data: weeksData, error: weeksError },
+          { data: userRankingData, error: userRankingError }
+        ] = await Promise.all([
+          supabase.from('semanas_cn').select('bar_ganador').eq('estado', 'finalizada').not('bar_ganador', 'is', null),
+          supabase.from('asistencias').select('user_id, usuarios!inner(nombre)').eq('confirmado', true)
+        ]);
         
+        // Process top bars from historical data
         const topBarsEl = document.getElementById('mobileTopBars');
         if (topBarsEl) {
-          if (topBarsError || !topBarsData?.length) {
-            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+          if (weeksError || !weeksData?.length) {
+            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos históricos disponibles</div>';
           } else {
-            topBarsEl.innerHTML = topBarsData.map((bar, i) => `
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                <span style="font-weight: 500;">${i + 1}. ${bar.bar}</span>
-                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${bar.visitas}</span>
-              </div>
-            `).join('');
+            // Count bar wins
+            const barCounts = {};
+            weeksData.forEach(week => {
+              if (week.bar_ganador) {
+                barCounts[week.bar_ganador] = (barCounts[week.bar_ganador] || 0) + 1;
+              }
+            });
+            
+            // Sort and get top 5
+            const sortedBars = Object.entries(barCounts)
+              .sort(([,a], [,b]) => b - a)
+              .slice(0, 5);
+            
+            if (sortedBars.length > 0) {
+              topBarsEl.innerHTML = sortedBars.map(([bar, wins], i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                  <span style="font-weight: 500;">${i + 1}. ${bar}</span>
+                  <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${wins}</span>
+                </div>
+              `).join('');
+            } else {
+              topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay victorias registradas</div>';
+            }
           }
         }
-        
-        // Load user participation ranking
-        const { data: userRankingData, error: userRankingError } = await supabase
-          .from('asistencias')
-          .select('user_id, usuarios!inner(nombre)')
-          .eq('confirmado', true);
         
         // Process user ranking data
         let userStats = {};
@@ -2077,7 +2090,7 @@
         const userRankingEl = document.getElementById('mobileUserRanking');
         if (userRankingEl) {
           if (userRankingError || !sortedUsers?.length) {
-            userRankingEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+            userRankingEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos de asistencia</div>';
           } else {
             userRankingEl.innerHTML = sortedUsers.map((user, i) => `
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
@@ -2088,48 +2101,61 @@
           }
         }
         
-        // Load last visits for ALL bars
-        const { data: lastVisitsData, error: lastVisitsError } = await supabase
-          .from('estadisticas_bares')
-          .select('*')
-          .order('ultima_visita', { ascending: false, nullsFirst: false });
-        
+        // Load last visits from historical data
         const lastVisitsEl = document.getElementById('mobileLastVisits');
         if (lastVisitsEl) {
-          if (lastVisitsError) {
-            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando datos</div>';
+          if (weeksError || !weeksData?.length) {
+            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos históricos</div>';
           } else {
-            // Get all bars and merge with visit data
-            const allBarsWithVisits = bars.map(bar => {
-              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+            // Get last occurrence of each bar from historical data
+            const { data: allWeeks, error: allWeeksError } = await supabase
+              .from('semanas_cn')
+              .select('bar_ganador, fecha_martes')
+              .eq('estado', 'finalizada')
+              .not('bar_ganador', 'is', null)
+              .order('fecha_martes', { ascending: false });
+            
+            const lastVisits = {};
+            if (!allWeeksError && allWeeks) {
+              allWeeks.forEach(week => {
+                if (week.bar_ganador && !lastVisits[week.bar_ganador]) {
+                  lastVisits[week.bar_ganador] = week.fecha_martes;
+                }
+              });
+            }
+            
+            // Show all bars with their last visit status
+            const barsWithVisits = bars.map(bar => {
+              const lastVisit = lastVisits[bar.name];
               return {
                 name: bar.name,
-                ultima_visita: visitData?.ultima_visita,
-                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+                lastVisit: lastVisit
               };
             }).sort((a, b) => {
-              // Sort by most recent visit first, then by name
-              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
-              if (!a.ultima_visita) return 1;
-              if (!b.ultima_visita) return -1;
-              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+              if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
+              if (!a.lastVisit) return 1;
+              if (!b.lastVisit) return -1;
+              return new Date(b.lastVisit) - new Date(a.lastVisit);
             });
             
-            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
-              let visitText = 'Nunca';
+            lastVisitsEl.innerHTML = barsWithVisits.map(bar => {
+              let visitText = 'Nunca ganó';
               let visitClass = 'never-visited';
               
-              if (bar.ultima_visita) {
-                const days = bar.dias_desde_ultima_visita;
-                const dateStr = formatDate(bar.ultima_visita);
-                if (days <= 14) {
-                  visitText = `${dateStr} (${days}d)`;
+              if (bar.lastVisit) {
+                const visitDate = new Date(bar.lastVisit);
+                const today = new Date();
+                const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
+                const dateStr = formatDate(bar.lastVisit);
+                
+                if (daysDiff <= 30) {
+                  visitText = `${dateStr} (${daysDiff}d)`;
                   visitClass = 'recent-visit';
-                } else if (days <= 60) {
-                  visitText = `${dateStr} (${days}d)`;
+                } else if (daysDiff <= 90) {
+                  visitText = `${dateStr} (${daysDiff}d)`;
                   visitClass = 'old-visit';
                 } else {
-                  visitText = `${dateStr} (${days}d)`;
+                  visitText = `${dateStr} (${daysDiff}d)`;
                   visitClass = 'last-visit';
                 }
               }
