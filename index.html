@@ -242,21 +242,7 @@
       display: flex;
       align-items: center;
       flex: 1;
-      gap: 16px;
-    }
-
-    .mobile-bar-icon {
-      width: 44px;
-      height: 44px;
-      background: rgba(255, 224, 102, 0.1);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffe066;
-      font-size: 1.5rem;
-      flex-shrink: 0;
-      margin-right: 12px;
+      gap: 12px;
     }
 
     .mobile-bar-info {
@@ -275,7 +261,6 @@
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      margin-right: 12px;
       flex-shrink: 0;
     }
 
@@ -1692,7 +1677,6 @@
                    ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
                 ${votes}
               </div>
-              <div class="mobile-bar-icon">🍺</div>
               <div class="mobile-bar-info">
                 <div class="mobile-bar-name" onclick="showBarSocials('${bar.name}')">
                   ${bar.name}
