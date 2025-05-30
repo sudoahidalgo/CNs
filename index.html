@@ -1210,13 +1210,24 @@
           ]);
         }
         
-        // Pre-load desktop history/stats data
-        if (!isMobile) {
-          await loadDesktopHistory();
-        } else {
-          // Pre-load mobile stats when app loads
-          loadMobileStats();
+        // Add click handler for desktop history tab
+        const historyTab = document.getElementById('desktop-history-tab');
+        if (historyTab) {
+          historyTab.addEventListener('click', () => {
+            setTimeout(() => {
+              console.log('👆 Click en pestaña Historial - forzando carga...');
+              loadDesktopHistory();
+            }, 50);
+          });
         }
+        setTimeout(() => {
+          if (!isMobile) {
+            console.log('⚡ Iniciando pre-carga de estadísticas desktop...');
+            loadDesktopHistory();
+          } else {
+            loadMobileStats();
+          }
+        }, 500); // Increased timeout to ensure DOM is ready
         
         console.log('✅ App cargada');
       } catch (error) {
@@ -1320,6 +1331,7 @@
         tab.addEventListener('shown.bs.tab', function(event) {
           const target = event.target.getAttribute('data-bs-target');
           if (target === '#desktopHistory') {
+            console.log('🔄 Cargando estadísticas desktop...');
             loadDesktopHistory();
           } else if (target === '#desktopAdmin') {
             loadAdminPanel();
