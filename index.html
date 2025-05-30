@@ -256,11 +256,31 @@
       color: #ffe066;
       font-size: 1.5rem;
       flex-shrink: 0;
+      margin-right: 12px;
     }
 
     .mobile-bar-info {
       flex: 1;
       min-width: 0;
+    }
+
+    .mobile-bar-votes {
+      background: rgba(255, 224, 102, 0.2);
+      color: #ffe066;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      min-width: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .mobile-bar-votes:hover {
+      background: rgba(255, 224, 102, 0.3);
     }
 
     .mobile-bar-name {
@@ -270,6 +290,14 @@
       margin-bottom: 4px;
       display: flex;
       align-items: center;
+      cursor: pointer;
+      padding: 4px 0;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .mobile-bar-name:hover {
+      background: rgba(255, 224, 102, 0.1);
     }
 
     .mobile-bar-visit {
@@ -280,24 +308,7 @@
     .mobile-bar-right {
       display: flex;
       align-items: center;
-      gap: 12px;
       flex-shrink: 0;
-    }
-
-    .mobile-social-links {
-      display: flex;
-      gap: 8px;
-    }
-
-    .mobile-social-icon {
-      width: 24px;
-      height: 24px;
-      opacity: 0.6;
-      transition: opacity 0.2s;
-    }
-
-    .mobile-social-icon:hover {
-      opacity: 1;
     }
 
     .mobile-vote-btn {
@@ -305,12 +316,14 @@
       color: white;
       border: none;
       border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 0.85rem;
+      padding: 10px 18px;
+      font-size: 0.9rem;
       font-weight: 600;
-      min-width: 80px;
+      min-width: 75px;
       transition: all 0.2s ease;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .mobile-vote-btn.voted {
@@ -326,23 +339,6 @@
 
     .mobile-vote-btn:hover:not(:disabled) {
       filter: brightness(1.1);
-    }
-
-    .mobile-bar-votes {
-      background: rgba(255, 224, 102, 0.2);
-      color: #ffe066;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      min-width: 30px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .mobile-bar-votes:hover {
-      background: rgba(255, 224, 102, 0.3);
     }
 
     /* Mobile Attendance */
@@ -1418,10 +1414,6 @@
         const isActive = currentWeek?.estado === 'activa';
         const isWinner = winningBars.includes(bar.name) && votes > 0;
         
-        let socialLinks = '';
-        if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
-        if (bar.fb) socialLinks += `<a href="${bar.fb}" target="_blank">${fbIcon()}</a>`;
-        
         let lastVisit = 'Nunca';
         if (stats?.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
@@ -1433,24 +1425,23 @@
         return `
           <div class="mobile-bar-item ${isWinner ? 'winner-highlight' : ''}">
             <div class="mobile-bar-left">
+              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
+                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
+                ${votes}
+              </div>
               <div class="mobile-bar-icon">🍺</div>
               <div class="mobile-bar-info">
-                <div class="mobile-bar-name">
-                  ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
+                <div class="mobile-bar-name" onclick="showBarSocials('${bar.name}')">
+                  ${bar.name}
                 </div>
                 <div class="mobile-bar-visit">Última: ${lastVisit}</div>
               </div>
             </div>
             <div class="mobile-bar-right">
-              <div class="mobile-social-links">${socialLinks}</div>
-              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
-                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
-                ${votes}
-              </div>
               <button class="mobile-vote-btn ${userVoted ? 'voted' : ''}"
                       ${!isActive ? 'disabled' : ''}
                       onclick="toggleVote('${bar.name}', this)">
-                ${userVoted ? '🍺' : '💪'}
+                ${userVoted ? '🍺' : 'Vote'}
               </button>
             </div>
           </div>
@@ -1714,6 +1705,43 @@
 
     async function showVoteDetails(barName, voteCount) {
       alert(`${voteCount} personas han votado por ${barName}`);
+    }
+
+    async function showBarSocials(barName) {
+      // Find the bar in the bars array
+      const bar = bars.find(b => b.name === barName);
+      
+      if (!bar || (!bar.ig && !bar.fb)) {
+        alert(`${barName} no tiene redes sociales disponibles`);
+        return;
+      }
+      
+      let message = `${barName}\n\nRedes sociales:`;
+      const socialLinks = [];
+      
+      if (bar.ig) {
+        message += `\n📷 Instagram`;
+        socialLinks.push({ name: 'Instagram', url: bar.ig });
+      }
+      if (bar.fb) {
+        message += `\n📘 Facebook`;
+        socialLinks.push({ name: 'Facebook', url: bar.fb });
+      }
+      
+      if (confirm(message + '\n\n¿Quieres abrir alguna red social?')) {
+        if (socialLinks.length === 1) {
+          // Only one social network, open it directly
+          window.open(socialLinks[0].url, '_blank');
+        } else if (socialLinks.length === 2) {
+          // Multiple social networks, ask which one
+          const choice = prompt('Escribe:\n1 - Instagram\n2 - Facebook');
+          if (choice === '1' && bar.ig) {
+            window.open(bar.ig, '_blank');
+          } else if (choice === '2' && bar.fb) {
+            window.open(bar.fb, '_blank');
+          }
+        }
+      }
     }
 
     // ========== MOBILE STATS & HISTORY ==========
@@ -2018,6 +2046,7 @@
 
     window.toggleVote = toggleVote;
     window.showVoteDetails = showVoteDetails;
+    window.showBarSocials = showBarSocials;
     window.signOut = signOut;
   </script>
 </body>
