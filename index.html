@@ -855,6 +855,28 @@
               </div>
             </div>
           </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Historia de CNs</h4>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">📅 Tiempo transcurrido:</div>
+              <div id="mobileTimeSince" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
+              <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
+            <div id="mobileUserRanking">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- History Section -->
@@ -996,7 +1018,25 @@
               <div id="desktopLastVisits"></div>
             </div>
           </div>
-          <!-- New stats will be added here dynamically -->
+          <div class="col-md-6 mb-3">
+            <div class="stats-card">
+              <h5>⏰ Historia de CNs</h5>
+              <div class="mb-3">
+                <strong>📅 Tiempo transcurrido:</strong><br>
+                <span id="desktopTimeSince" class="text-info">Cargando...</span>
+              </div>
+              <div>
+                <strong>🎉 Próximo aniversario:</strong><br>
+                <span id="desktopAnniversary" class="text-warning">Cargando...</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="stats-card">
+              <h5>👑 Top Participantes</h5>
+              <div id="desktopUserRanking">Cargando...</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1977,6 +2017,17 @@
         const timeSinceFirst = calculateTimeSinceFirstCN();
         const anniversaryInfo = calculateDaysToAnniversary();
         
+        // Update time-based stats
+        const timeSinceEl = document.getElementById('mobileTimeSince');
+        if (timeSinceEl) {
+          timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
+        }
+        
+        const anniversaryEl = document.getElementById('mobileAnniversary');
+        if (anniversaryEl) {
+          anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
+        }
+        
         // Load top 5 bars
         const { data: topBarsData, error: topBarsError } = await supabase
           .from('visitas_bares')
@@ -2023,42 +2074,18 @@
           .sort((a, b) => b.asistencias - a.asistencias)
           .slice(0, 5);
         
-        // Add new mobile stats sections after existing ones
-        const mobileLastVisits = document.getElementById('mobileLastVisits');
-        if (mobileLastVisits && mobileLastVisits.parentNode) {
-          // Create new stats sections
-          const newStatsHTML = `
-            <div style="margin-bottom: 20px;">
-              <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Historia de CNs</h4>
-              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-                <div style="font-weight: 500; margin-bottom: 4px;">📅 Tiempo transcurrido:</div>
-                <div style="font-size: 0.9rem; color: #adb5bd;">${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días</div>
+        const userRankingEl = document.getElementById('mobileUserRanking');
+        if (userRankingEl) {
+          if (userRankingError || !sortedUsers?.length) {
+            userRankingEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
+          } else {
+            userRankingEl.innerHTML = sortedUsers.map((user, i) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
+                <span style="font-weight: 500;">${i + 1}. ${user.nombre}</span>
+                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
               </div>
-              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-                <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
-                <div style="font-size: 0.9rem; color: #adb5bd;">En ${anniversaryInfo.days} días</div>
-              </div>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-              <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
-              <div id="mobileUserRanking">
-                ${userRankingError || !sortedUsers?.length ? 
-                  '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>' :
-                  sortedUsers.map((user, i) => {
-                    return `
-                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                        <span style="font-weight: 500;">${i + 1}. ${user.nombre}</span>
-                        <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
-                      </div>
-                    `;
-                  }).join('')
-                }
-              </div>
-            </div>
-          `;
-          
-          mobileLastVisits.parentNode.insertAdjacentHTML('afterend', newStatsHTML);
+            `).join('');
+          }
         }
         
         // Load last visits for ALL bars
@@ -2199,7 +2226,7 @@
       const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
       const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
       
-      ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+      ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = loadingMsg;
       });
@@ -2208,6 +2235,17 @@
         // Calculate time-based stats
         const timeSinceFirst = calculateTimeSinceFirstCN();
         const anniversaryInfo = calculateDaysToAnniversary();
+        
+        // Update time-based stats
+        const timeSinceEl = document.getElementById('desktopTimeSince');
+        if (timeSinceEl) {
+          timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
+        }
+        
+        const anniversaryEl = document.getElementById('desktopAnniversary');
+        if (anniversaryEl) {
+          anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
+        }
         
         const [
           { data: topBarsData, error: topBarsError },
@@ -2247,6 +2285,20 @@
               <div class="d-flex justify-content-between align-items-center py-1">
                 <span>${index + 1}. ${bar.bar}</span>
                 <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
+              </div>`).join('');
+          }
+        }
+        
+        // User ranking
+        const userRankingEl = document.getElementById('desktopUserRanking');
+        if (userRankingEl) {
+          if (userRankingError || !sortedUsers?.length) {
+            userRankingEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+          } else {
+            userRankingEl.innerHTML = sortedUsers.map((user, index) => `
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span>${index + 1}. ${user.nombre}</span>
+                <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
               </div>`).join('');
           }
         }
@@ -2293,51 +2345,9 @@
           }
         }
         
-        // Add new stats cards after existing ones
-        const statsContainer = document.querySelector('#desktopStats .row');
-        if (statsContainer) {
-          // Check if new stats already exist (avoid duplicates)
-          if (!document.getElementById('cnHistoryStats')) {
-            const newStatsHTML = `
-              <div class="col-md-6">
-                <div class="stats-card" id="cnHistoryStats">
-                  <h5>⏰ Historia de CNs</h5>
-                  <div class="mb-3">
-                    <strong>📅 Tiempo transcurrido:</strong><br>
-                    <span class="text-info">${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días</span>
-                  </div>
-                  <div>
-                    <strong>🎉 Próximo aniversario:</strong><br>
-                    <span class="text-warning">En ${anniversaryInfo.days} días</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="stats-card" id="userRankingStats">
-                  <h5>👑 Top Participantes</h5>
-                  <div id="desktopUserRanking">
-                    ${userRankingError || !sortedUsers?.length ? 
-                      '<p class="text-muted-light">No hay datos disponibles aún.</p>' :
-                      sortedUsers.map((user, index) => {
-                        return `
-                          <div class="d-flex justify-content-between align-items-center py-1">
-                            <span>${index + 1}. ${user.nombre}</span>
-                            <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
-                          </div>`;
-                      }).join('')
-                    }
-                  </div>
-                </div>
-              </div>
-            `;
-            
-            statsContainer.insertAdjacentHTML('beforeend', newStatsHTML);
-          }
-        }
-        
       } catch (error) {
         console.error('❌ Error loading desktop stats:', error);
-        ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
+        ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.innerHTML = errorMsg;
         });
