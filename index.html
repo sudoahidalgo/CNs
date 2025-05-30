@@ -508,21 +508,25 @@
     }
 
     .vote-btn {
-      background: #555;
+      background: #4a5568;
       color: #fff;
       border-radius: 10px;
-      font-size: 1.1rem;
-      padding: 8px 15px;
+      font-size: 0.9rem;
+      padding: 8px 18px;
       border: none;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       margin: 2px;
-      min-width: 100px;
+      min-width: 75px;
       text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .vote-btn.voted {
       background: #008d4e;
+      transform: scale(1.02);
     }
 
     .vote-btn:disabled {
@@ -533,7 +537,7 @@
     }
 
     .vote-btn:hover:not(:disabled) {
-      filter: brightness(1.2);
+      filter: brightness(1.1);
     }
 
     .stats-card {
@@ -1722,7 +1726,7 @@
                     ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
                     data-bar="${encodeURIComponent(bar.name)}" 
                     data-action="vote">
-              ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
+              ${userHasVotedForThisBar ? '🍺' : 'VOTE'}
             </button>
           </td>
           <td style="font-size: 1.2em; font-weight: 700;">
