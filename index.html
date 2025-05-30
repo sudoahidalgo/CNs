@@ -721,6 +721,34 @@
     }
 
     .text-muted-light { color: #adb5bd !important; }
+
+    /* Admin Panel Styles */
+    .form-control {
+      background-color: rgba(40, 40, 40, 0.9);
+      border: 1px solid rgba(255, 224, 102, 0.3);
+      color: #fff;
+    }
+
+    .form-control:focus {
+      background-color: rgba(50, 50, 50, 0.9);
+      border-color: #ffe066;
+      box-shadow: 0 0 0 0.2rem rgba(255, 224, 102, 0.25);
+      color: #fff;
+    }
+
+    .form-control::placeholder {
+      color: #adb5bd;
+    }
+
+    .form-label {
+      color: #ffe066 !important;
+      font-weight: 600;
+    }
+
+    select.form-control option {
+      background-color: #2d2d2d;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -879,6 +907,11 @@
           📈 Estadísticas
         </button>
       </li>
+      <li class="nav-item" role="presentation" style="display: none;">
+        <button class="nav-link" id="desktop-admin-tab" data-bs-toggle="pill" data-bs-target="#desktopAdmin" type="button" role="tab">
+          🔧 Admin
+        </button>
+      </li>
     </ul>
 
     <!-- Tab Content -->
@@ -940,6 +973,68 @@
           </div>
         </div>
       </div>
+
+      <!-- Desktop Admin -->
+      <div class="tab-pane fade" id="desktopAdmin" role="tabpanel">
+        <h4 class="text-light mb-3">🔧 Administración de Bares</h4>
+        
+        <!-- Add Bar Form -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="stats-card">
+              <h5>➕ Agregar Nuevo Bar</h5>
+              <form id="addBarForm">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label for="barName" class="form-label text-light">Nombre del Bar *</label>
+                    <input type="text" class="form-control" id="barName" required placeholder="Ej: El Nuevo Bar">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="socialType" class="form-label text-light">Tipo de Red Social *</label>
+                    <select class="form-control" id="socialType" required>
+                      <option value="">Seleccionar...</option>
+                      <option value="ig">Instagram</option>
+                      <option value="fb">Facebook</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="socialUrl" class="form-label text-light">URL Red Social *</label>
+                    <input type="url" class="form-control" id="socialUrl" required placeholder="https://...">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-success">
+                  <span id="addBarBtnText">➕ Agregar Bar</span>
+                  <span id="addBarSpinner" style="display: none;">⏳ Agregando...</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bars List -->
+        <div class="row">
+          <div class="col-12">
+            <div class="stats-card">
+              <h5>📋 Lista de Bares Actuales</h5>
+              <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Instagram</th>
+                      <th>Facebook</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminBarsTable">
+                    <!-- Will be populated by JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -949,30 +1044,7 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    const bars = [
-      { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
-      { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
-      { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
-      { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
-      { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
-      { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
-      { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
-      { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
-      { name: "Rio de J", ig: "https://www.instagram.com/rioescazu/" },
-      { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
-      { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
-      { name: "Zompopas", ig: "" },
-      { name: "Casa Adrián" },
-      { name: "Casa Nino" },
-      { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
-      { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
-      { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
-      { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
-      { name: "El Pub Escazu" },
-      { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
-      { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
-      { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
-    ];
+    let bars = []; // Will be loaded from Supabase
 
     let currentUser = null;
     let currentWeek = null;
@@ -980,6 +1052,7 @@
     let userAttendance = false;
     let isMobile = false;
     let currentMobileSection = 'voting';
+    let isAdmin = false;
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -1066,6 +1139,8 @@
       currentWeek = null;
       userVotes = [];
       userAttendance = false;
+      isAdmin = false;
+      bars = [];
       showAuthContainer();
     }
 
@@ -1075,6 +1150,7 @@
       
       try {
         await ensureUserProfile();
+        await loadBarsFromDatabase(); // Load bars from database first
         await ensureCurrentWeek();
         await loadCurrentWeek();
         
@@ -1101,6 +1177,15 @@
       const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
       const avatarUrl = currentUser.user_metadata?.avatar_url;
       const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
+      
+      // Check if user is admin
+      isAdmin = currentUser.email === 'ahidalgod@gmail.com';
+      
+      // Show/hide admin tab based on admin status
+      const adminTab = document.getElementById('desktop-admin-tab');
+      if (adminTab) {
+        adminTab.style.display = isAdmin ? 'block' : 'none';
+      }
       
       if (isMobile) {
         const avatarEl = document.getElementById('mobileUserAvatar');
@@ -1185,6 +1270,8 @@
             loadDesktopHistory();
           } else if (target === '#desktopStats') {
             loadDesktopStats();
+          } else if (target === '#desktopAdmin') {
+            loadAdminPanel();
           }
         });
       });
@@ -1205,6 +1292,22 @@
       const day = date.getDate().toString().padStart(2, '0');
       const month = months[date.getMonth()];
       return `${day}-${month}`;
+    }
+
+    function calculateTotalCNs() {
+      // Start from first Tuesday of August 2003
+      const startDate = new Date(2003, 7, 5); // August 5, 2003 was a Tuesday
+      const today = new Date();
+      
+      let totalTuesdays = 0;
+      let currentDate = new Date(startDate);
+      
+      while (currentDate <= today) {
+        totalTuesdays++;
+        currentDate.setDate(currentDate.getDate() + 7); // Add 7 days for next Tuesday
+      }
+      
+      return totalTuesdays;
     }
 
     function formatDate(dateString) {
@@ -1272,6 +1375,54 @@
       }
     }
 
+    async function loadBarsFromDatabase() {
+      try {
+        const { data, error } = await supabase
+          .from('bares')
+          .select('*')
+          .order('nombre');
+        
+        if (error) throw error;
+        
+        // Convert database format to app format
+        bars = (data || []).map(bar => ({
+          name: bar.nombre,
+          ig: bar.instagram_url || undefined,
+          fb: bar.facebook_url || undefined
+        }));
+        
+        console.log('✅ Bares cargados desde BD:', bars.length);
+        
+      } catch (error) {
+        console.error('❌ Error cargando bares:', error);
+        // Fallback to default bars if database fails
+        bars = [
+          { name: "Hooligans Tempo", ig: "https://www.instagram.com/hooligans_cr/" },
+          { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
+          { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
+          { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
+          { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
+          { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
+          { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
+          { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
+          { name: "Rio de Janeiro", ig: "https://www.instagram.com/rioescazu/" },
+          { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
+          { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
+          { name: "Zompopas" },
+          { name: "Casa Adrián" },
+          { name: "Casa Nino" },
+          { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
+          { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
+          { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
+          { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
+          { name: "El Pub Escazu" },
+          { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
+          { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
+          { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
+        ];
+      }
+    }
+
     async function ensureCurrentWeek() {
       try {
         await supabase.rpc('crear_semana_si_no_existe');
@@ -1297,6 +1448,7 @@
         
         const nextTuesday = getNextTuesday();
         const formattedDate = formatTuesdayDate(nextTuesday);
+        const totalCNs = calculateTotalCNs();
         const weekText = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
         
         if (isMobile) {
@@ -1304,7 +1456,7 @@
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong><br><strong>CN #${totalCNs}</strong>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -1986,6 +2138,156 @@
       }
     }
 
+    // ========== ADMIN FUNCTIONS ==========
+    function loadAdminPanel() {
+      if (!isAdmin) return;
+      
+      loadAdminBarsTable();
+      setupAddBarForm();
+    }
+
+    function loadAdminBarsTable() {
+      const tbody = document.getElementById('adminBarsTable');
+      if (!tbody) return;
+      
+      tbody.innerHTML = bars.map(bar => `
+        <tr>
+          <td style="font-weight: 600;">${bar.name}</td>
+          <td>${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</td>
+          <td>${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
+              🗑️ Eliminar
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function setupAddBarForm() {
+      const form = document.getElementById('addBarForm');
+      if (!form) return;
+      
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const barName = document.getElementById('barName').value.trim();
+        const socialType = document.getElementById('socialType').value;
+        const socialUrl = document.getElementById('socialUrl').value.trim();
+        
+        if (!barName || !socialType || !socialUrl) {
+          alert('Todos los campos son obligatorios');
+          return;
+        }
+        
+        // Check if bar already exists
+        if (bars.find(b => b.name.toLowerCase() === barName.toLowerCase())) {
+          alert('Ya existe un bar con ese nombre');
+          return;
+        }
+        
+        // Validate URL format
+        try {
+          new URL(socialUrl);
+        } catch {
+          alert('La URL no tiene un formato válido');
+          return;
+        }
+        
+        await addBar(barName, socialType, socialUrl);
+      });
+    }
+
+    async function addBar(name, socialType, socialUrl) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const btnText = document.getElementById('addBarBtnText');
+      const btnSpinner = document.getElementById('addBarSpinner');
+      
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline';
+      
+      try {
+        // Prepare data for database
+        const barData = {
+          nombre: name,
+          instagram_url: socialType === 'ig' ? socialUrl : null,
+          facebook_url: socialType === 'fb' ? socialUrl : null
+        };
+        
+        // Insert into database
+        const { error } = await supabase
+          .from('bares')
+          .insert(barData);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Clear form
+        document.getElementById('addBarForm').reset();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data to show new bar
+        await loadVotingData();
+        
+        alert(`Bar "${name}" agregado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error adding bar:', error);
+        if (error.code === '23505') {
+          alert('Ya existe un bar con ese nombre');
+        } else {
+          alert('Error al agregar el bar: ' + error.message);
+        }
+      } finally {
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+      }
+    }
+
+    async function deleteBar(barName) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      if (!confirm(`¿Estás seguro de que quieres eliminar el bar "${barName}"?\n\nEsta acción no se puede deshacer y eliminará todos los votos y datos relacionados.`)) {
+        return;
+      }
+      
+      try {
+        // Delete from database
+        const { error } = await supabase
+          .from('bares')
+          .delete()
+          .eq('nombre', barName);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data to reflect changes
+        await loadVotingData();
+        
+        alert(`Bar "${barName}" eliminado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error deleting bar:', error);
+        alert('Error al eliminar el bar: ' + error.message);
+      }
+    }
+
     // ========== UTILITY FUNCTIONS ==========
     function igIcon() {
       return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
@@ -2047,6 +2349,7 @@
     window.toggleVote = toggleVote;
     window.showVoteDetails = showVoteDetails;
     window.showBarSocials = showBarSocials;
+    window.deleteBar = deleteBar;
     window.signOut = signOut;
   </script>
 </body>
