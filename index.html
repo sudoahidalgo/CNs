@@ -837,7 +837,7 @@
           <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
           
           <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Visitados</h4>
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Ganadores</h4>
             <div id="mobileTopBars">
               <div class="loading">
                 <div class="spinner"></div>
@@ -847,7 +847,7 @@
           </div>
 
           <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Visita por Bar</h4>
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Vez que Ganó</h4>
             <div id="mobileLastVisits">
               <div class="loading">
                 <div class="spinner"></div>
@@ -875,17 +875,6 @@
                 <div class="spinner"></div>
                 <span>Cargando...</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- History Section -->
-        <div>
-          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📅 Historial</h3>
-          <div id="mobileHistoryContainer">
-            <div class="loading">
-              <div class="spinner"></div>
-              <span>Cargando historial...</span>
             </div>
           </div>
         </div>
@@ -996,7 +985,7 @@
         <h4 class="text-light mb-3">📊 Historial y Estadísticas</h4>
         
         <!-- Statistics Section -->
-        <div class="row mb-4">
+        <div class="row">
           <div class="col-md-6 mb-3">
             <div class="stats-card">
               <h5>🏆 Top 5 Bares Más Ganadores</h5>
@@ -1028,12 +1017,6 @@
               <div id="desktopUserRanking">Cargando...</div>
             </div>
           </div>
-        </div>
-
-        <!-- History Section -->
-        <div class="stats-card">
-          <h5>📅 Historial de CNs Pasadas</h5>
-          <div id="desktopHistoryContent">Cargando...</div>
         </div>
       </div>
 
@@ -1227,6 +1210,14 @@
           ]);
         }
         
+        // Pre-load desktop history/stats data
+        if (!isMobile) {
+          await loadDesktopHistory();
+        } else {
+          // Pre-load mobile stats when app loads
+          loadMobileStats();
+        }
+        
         console.log('✅ App cargada');
       } catch (error) {
         console.error('❌ Error en handleAuthSuccess:', error);
@@ -1318,7 +1309,6 @@
       currentMobileSection = sectionName;
       
       if (sectionName === 'history' && currentUser) {
-        loadMobileHistory();
         loadMobileStats();
       }
     }
@@ -2171,40 +2161,7 @@
     }
 
     async function loadMobileHistory() {
-      const container = document.getElementById('mobileHistoryContainer');
-      if (!container) return;
-      
-      try {
-        const { data: weeks, error } = await supabase
-          .from('semanas_cn')
-          .select('*')
-          .eq('estado', 'finalizada')
-          .order('fecha_martes', { ascending: false })
-          .limit(10);
-        
-        if (error) throw error;
-        
-        if (!weeks?.length) {
-          container.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">No hay historial disponible</div>';
-          return;
-        }
-        
-        container.innerHTML = weeks.map(week => `
-          <div class="mobile-history-item">
-            <div class="mobile-history-date">${formatTuesdayDateLong(week.fecha_martes)}</div>
-            <div class="mobile-history-result">
-              ${week.hubo_quorum && week.bar_ganador ? 
-                `🏆 ${week.bar_ganador}` : 
-                (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}
-              • 👥 ${week.total_asistentes || 0} • 🗳️ ${week.total_votos || 0}
-            </div>
-          </div>
-        `).join('');
-        
-      } catch (error) {
-        console.error('❌ Error loading mobile history:', error);
-        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px;">Error cargando historial</div>';
-      }
+      // This function has been removed - mobile history section eliminated
     }
 
     // ========== DESKTOP STATS & HISTORY ==========
