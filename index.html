@@ -907,8 +907,8 @@
           📈 Estadísticas
         </button>
       </li>
-      <li class="nav-item" role="presentation" style="display: none;">
-        <button class="nav-link" id="desktop-admin-tab" data-bs-toggle="pill" data-bs-target="#desktopAdmin" type="button" role="tab">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="desktop-admin-tab" data-bs-toggle="pill" data-bs-target="#desktopAdmin" type="button" role="tab" style="display: none;">
           🔧 Admin
         </button>
       </li>
@@ -924,7 +924,6 @@
             <div class="stats-card">
               <div id="desktopQuorumStatus" class="quorum-status mb-3"></div>
               <div id="desktopAttendanceList">
-                <h6 class="text-warning">Confirmados:</h6>
                 <div id="desktopConfirmedList" class="mb-2"></div>
               </div>
             </div>
@@ -1184,7 +1183,7 @@
       // Show/hide admin tab based on admin status
       const adminTab = document.getElementById('desktop-admin-tab');
       if (adminTab) {
-        adminTab.style.display = isAdmin ? 'block' : 'none';
+        adminTab.style.display = isAdmin ? 'inline-block' : 'none';
       }
       
       if (isMobile) {
@@ -1449,14 +1448,14 @@
         const nextTuesday = getNextTuesday();
         const formattedDate = formatTuesdayDate(nextTuesday);
         const totalCNs = calculateTotalCNs();
-        const weekText = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
+        const weekText = `Próximo martes ${formattedDate} • CN #${totalCNs}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong><br><strong>CN #${totalCNs}</strong>`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - CN #${totalCNs}`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -1747,13 +1746,13 @@
       if (statusEl) {
         if (count >= needed) {
           statusEl.className = 'quorum-status quorum-yes';
-          statusEl.innerHTML = `✅ ¡HAY QUORUM!`;
+          statusEl.innerHTML = `✅ ¡HAY QUORUM! (${count})`;
         } else if (count > 0) {
           statusEl.className = 'quorum-status quorum-pending';
-          statusEl.innerHTML = `⏳ Esperando más confirmaciones`;
+          statusEl.innerHTML = `⏳ ${count} confirmados, faltan ${needed - count}`;
         } else {
           statusEl.className = 'quorum-status quorum-no';
-          statusEl.innerHTML = `❌ Sin confirmaciones aún`;
+          statusEl.innerHTML = `❌ Se necesitan ${needed} confirmaciones`;
         }
       }
       
