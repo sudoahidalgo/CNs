@@ -951,11 +951,6 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="desktop-stats-tab" data-bs-toggle="pill" data-bs-target="#desktopStats" type="button" role="tab">
-          📈 Estadísticas
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
         <button class="nav-link" id="desktop-admin-tab" data-bs-toggle="pill" data-bs-target="#desktopAdmin" type="button" role="tab" style="display: none;">
           🔧 Admin
         </button>
@@ -998,24 +993,20 @@
 
       <!-- Desktop History -->
       <div class="tab-pane fade" id="desktopHistory" role="tabpanel">
-        <h4 class="text-light mb-3">📅 Historial de CNs</h4>
-        <div id="desktopHistoryContent"></div>
-      </div>
-
-      <!-- Desktop Stats -->
-      <div class="tab-pane fade" id="desktopStats" role="tabpanel">
-        <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
-        <div class="row">
+        <h4 class="text-light mb-3">📊 Historial y Estadísticas</h4>
+        
+        <!-- Statistics Section -->
+        <div class="row mb-4">
           <div class="col-md-6 mb-3">
             <div class="stats-card">
-              <h5>🏆 Top 5 Bares Más Visitados</h5>
-              <div id="desktopTopBars"></div>
+              <h5>🏆 Top 5 Bares Más Ganadores</h5>
+              <div id="desktopTopBars">Cargando...</div>
             </div>
           </div>
           <div class="col-md-6 mb-3">
             <div class="stats-card">
-              <h5>⏰ Última Visita por Bar</h5>
-              <div id="desktopLastVisits"></div>
+              <h5>⏰ Última Vez que Ganó</h5>
+              <div id="desktopLastVisits">Cargando...</div>
             </div>
           </div>
           <div class="col-md-6 mb-3">
@@ -1037,6 +1028,12 @@
               <div id="desktopUserRanking">Cargando...</div>
             </div>
           </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="stats-card">
+          <h5>📅 Historial de CNs Pasadas</h5>
+          <div id="desktopHistoryContent">Cargando...</div>
         </div>
       </div>
 
@@ -1334,8 +1331,6 @@
           const target = event.target.getAttribute('data-bs-target');
           if (target === '#desktopHistory') {
             loadDesktopHistory();
-          } else if (target === '#desktopStats') {
-            loadDesktopStats();
           } else if (target === '#desktopAdmin') {
             loadAdminPanel();
           }
