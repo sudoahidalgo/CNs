@@ -753,6 +753,28 @@
       background-color: #2d2d2d;
       color: #fff;
     }
+
+    /* Admin table specific styles */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .btn-group .btn {
+      margin: 2px;
+      white-space: nowrap;
+    }
+
+    #adminBarsTable .form-control {
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      margin: 0;
+    }
+
+    #adminBarsTable td {
+      vertical-align: middle;
+      padding: 12px 8px;
+    }
   </style>
 </head>
 <body>
@@ -1023,10 +1045,10 @@
                 <table class="table table-dark table-hover align-middle">
                   <thead>
                     <tr>
-                      <th>Nombre</th>
-                      <th>Instagram</th>
-                      <th>Facebook</th>
-                      <th>Acciones</th>
+                      <th style="width: 25%;">Nombre</th>
+                      <th style="width: 20%;">Instagram</th>
+                      <th style="width: 20%;">Facebook</th>
+                      <th style="width: 35%;">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="adminBarsTable">
@@ -2153,15 +2175,35 @@
       const tbody = document.getElementById('adminBarsTable');
       if (!tbody) return;
       
-      tbody.innerHTML = bars.map(bar => `
-        <tr>
-          <td style="font-weight: 600;">${bar.name}</td>
-          <td>${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</td>
-          <td>${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</td>
+      tbody.innerHTML = bars.map((bar, index) => `
+        <tr id="bar-row-${index}">
+          <td style="font-weight: 600;">
+            <span class="bar-name-display">${bar.name}</span>
+            <input type="text" class="form-control bar-name-edit" value="${bar.name}" style="display: none;">
+          </td>
           <td>
-            <button class="btn btn-sm btn-danger" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
-              🗑️ Eliminar
-            </button>
+            <span class="bar-ig-display">${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</span>
+            <input type="url" class="form-control bar-ig-edit" value="${bar.ig || ''}" placeholder="URL Instagram" style="display: none;">
+          </td>
+          <td>
+            <span class="bar-fb-display">${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</span>
+            <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
+          </td>
+          <td>
+            <div class="btn-group" style="gap: 5px;">
+              <button class="btn btn-sm btn-warning bar-edit-btn" onclick="editBar(${index}, '${bar.name.replace(/'/g, "\\'")}')">
+                ✏️ Editar
+              </button>
+              <button class="btn btn-sm btn-success bar-save-btn" onclick="saveBarEdit(${index})" style="display: none;">
+                💾 Guardar
+              </button>
+              <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
+                ❌ Cancelar
+              </button>
+              <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
+                🗑️ Eliminar
+              </button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -2291,6 +2333,149 @@
       }
     }
 
+    function editBar(index, barName) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      // Hide display elements and show edit inputs
+      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
+        el.style.display = 'block';
+      });
+      
+      // Hide edit/delete buttons, show save/cancel buttons
+      row.querySelector('.bar-edit-btn').style.display = 'none';
+      row.querySelector('.bar-delete-btn').style.display = 'none';
+      row.querySelector('.bar-save-btn').style.display = 'inline-block';
+      row.querySelector('.bar-cancel-btn').style.display = 'inline-block';
+    }
+
+    function cancelBarEdit(index) {
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      // Reset input values to original
+      const bar = bars[index];
+      row.querySelector('.bar-name-edit').value = bar.name;
+      row.querySelector('.bar-ig-edit').value = bar.ig || '';
+      row.querySelector('.bar-fb-edit').value = bar.fb || '';
+      
+      // Show display elements and hide edit inputs
+      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
+        el.style.display = 'block';
+      });
+      
+      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Show edit/delete buttons, hide save/cancel buttons
+      row.querySelector('.bar-edit-btn').style.display = 'inline-block';
+      row.querySelector('.bar-delete-btn').style.display = 'inline-block';
+      row.querySelector('.bar-save-btn').style.display = 'none';
+      row.querySelector('.bar-cancel-btn').style.display = 'none';
+    }
+
+    async function saveBarEdit(index) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      const originalBar = bars[index];
+      const newName = row.querySelector('.bar-name-edit').value.trim();
+      const newIg = row.querySelector('.bar-ig-edit').value.trim();
+      const newFb = row.querySelector('.bar-fb-edit').value.trim();
+      
+      // Validation
+      if (!newName) {
+        alert('El nombre del bar es obligatorio');
+        return;
+      }
+      
+      // Check if name already exists (but not for the same bar)
+      if (newName !== originalBar.name && bars.find(b => b.name.toLowerCase() === newName.toLowerCase())) {
+        alert('Ya existe un bar con ese nombre');
+        return;
+      }
+      
+      // Validate URLs if provided
+      if (newIg && newIg !== '') {
+        try {
+          new URL(newIg);
+        } catch {
+          alert('La URL de Instagram no tiene un formato válido');
+          return;
+        }
+      }
+      
+      if (newFb && newFb !== '') {
+        try {
+          new URL(newFb);
+        } catch {
+          alert('La URL de Facebook no tiene un formato válido');
+          return;
+        }
+      }
+      
+      // Show loading state
+      const saveBtn = row.querySelector('.bar-save-btn');
+      const originalSaveText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '⏳ Guardando...';
+      saveBtn.disabled = true;
+      
+      try {
+        // Update in database
+        const { error } = await supabase
+          .from('bares')
+          .update({
+            nombre: newName,
+            instagram_url: newIg || null,
+            facebook_url: newFb || null,
+            updated_at: new Date()
+          })
+          .eq('nombre', originalBar.name);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data if name changed
+        if (newName !== originalBar.name) {
+          await loadVotingData();
+        }
+        
+        alert(`Bar "${newName}" actualizado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error updating bar:', error);
+        if (error.code === '23505') {
+          alert('Ya existe un bar con ese nombre');
+        } else {
+          alert('Error al actualizar el bar: ' + error.message);
+        }
+        
+        // Reset button state
+        saveBtn.innerHTML = originalSaveText;
+        saveBtn.disabled = false;
+      }
+    }
+
     // ========== UTILITY FUNCTIONS ==========
     function igIcon() {
       return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
@@ -2353,6 +2538,9 @@
     window.showVoteDetails = showVoteDetails;
     window.showBarSocials = showBarSocials;
     window.deleteBar = deleteBar;
+    window.editBar = editBar;
+    window.saveBarEdit = saveBarEdit;
+    window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
   </script>
 </body>
