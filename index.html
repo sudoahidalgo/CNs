@@ -242,30 +242,25 @@
       display: flex;
       align-items: center;
       flex: 1;
-      gap: 12px;
+      gap: 16px;
+    }
+
+    .mobile-bar-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 224, 102, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffe066;
+      font-size: 1.5rem;
+      flex-shrink: 0;
     }
 
     .mobile-bar-info {
       flex: 1;
       min-width: 0;
-    }
-
-    .mobile-bar-votes {
-      background: rgba(255, 224, 102, 0.2);
-      color: #ffe066;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      min-width: 40px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .mobile-bar-votes:hover {
-      background: rgba(255, 224, 102, 0.3);
     }
 
     .mobile-bar-name {
@@ -275,14 +270,6 @@
       margin-bottom: 4px;
       display: flex;
       align-items: center;
-      cursor: pointer;
-      padding: 4px 0;
-      border-radius: 4px;
-      transition: background 0.2s ease;
-    }
-
-    .mobile-bar-name:hover {
-      background: rgba(255, 224, 102, 0.1);
     }
 
     .mobile-bar-visit {
@@ -293,7 +280,24 @@
     .mobile-bar-right {
       display: flex;
       align-items: center;
+      gap: 12px;
       flex-shrink: 0;
+    }
+
+    .mobile-social-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mobile-social-icon {
+      width: 24px;
+      height: 24px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .mobile-social-icon:hover {
+      opacity: 1;
     }
 
     .mobile-vote-btn {
@@ -301,14 +305,12 @@
       color: white;
       border: none;
       border-radius: 10px;
-      padding: 10px 18px;
-      font-size: 0.9rem;
+      padding: 10px 16px;
+      font-size: 0.85rem;
       font-weight: 600;
-      min-width: 75px;
+      min-width: 80px;
       transition: all 0.2s ease;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .mobile-vote-btn.voted {
@@ -324,6 +326,23 @@
 
     .mobile-vote-btn:hover:not(:disabled) {
       filter: brightness(1.1);
+    }
+
+    .mobile-bar-votes {
+      background: rgba(255, 224, 102, 0.2);
+      color: #ffe066;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      min-width: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-bar-votes:hover {
+      background: rgba(255, 224, 102, 0.3);
     }
 
     /* Mobile Attendance */
@@ -493,25 +512,21 @@
     }
 
     .vote-btn {
-      background: #4a5568;
+      background: #555;
       color: #fff;
       border-radius: 10px;
-      font-size: 0.9rem;
-      padding: 8px 18px;
+      font-size: 1.1rem;
+      padding: 8px 15px;
       border: none;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       margin: 2px;
-      min-width: 75px;
+      min-width: 100px;
       text-align: center;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .vote-btn.voted {
       background: #008d4e;
-      transform: scale(1.02);
     }
 
     .vote-btn:disabled {
@@ -522,7 +537,7 @@
     }
 
     .vote-btn:hover:not(:disabled) {
-      filter: brightness(1.1);
+      filter: brightness(1.2);
     }
 
     .stats-card {
@@ -710,59 +725,10 @@
     }
 
     .text-muted-light { color: #adb5bd !important; }
-
-    /* Admin Panel Styles */
-    .form-control {
-      background-color: rgba(40, 40, 40, 0.9);
-      border: 1px solid rgba(255, 224, 102, 0.3);
-      color: #fff;
-    }
-
-    .form-control:focus {
-      background-color: rgba(50, 50, 50, 0.9);
-      border-color: #ffe066;
-      box-shadow: 0 0 0 0.2rem rgba(255, 224, 102, 0.25);
-      color: #fff;
-    }
-
-    .form-control::placeholder {
-      color: #adb5bd;
-    }
-
-    .form-label {
-      color: #ffe066 !important;
-      font-weight: 600;
-    }
-
-    select.form-control option {
-      background-color: #2d2d2d;
-      color: #fff;
-    }
-
-    /* Admin table specific styles */
-    .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .btn-group .btn {
-      margin: 2px;
-      white-space: nowrap;
-    }
-
-    #adminBarsTable .form-control {
-      font-size: 0.9rem;
-      padding: 6px 10px;
-      margin: 0;
-    }
-
-    #adminBarsTable td {
-      vertical-align: middle;
-      padding: 12px 8px;
-    }
   </style>
 </head>
 <body>
+  <!-- Auth Screen -->
   <div id="authContainer" class="auth-container" style="display: none;">
     <div class="auth-card">
       <h1 class="auth-title">🍺 CORKY NIGHTS</h1>
@@ -774,7 +740,9 @@
     </div>
   </div>
 
+  <!-- MOBILE LAYOUT -->
   <div id="mobileLayout" class="mobile-layout">
+    <!-- Mobile Header -->
     <header class="mobile-header">
       <div class="header-content">
         <div>
@@ -782,6 +750,7 @@
           <div id="mobileWeekInfo" class="week-info"></div>
         </div>
         <div class="user-avatar-mobile" id="mobileUserAvatar">
+          <!-- User Menu -->
           <div class="user-menu" id="mobileUserMenu">
             <div class="user-menu-item" onclick="signOut()">
               👋 Cerrar sesión
@@ -791,7 +760,9 @@
       </div>
     </header>
 
+    <!-- Main Content -->
     <main class="mobile-main">
+      <!-- Votación -->
       <section id="mobileVotingSection" class="mobile-section active">
         <div id="mobileBarsContainer">
           <div class="loading">
@@ -801,6 +772,7 @@
         </div>
       </section>
 
+      <!-- Asistencia -->
       <section id="mobileAttendanceSection" class="mobile-section">
         <div class="mobile-quorum-card">
           <div id="mobileQuorumStatus" class="quorum-status"></div>
@@ -808,12 +780,14 @@
         </div>
       </section>
 
+      <!-- Historial + Stats -->
       <section id="mobileHistorySection" class="mobile-section">
+        <!-- Stats Section -->
         <div class="mobile-stats-section">
           <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📊 Estadísticas</h3>
           
           <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Ganadores</h4>
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">🏆 Top 5 Bares Más Visitados</h4>
             <div id="mobileTopBars">
               <div class="loading">
                 <div class="spinner"></div>
@@ -823,7 +797,17 @@
           </div>
 
           <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Vez que Ganó</h4>
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👥 Top Participantes</h4>
+            <div id="mobileTopParticipants">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Visita por Bar</h4>
             <div id="mobileLastVisits">
               <div class="loading">
                 <div class="spinner"></div>
@@ -831,32 +815,22 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Historia de CNs</h4>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">📅 Tiempo transcurrido:</div>
-              <div id="mobileTimeSince" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
-              <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
-            <div id="mobileUserRanking">
-              <div class="loading">
-                <div class="spinner"></div>
-                <span>Cargando...</span>
-              </div>
+        <!-- History Section -->
+        <div>
+          <h3 style="color: #ffe066; margin-bottom: 16px; font-size: 1.1rem;">📅 Historial</h3>
+          <div id="mobileHistoryContainer">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Cargando historial...</span>
             </div>
           </div>
         </div>
       </section>
     </main>
 
+    <!-- Bottom Navigation -->
     <nav class="mobile-bottom-nav">
       <div class="mobile-nav-items">
         <div class="mobile-nav-item active" data-section="voting">
@@ -887,18 +861,22 @@
     </nav>
   </div>
 
+  <!-- DESKTOP LAYOUT -->
   <div id="desktopLayout" class="desktop-layout">
+    <!-- Desktop User Info -->
     <div class="desktop-user-info">
       <div id="desktopUserAvatar" class="desktop-user-avatar"></div>
       <span id="desktopUserName"></span>
       <button class="btn btn-sm btn-outline-light ms-2" onclick="signOut()">Salir</button>
     </div>
 
+    <!-- Header -->
     <div class="desktop-header">
       <h1>🍺 CORKY NIGHTS 🍺</h1>
       <div id="desktopWeekInfo" class="text-light"></div>
     </div>
 
+    <!-- Tabs -->
     <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="desktop-voting-tab" data-bs-toggle="pill" data-bs-target="#desktopVoting" type="button" role="tab">
@@ -911,13 +889,15 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="desktop-admin-tab" data-bs-toggle="pill" data-bs-target="#desktopAdmin" type="button" role="tab" style="display: none;">
-          🔧 Admin
+        <button class="nav-link" id="desktop-stats-tab" data-bs-toggle="pill" data-bs-target="#desktopStats" type="button" role="tab">
+          📈 Estadísticas
         </button>
       </li>
     </ul>
 
+    <!-- Tab Content -->
     <div class="tab-content desktop-tab-content">
+      <!-- Desktop Voting -->
       <div class="tab-pane fade show active" id="desktopVoting" role="tabpanel">
         <div class="row">
           <div class="col-md-4 order-md-2">
@@ -925,6 +905,7 @@
             <div class="stats-card">
               <div id="desktopQuorumStatus" class="quorum-status mb-3"></div>
               <div id="desktopAttendanceList">
+                <h6 class="text-warning">Confirmados:</h6>
                 <div id="desktopConfirmedList" class="mb-2"></div>
               </div>
             </div>
@@ -949,97 +930,26 @@
         </div>
       </div>
 
+      <!-- Desktop History -->
       <div class="tab-pane fade" id="desktopHistory" role="tabpanel">
-        <h4 class="text-light mb-3">📊 Historial y Estadísticas</h4>
-        
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <div class="stats-card">
-              <h5>🏆 Top 5 Bares Más Ganadores</h5>
-              <div id="desktopTopBars">Cargando...</div>
-            </div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="stats-card">
-              <h5>⏰ Última Vez que Ganó</h5>
-              <div id="desktopLastVisits">Cargando...</div>
-            </div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="stats-card">
-              <h5>⏰ Historia de CNs</h5>
-              <div class="mb-3">
-                <strong>📅 Tiempo transcurrido:</strong><br>
-                <span id="desktopTimeSince" class="text-info">Cargando...</span>
-              </div>
-              <div>
-                <strong>🎉 Próximo aniversario:</strong><br>
-                <span id="desktopAnniversary" class="text-warning">Cargando...</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="stats-card">
-              <h5>👑 Top Participantes</h5>
-              <div id="desktopUserRanking">Cargando...</div>
-            </div>
-          </div>
-        </div>
-        </div>
+        <h4 class="text-light mb-3">📅 Historial de CNs</h4>
+        <div id="desktopHistoryContent"></div>
+      </div>
 
-      <div class="tab-pane fade" id="desktopAdmin" role="tabpanel">
-        <h4 class="text-light mb-3">🔧 Administración de Bares</h4>
-        
-        <div class="row mb-4">
-          <div class="col-12">
+      <!-- Desktop Stats -->
+      <div class="tab-pane fade" id="desktopStats" role="tabpanel">
+        <h4 class="text-light mb-3">📊 Estadísticas Generales</h4>
+        <div class="row">
+          <div class="col-md-6">
             <div class="stats-card">
-              <h5>➕ Agregar Nuevo Bar</h5>
-              <form id="addBarForm">
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="barName" class="form-label text-light">Nombre del Bar *</label>
-                    <input type="text" class="form-control" id="barName" required placeholder="Ej: El Nuevo Bar">
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="socialType" class="form-label text-light">Tipo de Red Social *</label>
-                    <select class="form-control" id="socialType" required>
-                      <option value="">Seleccionar...</option>
-                      <option value="ig">Instagram</option>
-                      <option value="fb">Facebook</option>
-                    </select>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="socialUrl" class="form-label text-light">URL Red Social *</label>
-                    <input type="url" class="form-control" id="socialUrl" required placeholder="https://...">
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-success">
-                  <span id="addBarBtnText">➕ Agregar Bar</span>
-                  <span id="addBarSpinner" style="display: none;">⏳ Agregando...</span>
-                </button>
-              </form>
+              <h5>🏆 Top 5 Bares Más Visitados</h5>
+              <div id="desktopTopBars"></div>
             </div>
           </div>
-        </div>
-
-        <div class="row">
-          <div class="col-12">
+          <div class="col-md-6">
             <div class="stats-card">
-              <h5>📋 Lista de Bares Actuales</h5>
-              <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle">
-                  <thead>
-                    <tr>
-                      <th style="width: 25%;">Nombre</th>
-                      <th style="width: 20%;">Instagram</th>
-                      <th style="width: 20%;">Facebook</th>
-                      <th style="width: 35%;">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminBarsTable">
-                    </tbody>
-                </table>
-              </div>
+              <h5>⏰ Última Visita por Bar</h5>
+              <div id="desktopLastVisits"></div>
             </div>
           </div>
         </div>
@@ -1053,7 +963,30 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3NkeXJrcXZ4c3psY2xpdHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTA1NzgsImV4cCI6MjA2Mjk4NjU3OH0.YmNDUjkQJrlk91O-Avv7G2QJzQ0R6u9xkR-eIwoAJLo';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let bars = []; // Will be loaded from Supabase
+    const bars = [
+      { name: "Hooligans Alas", ig: "https://www.instagram.com/hooligans_cr/" },
+      { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
+      { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
+      { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
+      { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
+      { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
+      { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
+      { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
+      { name: "Rio de J", ig: "https://www.instagram.com/rioescazu/" },
+      { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
+      { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
+      { name: "Zompopas", ig: "" },
+      { name: "Casa Adrián" },
+      { name: "Casa Nino" },
+      { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
+      { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
+      { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
+      { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
+      { name: "El Pub Escazu" },
+      { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
+      { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
+      { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
+    ];
 
     let currentUser = null;
     let currentWeek = null;
@@ -1061,7 +994,6 @@
     let userAttendance = false;
     let isMobile = false;
     let currentMobileSection = 'voting';
-    let isAdmin = false;
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -1148,8 +1080,6 @@
       currentWeek = null;
       userVotes = [];
       userAttendance = false;
-      isAdmin = false;
-      bars = [];
       showAuthContainer();
     }
 
@@ -1159,7 +1089,6 @@
       
       try {
         await ensureUserProfile();
-        await loadBarsFromDatabase(); // Load bars from database first
         await ensureCurrentWeek();
         await loadCurrentWeek();
         
@@ -1172,30 +1101,6 @@
             loadAttendanceData()
           ]);
         }
-        
-        // El listener para 'shown.bs.tab' en setupDesktopTabs() se encargará de cargar
-        // las estadísticas cuando la pestaña de historial se muestre.
-        // El siguiente bloque que añadía un listener de 'click' directo es redundante y se ha eliminado.
-        /*
-        const historyTab = document.getElementById('desktop-history-tab');
-        if (historyTab) {
-          historyTab.addEventListener('click', () => {
-            setTimeout(() => {
-              console.log('👆 Click en pestaña Historial - forzando carga...');
-              loadDesktopHistory(); // Llamaba a la función incorrecta
-            }, 50);
-          });
-        }
-        */
-        
-        setTimeout(() => {
-          if (!isMobile) {
-            console.log('⚡ Iniciando pre-carga de estadísticas desktop (desde handleAuthSuccess)...');
-            loadDesktopStats(); // CORREGIDO: Llamar a loadDesktopStats para pre-carga
-          } else {
-            loadMobileStats();
-          }
-        }, 500); 
         
         console.log('✅ App cargada');
       } catch (error) {
@@ -1210,15 +1115,6 @@
       const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
       const avatarUrl = currentUser.user_metadata?.avatar_url;
       const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
-      
-      // Check if user is admin
-      isAdmin = currentUser.email === 'ahidalgod@gmail.com'; 
-      
-      // Show/hide admin tab based on admin status
-      const adminTab = document.getElementById('desktop-admin-tab');
-      if (adminTab) {
-        adminTab.style.display = isAdmin ? 'inline-block' : 'none';
-      }
       
       if (isMobile) {
         const avatarEl = document.getElementById('mobileUserAvatar');
@@ -1288,6 +1184,7 @@
       currentMobileSection = sectionName;
       
       if (sectionName === 'history' && currentUser) {
+        loadMobileHistory();
         loadMobileStats();
       }
     }
@@ -1299,10 +1196,9 @@
         tab.addEventListener('shown.bs.tab', function(event) {
           const target = event.target.getAttribute('data-bs-target');
           if (target === '#desktopHistory') {
-            console.log('🔄 Cargando estadísticas desktop (desde shown.bs.tab)...');
-            loadDesktopStats(); // CORREGIDO: Llamar a loadDesktopStats()
-          } else if (target === '#desktopAdmin') {
-            loadAdminPanel();
+            loadDesktopHistory();
+          } else if (target === '#desktopStats') {
+            loadDesktopStats();
           }
         });
       });
@@ -1323,70 +1219,6 @@
       const day = date.getDate().toString().padStart(2, '0');
       const month = months[date.getMonth()];
       return `${day}-${month}`;
-    }
-
-    function calculateTotalCNs() {
-      // Start from first Tuesday of August 2003
-      const startDate = new Date(2003, 7, 5); // August 5, 2003 was a Tuesday
-      const today = new Date();
-      
-      let totalTuesdays = 0;
-      let currentDate = new Date(startDate);
-      
-      while (currentDate <= today) {
-        totalTuesdays++;
-        currentDate.setDate(currentDate.getDate() + 7); // Add 7 days for next Tuesday
-      }
-      
-      return totalTuesdays;
-    }
-
-    function calculateTimeSinceFirstCN() {
-      const firstCN = new Date(2003, 7, 5); // August 5, 2003
-      const today = new Date();
-      
-      let years = today.getFullYear() - firstCN.getFullYear();
-      let months = today.getMonth() - firstCN.getMonth();
-      let days = today.getDate() - firstCN.getDate();
-      
-      // Adjust for negative days
-      if (days < 0) {
-        months--;
-        const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-        days += lastMonth.getDate();
-      }
-      
-      // Adjust for negative months
-      if (months < 0) {
-        years--;
-        months += 12;
-      }
-      
-      return { years, months, days };
-    }
-
-    function calculateDaysToAnniversary() {
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      
-      // Find first Tuesday of August this year
-      let augustFirst = new Date(currentYear, 7, 1); // August 1st
-      let dayOfWeek = augustFirst.getDay();
-      let daysToFirstTuesday = dayOfWeek <= 2 ? 2 - dayOfWeek : 7 - dayOfWeek + 2;
-      let anniversaryDate = new Date(currentYear, 7, 1 + daysToFirstTuesday);
-      
-      // If this year's anniversary already passed, calculate for next year
-      if (anniversaryDate < today) {
-        augustFirst = new Date(currentYear + 1, 7, 1);
-        dayOfWeek = augustFirst.getDay();
-        daysToFirstTuesday = dayOfWeek <= 2 ? 2 - dayOfWeek : 7 - dayOfWeek + 2;
-        anniversaryDate = new Date(currentYear + 1, 7, 1 + daysToFirstTuesday);
-      }
-      
-      const timeDiff = anniversaryDate.getTime() - today.getTime();
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      
-      return { days: daysDiff, date: anniversaryDate };
     }
 
     function formatDate(dateString) {
@@ -1454,54 +1286,6 @@
       }
     }
 
-    async function loadBarsFromDatabase() {
-      try {
-        const { data, error } = await supabase
-          .from('bares')
-          .select('*')
-          .order('nombre');
-        
-        if (error) throw error;
-        
-        // Convert database format to app format
-        bars = (data || []).map(bar => ({
-          name: bar.nombre,
-          ig: bar.instagram_url || undefined,
-          fb: bar.facebook_url || undefined
-        }));
-        
-        console.log('✅ Bares cargados desde BD:', bars.length);
-        
-      } catch (error) {
-        console.error('❌ Error cargando bares:', error);
-        // Fallback to default bars if database fails
-        bars = [
-          { name: "Hooligans Tempo", ig: "https://www.instagram.com/hooligans_cr/" },
-          { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
-          { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
-          { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
-          { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
-          { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
-          { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
-          { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
-          { name: "Rio de Janeiro", ig: "https://www.instagram.com/rioescazu/" },
-          { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
-          { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
-          { name: "Zompopas" },
-          { name: "Casa Adrián" },
-          { name: "Casa Nino" },
-          { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
-          { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
-          { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
-          { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
-          { name: "El Pub Escazu" },
-          { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
-          { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
-          { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
-        ];
-      }
-    }
-
     async function ensureCurrentWeek() {
       try {
         await supabase.rpc('crear_semana_si_no_existe');
@@ -1527,15 +1311,14 @@
         
         const nextTuesday = getNextTuesday();
         const formattedDate = formatTuesdayDate(nextTuesday);
-        const totalCNs = calculateTotalCNs();
-        const weekText = `Próximo martes ${formattedDate} • CN #${totalCNs}`;
+        const weekText = `Próximo martes ${formattedDate} • ${currentWeek.estado.toUpperCase()}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - CN #${totalCNs}`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - Estado: <strong class="${currentWeek.estado === 'activa' ? 'text-success' : 'text-warning'}">${currentWeek.estado.toUpperCase()}</strong>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -1645,6 +1428,10 @@
         const isActive = currentWeek?.estado === 'activa';
         const isWinner = winningBars.includes(bar.name) && votes > 0;
         
+        let socialLinks = '';
+        if (bar.ig) socialLinks += `<a href="${bar.ig}" target="_blank">${igIcon()}</a>`;
+        if (bar.fb) socialLinks += `<a href="${bar.fb}" target="_blank">${fbIcon()}</a>`;
+        
         let lastVisit = 'Nunca';
         if (stats?.ultima_visita) {
           const days = stats.dias_desde_ultima_visita;
@@ -1656,22 +1443,24 @@
         return `
           <div class="mobile-bar-item ${isWinner ? 'winner-highlight' : ''}">
             <div class="mobile-bar-left">
-              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
-                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
-                ${votes}
-              </div>
+              <div class="mobile-bar-icon">🍺</div>
               <div class="mobile-bar-info">
-                <div class="mobile-bar-name" onclick="showBarSocials('${bar.name}')">
-                  ${bar.name}
+                <div class="mobile-bar-name">
+                  ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
                 </div>
                 <div class="mobile-bar-visit">Última: ${lastVisit}</div>
               </div>
             </div>
             <div class="mobile-bar-right">
+              <div class="mobile-social-links">${socialLinks}</div>
+              <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}" 
+                   ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
+                ${votes}
+              </div>
               <button class="mobile-vote-btn ${userVoted ? 'voted' : ''}"
                       ${!isActive ? 'disabled' : ''}
                       onclick="toggleVote('${bar.name}', this)">
-                ${userVoted ? '🍺' : 'Vote'}
+                ${userVoted ? '🍺' : '💪'}
               </button>
             </div>
           </div>
@@ -1801,7 +1590,7 @@
                     ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
                     data-bar="${encodeURIComponent(bar.name)}" 
                     data-action="vote">
-              ${userHasVotedForThisBar ? '🍺' : 'VOTE'}
+              ${userHasVotedForThisBar ? '🍺 Votado' : '💪 Votar'}
             </button>
           </td>
           <td style="font-size: 1.2em; font-weight: 700;">
@@ -1825,13 +1614,13 @@
       if (statusEl) {
         if (count >= needed) {
           statusEl.className = 'quorum-status quorum-yes';
-          statusEl.innerHTML = `✅ ¡HAY QUORUM! (${count})`;
+          statusEl.innerHTML = `✅ ¡HAY QUORUM!`;
         } else if (count > 0) {
           statusEl.className = 'quorum-status quorum-pending';
-          statusEl.innerHTML = `⏳ ${count} confirmados, faltan ${needed - count}`;
+          statusEl.innerHTML = `⏳ Esperando más confirmaciones`;
         } else {
           statusEl.className = 'quorum-status quorum-no';
-          statusEl.innerHTML = `❌ Se necesitan ${needed} confirmaciones`;
+          statusEl.innerHTML = `❌ Sin confirmaciones aún`;
         }
       }
       
@@ -1937,189 +1726,230 @@
       alert(`${voteCount} personas han votado por ${barName}`);
     }
 
-    async function showBarSocials(barName) {
-      // Find the bar in the bars array
-      const bar = bars.find(b => b.name === barName);
-      
-      if (!bar || (!bar.ig && !bar.fb)) {
-        alert(`${barName} no tiene redes sociales disponibles`);
-        return;
-      }
-      
-      let message = `${barName}\n\nRedes sociales:`;
-      const socialLinks = [];
-      
-      if (bar.ig) {
-        message += `\n📷 Instagram`;
-        socialLinks.push({ name: 'Instagram', url: bar.ig });
-      }
-      if (bar.fb) {
-        message += `\n📘 Facebook`;
-        socialLinks.push({ name: 'Facebook', url: bar.fb });
-      }
-      
-      if (confirm(message + '\n\n¿Quieres abrir alguna red social?')) {
-        if (socialLinks.length === 1) {
-          // Only one social network, open it directly
-          window.open(socialLinks[0].url, '_blank');
-        } else if (socialLinks.length === 2) {
-          // Multiple social networks, ask which one
-          const choice = prompt('Escribe:\n1 - Instagram\n2 - Facebook');
-          if (choice === '1' && bar.ig) {
-            window.open(bar.ig, '_blank');
-          } else if (choice === '2' && bar.fb) {
-            window.open(bar.fb, '_blank');
-          }
+    // ========== MOBILE TOP PARTICIPANTS ==========
+    async function loadMobileTopParticipants() {
+      const participantsEl = document.getElementById('mobileTopParticipants');
+      if (!participantsEl) return;
+
+      try {
+        // Consulta para obtener todos los usuarios que han votado alguna vez
+        const { data: participantsData, error } = await supabase
+          .from('votos')
+          .select(`
+            user_id,
+            usuarios!inner (
+              id,
+              nombre,
+              email,
+              avatar_url
+            )
+          `);
+
+        if (error) throw error;
+
+        if (!participantsData || participantsData.length === 0) {
+          participantsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay participantes aún</div>';
+          return;
         }
+
+        // Procesar datos para contar votos por usuario
+        const userVoteCounts = {};
+        const userInfo = {};
+
+        participantsData.forEach(vote => {
+          const userId = vote.user_id;
+          const user = vote.usuarios;
+
+          // Contar votos
+          userVoteCounts[userId] = (userVoteCounts[userId] || 0) + 1;
+
+          // Guardar info del usuario (solo la primera vez que lo vemos)
+          if (!userInfo[userId]) {
+            let userName = 'Usuario';
+            if (user && user.nombre) {
+              userName = user.nombre.toString().trim().replace(/^['">]+|['">]+$/g, '');
+              if (!userName) {
+                userName = user.email ? user.email.split('@')[0] : 'Usuario';
+              }
+            } else if (user && user.email) {
+              userName = user.email.split('@')[0];
+            }
+
+            userInfo[userId] = {
+              nombre: userName,
+              avatar_url: user?.avatar_url || null,
+              email: user?.email || null
+            };
+          }
+        });
+
+        // Convertir a array y ordenar por cantidad de votos
+        const sortedParticipants = Object.entries(userVoteCounts)
+          .map(([userId, voteCount]) => ({
+            userId,
+            voteCount,
+            ...userInfo[userId]
+          }))
+          .sort((a, b) => {
+            // Primero por votos (descendente), luego por nombre (ascendente)
+            if (b.voteCount !== a.voteCount) {
+              return b.voteCount - a.voteCount;
+            }
+            return a.nombre.localeCompare(b.nombre);
+          });
+
+        // Renderizar la lista
+        participantsEl.innerHTML = sortedParticipants.map((participant, index) => {
+          const firstLetter = participant.nombre.charAt(0).toUpperCase();
+          const isCurrentUser = participant.userId === currentUser?.id;
+          
+          // Determinar color del badge según posición
+          let badgeColor = 'rgba(255, 224, 102, 0.2)'; // Default amarillo
+          if (index === 0) badgeColor = 'rgba(255, 215, 0, 0.3)'; // Oro
+          else if (index === 1) badgeColor = 'rgba(192, 192, 192, 0.3)'; // Plata  
+          else if (index === 2) badgeColor = 'rgba(205, 127, 50, 0.3)'; // Bronce
+
+          return `
+            <div style="
+              display: flex; 
+              justify-content: space-between; 
+              align-items: center; 
+              padding: 10px 12px; 
+              background: rgba(255,255,255,0.05); 
+              border-radius: 8px; 
+              margin-bottom: 6px;
+              ${isCurrentUser ? 'border: 1px solid rgba(255, 224, 102, 0.5);' : ''}
+            ">
+              <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+                <div style="
+                  width: 32px; 
+                  height: 32px; 
+                  border-radius: 50%; 
+                  background: ${isCurrentUser ? '#ffe066' : '#6c757d'}; 
+                  color: ${isCurrentUser ? '#000' : '#fff'}; 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  font-weight: bold; 
+                  font-size: 0.85rem;
+                  border: 2px solid ${isCurrentUser ? '#ffe066' : 'rgba(255, 224, 102, 0.3)'};
+                  flex-shrink: 0;
+                  overflow: hidden;
+                ">
+                  ${participant.avatar_url ? 
+                    `<img src="${participant.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML='${firstLetter}'">` : 
+                    firstLetter
+                  }
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="
+                    font-weight: 600; 
+                    color: ${isCurrentUser ? '#ffe066' : '#fff'};
+                    font-size: 0.9rem;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  ">
+                    ${index + 1}. ${participant.nombre}${isCurrentUser ? ' (Tú)' : ''}
+                  </div>
+                  <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">
+                    ${participant.voteCount === 1 ? '1 voto' : `${participant.voteCount} votos`}
+                  </div>
+                </div>
+              </div>
+              <div style="
+                background: ${badgeColor}; 
+                color: ${index < 3 ? '#fff' : '#ffe066'}; 
+                padding: 4px 8px; 
+                border-radius: 6px; 
+                font-weight: 600; 
+                font-size: 0.8rem;
+                min-width: 30px;
+                text-align: center;
+                flex-shrink: 0;
+              ">
+                ${participant.voteCount}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('❌ Error loading mobile top participants:', error);
+        participantsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando participantes</div>';
       }
     }
 
     // ========== MOBILE STATS & HISTORY ==========
     async function loadMobileStats() {
       try {
-        // Calculate time-based stats (these always work)
-        const timeSinceFirst = calculateTimeSinceFirstCN();
-        const anniversaryInfo = calculateDaysToAnniversary();
+        // Load top 5 bars
+        const { data: topBarsData, error: topBarsError } = await supabase
+          .from('visitas_bares')
+          .select('bar, COUNT(*) as visitas')
+          .group('bar')
+          .order('visitas', { ascending: false })
+          .limit(5);
         
-        // Update time-based stats immediately
-        const timeSinceEl = document.getElementById('mobileTimeSince');
-        if (timeSinceEl) {
-          timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
-        }
-        
-        const anniversaryEl = document.getElementById('mobileAnniversary');
-        if (anniversaryEl) {
-          anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
-        }
-        
-        // Load data from existing tables
-        const [
-          { data: weeksData, error: weeksError },
-          { data: userRankingData, error: userRankingError }
-        ] = await Promise.all([
-          supabase.from('semanas_cn').select('bar_ganador').eq('estado', 'finalizada').not('bar_ganador', 'is', null),
-          supabase.from('asistencias').select('user_id, usuarios!inner(nombre)').eq('confirmado', true)
-        ]);
-        
-        // Process top bars from historical data
         const topBarsEl = document.getElementById('mobileTopBars');
         if (topBarsEl) {
-          if (weeksError || !weeksData?.length) {
-            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos históricos disponibles</div>';
+          if (topBarsError || !topBarsData?.length) {
+            topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos disponibles</div>';
           } else {
-            // Count bar wins
-            const barCounts = {};
-            weeksData.forEach(week => {
-              if (week.bar_ganador) {
-                barCounts[week.bar_ganador] = (barCounts[week.bar_ganador] || 0) + 1;
-              }
-            });
-            
-            // Sort and get top 5
-            const sortedBars = Object.entries(barCounts)
-              .sort(([,a], [,b]) => b - a)
-              .slice(0, 5);
-            
-            if (sortedBars.length > 0) {
-              topBarsEl.innerHTML = sortedBars.map(([bar, wins], i) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                  <span style="font-weight: 500;">${i + 1}. ${bar}</span>
-                  <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${wins}</span>
-                </div>
-              `).join('');
-            } else {
-              topBarsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay victorias registradas</div>';
-            }
-          }
-        }
-        
-        // Process user ranking data
-        let userStats = {};
-        if (userRankingData && !userRankingError) {
-          userRankingData.forEach(record => {
-            const userId = record.user_id;
-            const userName = record.usuarios?.nombre || 'Usuario';
-            userStats[userId] = {
-              nombre: userName,
-              asistencias: (userStats[userId]?.asistencias || 0) + 1
-            };
-          });
-        }
-        
-        // Convert to array and sort
-        const sortedUsers = Object.values(userStats)
-          .sort((a, b) => b.asistencias - a.asistencias)
-          .slice(0, 5);
-        
-        const userRankingEl = document.getElementById('mobileUserRanking');
-        if (userRankingEl) {
-          if (userRankingError || !sortedUsers?.length) {
-            userRankingEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos de asistencia</div>';
-          } else {
-            userRankingEl.innerHTML = sortedUsers.map((user, i) => `
+            topBarsEl.innerHTML = topBarsData.map((bar, i) => `
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
-                <span style="font-weight: 500;">${i + 1}. ${user.nombre}</span>
-                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
+                <span style="font-weight: 500;">${i + 1}. ${bar.bar}</span>
+                <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${bar.visitas}</span>
               </div>
             `).join('');
           }
         }
         
-        // Load last visits from historical data
+        // NUEVA: Load top participants
+        await loadMobileTopParticipants();
+        
+        // Load last visits for ALL bars
+        const { data: lastVisitsData, error: lastVisitsError } = await supabase
+          .from('estadisticas_bares')
+          .select('*')
+          .order('ultima_visita', { ascending: false, nullsFirst: false });
+        
         const lastVisitsEl = document.getElementById('mobileLastVisits');
         if (lastVisitsEl) {
-          if (weeksError || !weeksData?.length) {
-            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 10px;">No hay datos históricos</div>';
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Error cargando datos</div>';
           } else {
-            // Get last occurrence of each bar from historical data
-            const { data: allWeeks, error: allWeeksError } = await supabase
-              .from('semanas_cn')
-              .select('bar_ganador, fecha_martes')
-              .eq('estado', 'finalizada')
-              .not('bar_ganador', 'is', null)
-              .order('fecha_martes', { ascending: false });
-            
-            const lastVisits = {};
-            if (!allWeeksError && allWeeks) {
-              allWeeks.forEach(week => {
-                if (week.bar_ganador && !lastVisits[week.bar_ganador]) {
-                  lastVisits[week.bar_ganador] = week.fecha_martes;
-                }
-              });
-            }
-            
-            // Show all bars with their last visit status
-            const barsWithVisits = bars.map(bar => {
-              const lastVisit = lastVisits[bar.name];
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
               return {
                 name: bar.name,
-                lastVisit: lastVisit
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
               };
             }).sort((a, b) => {
-              if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
-              if (!a.lastVisit) return 1;
-              if (!b.lastVisit) return -1;
-              return new Date(b.lastVisit) - new Date(a.lastVisit);
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
             });
             
-            lastVisitsEl.innerHTML = barsWithVisits.map(bar => {
-              let visitText = 'Nunca ganó';
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
+              let visitText = 'Nunca';
               let visitClass = 'never-visited';
               
-              if (bar.lastVisit) {
-                const visitDate = new Date(bar.lastVisit);
-                const today = new Date();
-                const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
-                const dateStr = formatDate(bar.lastVisit);
-                
-                if (daysDiff <= 30) {
-                  visitText = `${dateStr} (${daysDiff}d)`;
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                const dateStr = formatDate(bar.ultima_visita);
+                if (days <= 14) {
+                  visitText = `${dateStr} (${days}d)`;
                   visitClass = 'recent-visit';
-                } else if (daysDiff <= 90) {
-                  visitText = `${dateStr} (${daysDiff}d)`;
+                } else if (days <= 60) {
+                  visitText = `${dateStr} (${days}d)`;
                   visitClass = 'old-visit';
                 } else {
-                  visitText = `${dateStr} (${daysDiff}d)`;
+                  visitText = `${dateStr} (${days}d)`;
                   visitClass = 'last-visit';
                 }
               }
@@ -2140,20 +1970,46 @@
     }
 
     async function loadMobileHistory() {
-      // This function has been removed - mobile history section eliminated
+      const container = document.getElementById('mobileHistoryContainer');
+      if (!container) return;
+      
+      try {
+        const { data: weeks, error } = await supabase
+          .from('semanas_cn')
+          .select('*')
+          .eq('estado', 'finalizada')
+          .order('fecha_martes', { ascending: false })
+          .limit(10);
+        
+        if (error) throw error;
+        
+        if (!weeks?.length) {
+          container.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">No hay historial disponible</div>';
+          return;
+        }
+        
+        container.innerHTML = weeks.map(week => `
+          <div class="mobile-history-item">
+            <div class="mobile-history-date">${formatTuesdayDateLong(week.fecha_martes)}</div>
+            <div class="mobile-history-result">
+              ${week.hubo_quorum && week.bar_ganador ? 
+                `🏆 ${week.bar_ganador}` : 
+                (week.hubo_quorum ? '🤔 Sin ganador' : '❌ Sin quorum')}
+              • 👥 ${week.total_asistentes || 0} • 🗳️ ${week.total_votos || 0}
+            </div>
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        console.error('❌ Error loading mobile history:', error);
+        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px;">Error cargando historial</div>';
+      }
     }
 
     // ========== DESKTOP STATS & HISTORY ==========
     async function loadDesktopHistory() {
-      // Esta función está diseñada para un div con id "desktopHistoryContent"
-      // que actualmente no existe en la pestaña de historial.
-      // Si se quiere un historial detallado, se debe añadir ese div y llamar esta función.
-      // Por ahora, loadDesktopStats() se encarga de las tarjetas de estadísticas.
       const container = document.getElementById('desktopHistoryContent');
-      if (!container) {
-        console.warn("⚠️ El contenedor desktopHistoryContent no fue encontrado. Si se desea un historial detallado, este div debe existir.");
-        return;
-      }
+      if (!container) return;
       
       try {
         const { data: weeks, error } = await supabase
@@ -2166,7 +2022,7 @@
         if (error) throw error;
         
         if (!weeks?.length) {
-          container.innerHTML = '<p class="text-muted-light">No hay historial detallado disponible aún.</p>';
+          container.innerHTML = '<p class="text-muted-light">No hay historial disponible aún.</p>';
           return;
         }
         
@@ -2182,7 +2038,7 @@
           
       } catch (error) {
         console.error('❌ Error loading desktop history:', error);
-        container.innerHTML = '<p class="text-danger">Error al cargar el historial detallado.</p>';
+        container.innerHTML = '<p class="text-danger">Error al cargar el historial.</p>';
       }
     }
 
@@ -2190,61 +2046,25 @@
       const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
       const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
       
-      ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
+      ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = loadingMsg;
       });
       
       try {
-        // Calculate time-based stats
-        const timeSinceFirst = calculateTimeSinceFirstCN();
-        const anniversaryInfo = calculateDaysToAnniversary();
-        
-        // Update time-based stats
-        const timeSinceEl = document.getElementById('desktopTimeSince');
-        if (timeSinceEl) {
-          timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
-        }
-        
-        const anniversaryEl = document.getElementById('desktopAnniversary');
-        if (anniversaryEl) {
-          anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
-        }
-        
         const [
           { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError },
-          { data: userRankingData, error: userRankingError }
+          { data: lastVisitsData, error: lastVisitsError }
         ] = await Promise.all([
           supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
-          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false }),
-          supabase.from('asistencias').select('user_id, usuarios!inner(nombre)').eq('confirmado', true)
+          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false })
         ]);
-        
-        // Process user ranking data
-        let userStats = {};
-        if (userRankingData && !userRankingError) {
-          userRankingData.forEach(record => {
-            const userId = record.user_id;
-            const userName = record.usuarios?.nombre || 'Usuario';
-            userStats[userId] = {
-              nombre: userName,
-              asistencias: (userStats[userId]?.asistencias || 0) + 1
-            };
-          });
-        }
-        
-        // Convert to array and sort
-        const sortedUsers = Object.values(userStats)
-          .sort((a, b) => b.asistencias - a.asistencias)
-          .slice(0, 5);
         
         // Top 5 bars
         const topBarsEl = document.getElementById('desktopTopBars');
         if (topBarsEl) {
           if (topBarsError || !topBarsData?.length) {
             topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-            console.error('Error o sin datos para Top Bars:', topBarsError);
           } else {
             topBarsEl.innerHTML = topBarsData.map((bar, index) => `
               <div class="d-flex justify-content-between align-items-center py-1">
@@ -2254,27 +2074,11 @@
           }
         }
         
-        // User ranking
-        const userRankingEl = document.getElementById('desktopUserRanking');
-        if (userRankingEl) {
-          if (userRankingError || !sortedUsers?.length) {
-            userRankingEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-            console.error('Error o sin datos para User Ranking:', userRankingError);
-          } else {
-            userRankingEl.innerHTML = sortedUsers.map((user, index) => `
-              <div class="d-flex justify-content-between align-items-center py-1">
-                <span>${index + 1}. ${user.nombre}</span>
-                <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
-              </div>`).join('');
-          }
-        }
-        
         // All bars with last visits
         const lastVisitsEl = document.getElementById('desktopLastVisits');
         if (lastVisitsEl) {
           if (lastVisitsError) {
             lastVisitsEl.innerHTML = errorMsg;
-            console.error('Error para Last Visits:', lastVisitsError);
           } else {
             // Get all bars and merge with visit data
             const allBarsWithVisits = bars.map(bar => {
@@ -2314,333 +2118,20 @@
         
       } catch (error) {
         console.error('❌ Error loading desktop stats:', error);
-        ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
+        ['desktopTopBars', 'desktopLastVisits'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.innerHTML = errorMsg;
         });
       }
     }
 
-    // ========== ADMIN FUNCTIONS ==========
-    function loadAdminPanel() {
-      if (!isAdmin) return;
-      
-      loadAdminBarsTable();
-      setupAddBarForm();
-    }
-
-    function loadAdminBarsTable() {
-      const tbody = document.getElementById('adminBarsTable');
-      if (!tbody) return;
-      
-      tbody.innerHTML = bars.map((bar, index) => `
-        <tr id="bar-row-${index}">
-          <td style="font-weight: 600;">
-            <span class="bar-name-display">${bar.name}</span>
-            <input type="text" class="form-control bar-name-edit" value="${bar.name}" style="display: none;">
-          </td>
-          <td>
-            <span class="bar-ig-display">${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</span>
-            <input type="url" class="form-control bar-ig-edit" value="${bar.ig || ''}" placeholder="URL Instagram" style="display: none;">
-          </td>
-          <td>
-            <span class="bar-fb-display">${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</span>
-            <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
-          </td>
-          <td>
-            <div class="btn-group" style="gap: 5px;">
-              <button class="btn btn-sm btn-warning bar-edit-btn" onclick="editBar(${index}, '${bar.name.replace(/'/g, "\\'")}')">
-                ✏️ Editar
-              </button>
-              <button class="btn btn-sm btn-success bar-save-btn" onclick="saveBarEdit(${index})" style="display: none;">
-                💾 Guardar
-              </button>
-              <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
-                ❌ Cancelar
-              </button>
-              <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
-                🗑️ Eliminar
-              </button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function setupAddBarForm() {
-      const form = document.getElementById('addBarForm');
-      if (!form) return;
-      
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const barName = document.getElementById('barName').value.trim();
-        const socialType = document.getElementById('socialType').value;
-        const socialUrl = document.getElementById('socialUrl').value.trim();
-        
-        if (!barName || !socialType || !socialUrl) {
-          alert('Todos los campos son obligatorios');
-          return;
-        }
-        
-        // Check if bar already exists
-        if (bars.find(b => b.name.toLowerCase() === barName.toLowerCase())) {
-          alert('Ya existe un bar con ese nombre');
-          return;
-        }
-        
-        // Validate URL format
-        try {
-          new URL(socialUrl);
-        } catch {
-          alert('La URL no tiene un formato válido');
-          return;
-        }
-        
-        await addBar(barName, socialType, socialUrl);
-      });
-    }
-
-    async function addBar(name, socialType, socialUrl) {
-      if (!isAdmin) {
-        alert('No tienes permisos de administrador');
-        return;
-      }
-      
-      const btnText = document.getElementById('addBarBtnText');
-      const btnSpinner = document.getElementById('addBarSpinner');
-      
-      btnText.style.display = 'none';
-      btnSpinner.style.display = 'inline';
-      
-      try {
-        // Prepare data for database
-        const barData = {
-          nombre: name,
-          instagram_url: socialType === 'ig' ? socialUrl : null,
-          facebook_url: socialType === 'fb' ? socialUrl : null
-        };
-        
-        // Insert into database
-        const { error } = await supabase
-          .from('bares')
-          .insert(barData);
-        
-        if (error) throw error;
-        
-        // Reload bars from database
-        await loadBarsFromDatabase();
-        
-        // Clear form
-        document.getElementById('addBarForm').reset();
-        
-        // Reload admin table
-        loadAdminBarsTable();
-        
-        // Reload voting data to show new bar
-        await loadVotingData();
-        
-        alert(`Bar "${name}" agregado exitosamente`);
-        
-      } catch (error) {
-        console.error('Error adding bar:', error);
-        if (error.code === '23505') {
-          alert('Ya existe un bar con ese nombre');
-        } else {
-          alert('Error al agregar el bar: ' + error.message);
-        }
-      } finally {
-        btnText.style.display = 'inline';
-        btnSpinner.style.display = 'none';
-      }
-    }
-
-    async function deleteBar(barName) {
-      if (!isAdmin) {
-        alert('No tienes permisos de administrador');
-        return;
-      }
-      
-      if (!confirm(`¿Estás seguro de que quieres eliminar el bar "${barName}"?\n\nEsta acción no se puede deshacer y eliminará todos los votos y datos relacionados.`)) {
-        return;
-      }
-      
-      try {
-        // Delete from database
-        const { error } = await supabase
-          .from('bares')
-          .delete()
-          .eq('nombre', barName);
-        
-        if (error) throw error;
-        
-        // Reload bars from database
-        await loadBarsFromDatabase();
-        
-        // Reload admin table
-        loadAdminBarsTable();
-        
-        // Reload voting data to reflect changes
-        await loadVotingData();
-        
-        alert(`Bar "${barName}" eliminado exitosamente`);
-        
-      } catch (error) {
-        console.error('Error deleting bar:', error);
-        alert('Error al eliminar el bar: ' + error.message);
-      }
-    }
-
-    function editBar(index, barName) {
-      if (!isAdmin) {
-        alert('No tienes permisos de administrador');
-        return;
-      }
-      
-      const row = document.getElementById(`bar-row-${index}`);
-      if (!row) return;
-      
-      // Hide display elements and show edit inputs
-      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
-        el.style.display = 'block';
-      });
-      
-      // Hide edit/delete buttons, show save/cancel buttons
-      row.querySelector('.bar-edit-btn').style.display = 'none';
-      row.querySelector('.bar-delete-btn').style.display = 'none';
-      row.querySelector('.bar-save-btn').style.display = 'inline-block';
-      row.querySelector('.bar-cancel-btn').style.display = 'inline-block';
-    }
-
-    function cancelBarEdit(index) {
-      const row = document.getElementById(`bar-row-${index}`);
-      if (!row) return;
-      
-      // Reset input values to original
-      const bar = bars[index];
-      row.querySelector('.bar-name-edit').value = bar.name;
-      row.querySelector('.bar-ig-edit').value = bar.ig || '';
-      row.querySelector('.bar-fb-edit').value = bar.fb || '';
-      
-      // Show display elements and hide edit inputs
-      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
-        el.style.display = 'block';
-      });
-      
-      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      // Show edit/delete buttons, hide save/cancel buttons
-      row.querySelector('.bar-edit-btn').style.display = 'inline-block';
-      row.querySelector('.bar-delete-btn').style.display = 'inline-block';
-      row.querySelector('.bar-save-btn').style.display = 'none';
-      row.querySelector('.bar-cancel-btn').style.display = 'none';
-    }
-
-    async function saveBarEdit(index) {
-      if (!isAdmin) {
-        alert('No tienes permisos de administrador');
-        return;
-      }
-      
-      const row = document.getElementById(`bar-row-${index}`);
-      if (!row) return;
-      
-      const originalBar = bars[index];
-      const newName = row.querySelector('.bar-name-edit').value.trim();
-      const newIg = row.querySelector('.bar-ig-edit').value.trim();
-      const newFb = row.querySelector('.bar-fb-edit').value.trim();
-      
-      // Validation
-      if (!newName) {
-        alert('El nombre del bar es obligatorio');
-        return;
-      }
-      
-      // Check if name already exists (but not for the same bar)
-      if (newName !== originalBar.name && bars.find(b => b.name.toLowerCase() === newName.toLowerCase())) {
-        alert('Ya existe un bar con ese nombre');
-        return;
-      }
-      
-      // Validate URLs if provided
-      if (newIg && newIg !== '') {
-        try {
-          new URL(newIg);
-        } catch {
-          alert('La URL de Instagram no tiene un formato válido');
-          return;
-        }
-      }
-      
-      if (newFb && newFb !== '') {
-        try {
-          new URL(newFb);
-        } catch {
-          alert('La URL de Facebook no tiene un formato válido');
-          return;
-        }
-      }
-      
-      // Show loading state
-      const saveBtn = row.querySelector('.bar-save-btn');
-      const originalSaveText = saveBtn.innerHTML;
-      saveBtn.innerHTML = '⏳ Guardando...';
-      saveBtn.disabled = true;
-      
-      try {
-        // Update in database
-        const { error } = await supabase
-          .from('bares')
-          .update({
-            nombre: newName,
-            instagram_url: newIg || null,
-            facebook_url: newFb || null,
-            updated_at: new Date()
-          })
-          .eq('nombre', originalBar.name);
-        
-        if (error) throw error;
-        
-        // Reload bars from database
-        await loadBarsFromDatabase();
-        
-        // Reload admin table
-        loadAdminBarsTable();
-        
-        // Reload voting data if name changed
-        if (newName !== originalBar.name) {
-          await loadVotingData();
-        }
-        
-        alert(`Bar "${newName}" actualizado exitosamente`);
-        
-      } catch (error) {
-        console.error('Error updating bar:', error);
-        if (error.code === '23505') {
-          alert('Ya existe un bar con ese nombre');
-        } else {
-          alert('Error al actualizar el bar: ' + error.message);
-        }
-        
-        // Reset button state
-        saveBtn.innerHTML = originalSaveText;
-        saveBtn.disabled = false;
-      }
-    }
-
     // ========== UTILITY FUNCTIONS ==========
     function igIcon() {
-      return `<svg class="ig-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+      return `<svg class="mobile-social-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
     }
 
     function fbIcon() {
-      return `<svg class="fb-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+      return `<svg class="mobile-social-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
     }
 
     async function signOut() {
@@ -2694,11 +2185,6 @@
 
     window.toggleVote = toggleVote;
     window.showVoteDetails = showVoteDetails;
-    window.showBarSocials = showBarSocials;
-    window.deleteBar = deleteBar;
-    window.editBar = editBar;
-    window.saveBarEdit = saveBarEdit;
-    window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
   </script>
 </body>
