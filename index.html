@@ -822,17 +822,6 @@
             </div>
           </div>
 
-          <!-- CAMBIO: SECCIÓN MOVIDA AQUÍ - Top 10 Participantes después de Top 5 Bares -->
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top 10 Participantes</h4>
-            <div id="mobileUserRanking">
-              <div class="loading">
-                <div class="spinner"></div>
-                <span>Cargando...</span>
-              </div>
-            </div>
-          </div>
-
           <div style="margin-bottom: 20px;">
             <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Vez que Ganó</h4>
             <div id="mobileLastVisits">
@@ -852,6 +841,16 @@
             <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
               <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
               <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
+            <div id="mobileUserRanking">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -981,8 +980,7 @@
           </div>
           <div class="col-md-6 mb-3">
             <div class="stats-card">
-              <!-- CAMBIO: Título actualizado a Top 10 -->
-              <h5>👑 Top 10 Participantes</h5>
+              <h5>👑 Top Participantes</h5>
               <div id="desktopUserRanking">Cargando...</div>
             </div>
           </div>
@@ -1107,18 +1105,8 @@
       detectDevice();
       
       try {
-        // MEJORA: Agregar timeout y mejor manejo de errores para pantalla negra
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout obteniendo sesión')), 10000)
-        );
-        
-        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
-        
-        if (error) {
-          console.error('❌ Error obteniendo sesión:', error);
-          throw error;
-        }
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) console.error('❌ Error obteniendo sesión:', error);
         
         if (session) {
           await handleAuthSuccess(session);
@@ -1140,11 +1128,7 @@
         
       } catch (error) {
         console.error('❌ Error en inicialización:', error);
-        // MEJORA: Mostrar mensaje al usuario en lugar de pantalla negra
         showAuthContainer();
-        setTimeout(() => {
-          alert('Error de conexión. Por favor recarga la página.');
-        }, 500);
       }
     }
 
@@ -1188,6 +1172,21 @@
             loadAttendanceData()
           ]);
         }
+        
+        // El listener para 'shown.bs.tab' en setupDesktopTabs() se encargará de cargar
+        // las estadísticas cuando la pestaña de historial se muestre.
+        // El siguiente bloque que añadía un listener de 'click' directo es redundante y se ha eliminado.
+        /*
+        const historyTab = document.getElementById('desktop-history-tab');
+        if (historyTab) {
+          historyTab.addEventListener('click', () => {
+            setTimeout(() => {
+              console.log('👆 Click en pestaña Historial - forzando carga...');
+              loadDesktopHistory(); // Llamaba a la función incorrecta
+            }, 50);
+          });
+        }
+        */
         
         setTimeout(() => {
           if (!isMobile) {
@@ -2047,10 +2046,10 @@
           });
         }
         
-        // CAMBIO: Cambiar slice(0, 5) a slice(0, 10) para mostrar top 10
+        // Convert to array and sort
         const sortedUsers = Object.values(userStats)
           .sort((a, b) => b.asistencias - a.asistencias)
-          .slice(0, 10); // CAMBIADO DE 5 A 10
+          .slice(0, 5);
         
         const userRankingEl = document.getElementById('mobileUserRanking');
         if (userRankingEl) {
@@ -2235,5 +2234,472 @@
           });
         }
         
-        // CAMBIO: Cambiar slice(0, 5) a slice(0, 10) para mostrar top 10
+        // Convert to array and sort
         const sortedUsers = Object.values(userStats)
+          .sort((a, b) => b.asistencias - a.asistencias)
+          .slice(0, 5);
+        
+        // Top 5 bars
+        const topBarsEl = document.getElementById('desktopTopBars');
+        if (topBarsEl) {
+          if (topBarsError || !topBarsData?.length) {
+            topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+            console.error('Error o sin datos para Top Bars:', topBarsError);
+          } else {
+            topBarsEl.innerHTML = topBarsData.map((bar, index) => `
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span>${index + 1}. ${bar.bar}</span>
+                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
+              </div>`).join('');
+          }
+        }
+        
+        // User ranking
+        const userRankingEl = document.getElementById('desktopUserRanking');
+        if (userRankingEl) {
+          if (userRankingError || !sortedUsers?.length) {
+            userRankingEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+            console.error('Error o sin datos para User Ranking:', userRankingError);
+          } else {
+            userRankingEl.innerHTML = sortedUsers.map((user, index) => `
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span>${index + 1}. ${user.nombre}</span>
+                <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
+              </div>`).join('');
+          }
+        }
+        
+        // All bars with last visits
+        const lastVisitsEl = document.getElementById('desktopLastVisits');
+        if (lastVisitsEl) {
+          if (lastVisitsError) {
+            lastVisitsEl.innerHTML = errorMsg;
+            console.error('Error para Last Visits:', lastVisitsError);
+          } else {
+            // Get all bars and merge with visit data
+            const allBarsWithVisits = bars.map(bar => {
+              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
+              return {
+                name: bar.name,
+                ultima_visita: visitData?.ultima_visita,
+                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
+              };
+            }).sort((a, b) => {
+              // Sort by most recent visit first, then by name
+              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
+              if (!a.ultima_visita) return 1;
+              if (!b.ultima_visita) return -1;
+              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            });
+            
+            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
+              let statusText = '<span class="never-visited">Nunca</span>';
+              if (bar.ultima_visita) {
+                const days = bar.dias_desde_ultima_visita;
+                let datePart = formatDate(bar.ultima_visita);
+                if (days !== null && days !== undefined) {
+                  statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
+                } else {
+                  statusText = `<span class="recent-visit">${datePart}</span>`;
+                }
+              }
+              return `
+                <div class="d-flex justify-content-between align-items-center py-1">
+                  <span>${bar.name}</span>
+                  ${statusText}
+                </div>`;
+            }).join('');
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading desktop stats:', error);
+        ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = errorMsg;
+        });
+      }
+    }
+
+    // ========== ADMIN FUNCTIONS ==========
+    function loadAdminPanel() {
+      if (!isAdmin) return;
+      
+      loadAdminBarsTable();
+      setupAddBarForm();
+    }
+
+    function loadAdminBarsTable() {
+      const tbody = document.getElementById('adminBarsTable');
+      if (!tbody) return;
+      
+      tbody.innerHTML = bars.map((bar, index) => `
+        <tr id="bar-row-${index}">
+          <td style="font-weight: 600;">
+            <span class="bar-name-display">${bar.name}</span>
+            <input type="text" class="form-control bar-name-edit" value="${bar.name}" style="display: none;">
+          </td>
+          <td>
+            <span class="bar-ig-display">${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</span>
+            <input type="url" class="form-control bar-ig-edit" value="${bar.ig || ''}" placeholder="URL Instagram" style="display: none;">
+          </td>
+          <td>
+            <span class="bar-fb-display">${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</span>
+            <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
+          </td>
+          <td>
+            <div class="btn-group" style="gap: 5px;">
+              <button class="btn btn-sm btn-warning bar-edit-btn" onclick="editBar(${index}, '${bar.name.replace(/'/g, "\\'")}')">
+                ✏️ Editar
+              </button>
+              <button class="btn btn-sm btn-success bar-save-btn" onclick="saveBarEdit(${index})" style="display: none;">
+                💾 Guardar
+              </button>
+              <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
+                ❌ Cancelar
+              </button>
+              <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
+                🗑️ Eliminar
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function setupAddBarForm() {
+      const form = document.getElementById('addBarForm');
+      if (!form) return;
+      
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const barName = document.getElementById('barName').value.trim();
+        const socialType = document.getElementById('socialType').value;
+        const socialUrl = document.getElementById('socialUrl').value.trim();
+        
+        if (!barName || !socialType || !socialUrl) {
+          alert('Todos los campos son obligatorios');
+          return;
+        }
+        
+        // Check if bar already exists
+        if (bars.find(b => b.name.toLowerCase() === barName.toLowerCase())) {
+          alert('Ya existe un bar con ese nombre');
+          return;
+        }
+        
+        // Validate URL format
+        try {
+          new URL(socialUrl);
+        } catch {
+          alert('La URL no tiene un formato válido');
+          return;
+        }
+        
+        await addBar(barName, socialType, socialUrl);
+      });
+    }
+
+    async function addBar(name, socialType, socialUrl) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const btnText = document.getElementById('addBarBtnText');
+      const btnSpinner = document.getElementById('addBarSpinner');
+      
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline';
+      
+      try {
+        // Prepare data for database
+        const barData = {
+          nombre: name,
+          instagram_url: socialType === 'ig' ? socialUrl : null,
+          facebook_url: socialType === 'fb' ? socialUrl : null
+        };
+        
+        // Insert into database
+        const { error } = await supabase
+          .from('bares')
+          .insert(barData);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Clear form
+        document.getElementById('addBarForm').reset();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data to show new bar
+        await loadVotingData();
+        
+        alert(`Bar "${name}" agregado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error adding bar:', error);
+        if (error.code === '23505') {
+          alert('Ya existe un bar con ese nombre');
+        } else {
+          alert('Error al agregar el bar: ' + error.message);
+        }
+      } finally {
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+      }
+    }
+
+    async function deleteBar(barName) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      if (!confirm(`¿Estás seguro de que quieres eliminar el bar "${barName}"?\n\nEsta acción no se puede deshacer y eliminará todos los votos y datos relacionados.`)) {
+        return;
+      }
+      
+      try {
+        // Delete from database
+        const { error } = await supabase
+          .from('bares')
+          .delete()
+          .eq('nombre', barName);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data to reflect changes
+        await loadVotingData();
+        
+        alert(`Bar "${barName}" eliminado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error deleting bar:', error);
+        alert('Error al eliminar el bar: ' + error.message);
+      }
+    }
+
+    function editBar(index, barName) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      // Hide display elements and show edit inputs
+      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
+        el.style.display = 'block';
+      });
+      
+      // Hide edit/delete buttons, show save/cancel buttons
+      row.querySelector('.bar-edit-btn').style.display = 'none';
+      row.querySelector('.bar-delete-btn').style.display = 'none';
+      row.querySelector('.bar-save-btn').style.display = 'inline-block';
+      row.querySelector('.bar-cancel-btn').style.display = 'inline-block';
+    }
+
+    function cancelBarEdit(index) {
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      // Reset input values to original
+      const bar = bars[index];
+      row.querySelector('.bar-name-edit').value = bar.name;
+      row.querySelector('.bar-ig-edit').value = bar.ig || '';
+      row.querySelector('.bar-fb-edit').value = bar.fb || '';
+      
+      // Show display elements and hide edit inputs
+      row.querySelectorAll('.bar-name-display, .bar-ig-display, .bar-fb-display').forEach(el => {
+        el.style.display = 'block';
+      });
+      
+      row.querySelectorAll('.bar-name-edit, .bar-ig-edit, .bar-fb-edit').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Show edit/delete buttons, hide save/cancel buttons
+      row.querySelector('.bar-edit-btn').style.display = 'inline-block';
+      row.querySelector('.bar-delete-btn').style.display = 'inline-block';
+      row.querySelector('.bar-save-btn').style.display = 'none';
+      row.querySelector('.bar-cancel-btn').style.display = 'none';
+    }
+
+    async function saveBarEdit(index) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+      
+      const row = document.getElementById(`bar-row-${index}`);
+      if (!row) return;
+      
+      const originalBar = bars[index];
+      const newName = row.querySelector('.bar-name-edit').value.trim();
+      const newIg = row.querySelector('.bar-ig-edit').value.trim();
+      const newFb = row.querySelector('.bar-fb-edit').value.trim();
+      
+      // Validation
+      if (!newName) {
+        alert('El nombre del bar es obligatorio');
+        return;
+      }
+      
+      // Check if name already exists (but not for the same bar)
+      if (newName !== originalBar.name && bars.find(b => b.name.toLowerCase() === newName.toLowerCase())) {
+        alert('Ya existe un bar con ese nombre');
+        return;
+      }
+      
+      // Validate URLs if provided
+      if (newIg && newIg !== '') {
+        try {
+          new URL(newIg);
+        } catch {
+          alert('La URL de Instagram no tiene un formato válido');
+          return;
+        }
+      }
+      
+      if (newFb && newFb !== '') {
+        try {
+          new URL(newFb);
+        } catch {
+          alert('La URL de Facebook no tiene un formato válido');
+          return;
+        }
+      }
+      
+      // Show loading state
+      const saveBtn = row.querySelector('.bar-save-btn');
+      const originalSaveText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '⏳ Guardando...';
+      saveBtn.disabled = true;
+      
+      try {
+        // Update in database
+        const { error } = await supabase
+          .from('bares')
+          .update({
+            nombre: newName,
+            instagram_url: newIg || null,
+            facebook_url: newFb || null,
+            updated_at: new Date()
+          })
+          .eq('nombre', originalBar.name);
+        
+        if (error) throw error;
+        
+        // Reload bars from database
+        await loadBarsFromDatabase();
+        
+        // Reload admin table
+        loadAdminBarsTable();
+        
+        // Reload voting data if name changed
+        if (newName !== originalBar.name) {
+          await loadVotingData();
+        }
+        
+        alert(`Bar "${newName}" actualizado exitosamente`);
+        
+      } catch (error) {
+        console.error('Error updating bar:', error);
+        if (error.code === '23505') {
+          alert('Ya existe un bar con ese nombre');
+        } else {
+          alert('Error al actualizar el bar: ' + error.message);
+        }
+        
+        // Reset button state
+        saveBtn.innerHTML = originalSaveText;
+        saveBtn.disabled = false;
+      }
+    }
+
+    // ========== UTILITY FUNCTIONS ==========
+    function igIcon() {
+      return `<svg class="ig-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
+    }
+
+    function fbIcon() {
+      return `<svg class="fb-icon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1977f3"/><path d="M31 24.084h-4.15v12.083h-5.063V24.084h-2.65V19.27h2.65v-2.3c0-2.192 1.042-5.607 5.607-5.607l4.12.017v4.587h-2.988c-.487 0-1.18.244-1.18 1.288v2.015H31l-.36 4.814z" fill="#fff"/></svg>`;
+    }
+
+    async function signOut() {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('❌ Error signing out:', error);
+      }
+    }
+
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('googleSignIn').addEventListener('click', async () => {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin
+            }
+          });
+          if (error) throw error;
+        } catch (error) {
+          console.error('❌ Error signing in:', error);
+          alert('Error al iniciar sesión: ' + error.message);
+        }
+      });
+
+      // Handle desktop table clicks
+      document.addEventListener('click', (event) => {
+        const voteButton = event.target.closest('[data-action="vote"]');
+        if (voteButton && !isMobile) {
+          const encodedBarName = voteButton.getAttribute('data-bar');
+          if (!encodedBarName || voteButton.disabled) return;
+          
+          const barName = decodeURIComponent(encodedBarName);
+          toggleVote(barName, voteButton);
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        const wasMobile = isMobile;
+        detectDevice();
+        if (wasMobile !== isMobile && currentUser) {
+          showLayout();
+          updateUserDisplay();
+        }
+      });
+
+      init();
+    });
+
+    window.toggleVote = toggleVote;
+    window.showVoteDetails = showVoteDetails;
+    window.showBarSocials = showBarSocials;
+    window.deleteBar = deleteBar;
+    window.editBar = editBar;
+    window.saveBarEdit = saveBarEdit;
+    window.cancelBarEdit = cancelBarEdit;
+    window.signOut = signOut;
+  </script>
+</body>
+</html>
