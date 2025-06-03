@@ -823,6 +823,16 @@
           </div>
 
           <div style="margin-bottom: 20px;">
+            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
+            <div id="mobileUserRanking">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
             <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">⏰ Última Vez que Ganó</h4>
             <div id="mobileLastVisits">
               <div class="loading">
@@ -841,16 +851,6 @@
             <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
               <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
               <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 20px;">
-            <h4 style="color: #ffe066; margin-bottom: 12px; font-size: 1rem;">👑 Top Participantes</h4>
-            <div id="mobileUserRanking">
-              <div class="loading">
-                <div class="spinner"></div>
-                <span>Cargando...</span>
-              </div>
             </div>
           </div>
         </div>
@@ -961,6 +961,12 @@
           </div>
           <div class="col-md-6 mb-3">
             <div class="stats-card">
+              <h5>👑 Top Participantes</h5>
+              <div id="desktopUserRanking">Cargando...</div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="stats-card">
               <h5>⏰ Última Vez que Ganó</h5>
               <div id="desktopLastVisits">Cargando...</div>
             </div>
@@ -976,12 +982,6 @@
                 <strong>🎉 Próximo aniversario:</strong><br>
                 <span id="desktopAnniversary" class="text-warning">Cargando...</span>
               </div>
-            </div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="stats-card">
-              <h5>👑 Top Participantes</h5>
-              <div id="desktopUserRanking">Cargando...</div>
             </div>
           </div>
         </div>
@@ -2049,7 +2049,7 @@
         // Convert to array and sort
         const sortedUsers = Object.values(userStats)
           .sort((a, b) => b.asistencias - a.asistencias)
-          .slice(0, 5);
+          .slice(0, 20);
         
         const userRankingEl = document.getElementById('mobileUserRanking');
         if (userRankingEl) {
@@ -2237,7 +2237,7 @@
         // Convert to array and sort
         const sortedUsers = Object.values(userStats)
           .sort((a, b) => b.asistencias - a.asistencias)
-          .slice(0, 5);
+          .slice(0, 20);
         
         // Top 5 bars
         const topBarsEl = document.getElementById('desktopTopBars');
