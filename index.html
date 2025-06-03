@@ -2189,39 +2189,73 @@
     async function loadDesktopStats() {
       const loadingMsg = '<p class="text-muted-light">Cargando...</p>';
       const errorMsg = '<p class="text-danger">Error al cargar datos.</p>';
-      
+
       ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = loadingMsg;
       });
-      
+
       try {
         // Calculate time-based stats
         const timeSinceFirst = calculateTimeSinceFirstCN();
         const anniversaryInfo = calculateDaysToAnniversary();
-        
-        // Update time-based stats
+
         const timeSinceEl = document.getElementById('desktopTimeSince');
         if (timeSinceEl) {
           timeSinceEl.textContent = `${timeSinceFirst.years} años, ${timeSinceFirst.months} meses y ${timeSinceFirst.days} días`;
         }
-        
+
         const anniversaryEl = document.getElementById('desktopAnniversary');
         if (anniversaryEl) {
           anniversaryEl.textContent = `En ${anniversaryInfo.days} días`;
         }
-        
+
         const [
-          { data: topBarsData, error: topBarsError },
-          { data: lastVisitsData, error: lastVisitsError },
+          { data: weeksData, error: weeksError },
           { data: userRankingData, error: userRankingError }
         ] = await Promise.all([
-          supabase.from('visitas_bares').select('bar, COUNT(*) as visitas').group('bar').order('visitas', { ascending: false }).limit(5),
-          supabase.from('estadisticas_bares').select('*').order('ultima_visita', { ascending: false, nullsFirst: false }),
-          supabase.from('asistencias').select('user_id, usuarios!inner(nombre)').eq('confirmado', true)
+          supabase
+            .from('semanas_cn')
+            .select('bar_ganador, fecha_martes')
+            .eq('estado', 'finalizada')
+            .not('bar_ganador', 'is', null)
+            .order('fecha_martes', { ascending: false }),
+          supabase
+            .from('asistencias')
+            .select('user_id, usuarios!inner(nombre)')
+            .eq('confirmado', true)
         ]);
-        
-        // Process user ranking data
+
+        // ===== Top Bars =====
+        const topBarsEl = document.getElementById('desktopTopBars');
+        if (topBarsEl) {
+          if (weeksError || !weeksData?.length) {
+            topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
+          } else {
+            const barCounts = {};
+            weeksData.forEach(week => {
+              if (week.bar_ganador) {
+                barCounts[week.bar_ganador] = (barCounts[week.bar_ganador] || 0) + 1;
+              }
+            });
+
+            const sortedBars = Object.entries(barCounts)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 5);
+
+            if (sortedBars.length) {
+              topBarsEl.innerHTML = sortedBars.map(([bar, wins], index) => `
+                <div class="d-flex justify-content-between align-items-center py-1">
+                  <span>${index + 1}. ${bar}</span>
+                  <span class="badge bg-warning text-dark rounded-pill">${wins}</span>
+                </div>`).join('');
+            } else {
+              topBarsEl.innerHTML = '<p class="text-muted-light">No hay victorias registradas</p>';
+            }
+          }
+        }
+
+        // ===== User Ranking =====
         let userStats = {};
         if (userRankingData && !userRankingError) {
           userRankingData.forEach(record => {
@@ -2233,33 +2267,15 @@
             };
           });
         }
-        
-        // Convert to array and sort
+
         const sortedUsers = Object.values(userStats)
           .sort((a, b) => b.asistencias - a.asistencias)
           .slice(0, 20);
-        
-        // Top 5 bars
-        const topBarsEl = document.getElementById('desktopTopBars');
-        if (topBarsEl) {
-          if (topBarsError || !topBarsData?.length) {
-            topBarsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-            console.error('Error o sin datos para Top Bars:', topBarsError);
-          } else {
-            topBarsEl.innerHTML = topBarsData.map((bar, index) => `
-              <div class="d-flex justify-content-between align-items-center py-1">
-                <span>${index + 1}. ${bar.bar}</span>
-                <span class="badge bg-warning text-dark rounded-pill">${bar.visitas} visita(s)</span>
-              </div>`).join('');
-          }
-        }
-        
-        // User ranking
+
         const userRankingEl = document.getElementById('desktopUserRanking');
         if (userRankingEl) {
           if (userRankingError || !sortedUsers?.length) {
             userRankingEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
-            console.error('Error o sin datos para User Ranking:', userRankingError);
           } else {
             userRankingEl.innerHTML = sortedUsers.map((user, index) => `
               <div class="d-flex justify-content-between align-items-center py-1">
@@ -2268,50 +2284,52 @@
               </div>`).join('');
           }
         }
-        
-        // All bars with last visits
+
+        // ===== Last Visits =====
         const lastVisitsEl = document.getElementById('desktopLastVisits');
         if (lastVisitsEl) {
-          if (lastVisitsError) {
-            lastVisitsEl.innerHTML = errorMsg;
-            console.error('Error para Last Visits:', lastVisitsError);
+          if (weeksError || !weeksData?.length) {
+            lastVisitsEl.innerHTML = '<p class="text-muted-light">No hay datos disponibles aún.</p>';
           } else {
-            // Get all bars and merge with visit data
-            const allBarsWithVisits = bars.map(bar => {
-              const visitData = lastVisitsData?.find(v => v.bar === bar.name);
-              return {
-                name: bar.name,
-                ultima_visita: visitData?.ultima_visita,
-                dias_desde_ultima_visita: visitData?.dias_desde_ultima_visita
-              };
-            }).sort((a, b) => {
-              // Sort by most recent visit first, then by name
-              if (!a.ultima_visita && !b.ultima_visita) return a.name.localeCompare(b.name);
-              if (!a.ultima_visita) return 1;
-              if (!b.ultima_visita) return -1;
-              return new Date(b.ultima_visita) - new Date(a.ultima_visita);
+            const lastVisits = {};
+            weeksData.forEach(week => {
+              if (week.bar_ganador && !lastVisits[week.bar_ganador]) {
+                lastVisits[week.bar_ganador] = week.fecha_martes;
+              }
             });
-            
-            lastVisitsEl.innerHTML = allBarsWithVisits.map(bar => {
-              let statusText = '<span class="never-visited">Nunca</span>';
-              if (bar.ultima_visita) {
-                const days = bar.dias_desde_ultima_visita;
-                let datePart = formatDate(bar.ultima_visita);
-                if (days !== null && days !== undefined) {
-                  statusText = `<span class="${days <= 14 ? 'recent-visit' : (days <= 60 ? 'old-visit' : 'last-visit')}">${datePart} (${days}d)</span>`;
-                } else {
-                  statusText = `<span class="recent-visit">${datePart}</span>`;
-                }
+
+            const barsWithVisits = bars.map(bar => {
+              const lastVisit = lastVisits[bar.name];
+              return { name: bar.name, lastVisit };
+            }).sort((a, b) => {
+              if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
+              if (!a.lastVisit) return 1;
+              if (!b.lastVisit) return -1;
+              return new Date(b.lastVisit) - new Date(a.lastVisit);
+            });
+
+            lastVisitsEl.innerHTML = barsWithVisits.map(bar => {
+              let visitText = 'Nunca ganó';
+              let visitClass = 'never-visited';
+              if (bar.lastVisit) {
+                const visitDate = new Date(bar.lastVisit);
+                const today = new Date();
+                const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
+                const dateStr = formatDate(bar.lastVisit);
+                visitText = `${dateStr} (${daysDiff}d)`;
+                if (daysDiff <= 30) visitClass = 'recent-visit';
+                else if (daysDiff <= 90) visitClass = 'old-visit';
+                else visitClass = 'last-visit';
               }
               return `
                 <div class="d-flex justify-content-between align-items-center py-1">
                   <span>${bar.name}</span>
-                  ${statusText}
+                  <span class="${visitClass}">${visitText}</span>
                 </div>`;
             }).join('');
           }
         }
-        
+
       } catch (error) {
         console.error('❌ Error loading desktop stats:', error);
         ['desktopTopBars', 'desktopLastVisits', 'desktopUserRanking'].forEach(id => {
