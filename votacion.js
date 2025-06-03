@@ -92,7 +92,10 @@ function renderPlaceList() {
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("ml-2", "text-red-500", "bg-transparent", "border-none", "cursor-pointer", "hover:text-red-700");
-    deleteBtn.addEventListener("click", () => deletePlace(place));
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deletePlace(place);
+    });
     li.textContent = place;
     li.appendChild(deleteBtn);
     li.addEventListener("click", async () => {
