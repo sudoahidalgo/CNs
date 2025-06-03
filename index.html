@@ -694,20 +694,35 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
-    .attendance-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background-color: #6c757d;
-      color: white;
-      font-size: 0.8em;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 10px;
-      border: 2px solid rgba(255, 224, 102, 0.3);
-    }
+      .attendance-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        color: white;
+        font-size: 0.8em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 10px;
+        border: 2px solid rgba(255, 224, 102, 0.3);
+      }
+
+      .voter-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        color: white;
+        font-size: 0.7em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 4px;
+        border: 2px solid rgba(255, 224, 102, 0.3);
+      }
 
     .text-muted-light { color: #adb5bd !important; }
 
@@ -939,6 +954,7 @@
                     <th>Redes</th>
                     <th>Votar</th>
                     <th>Votos</th>
+                    <th>Votantes</th>
                     <th>Última visita</th>
                   </tr>
                 </thead>
@@ -1545,11 +1561,11 @@
     async function loadVotingData() {
       if (!currentUser || !currentWeek) return;
       
-      try {
-        const { data: votesInWeek, error } = await supabase
-          .from('votos')
-          .select('bar, user_id')
-          .eq('semana_id', currentWeek.id);
+        try {
+          const { data: votesInWeek, error } = await supabase
+            .from('votos')
+            .select('bar, user_id, usuarios(nombre, avatar_url)')
+            .eq('semana_id', currentWeek.id);
         
         if (error) throw error;
         
@@ -1736,41 +1752,52 @@
     }
 
     // ========== DESKTOP RENDERING ==========
-    function renderDesktopBars(allVotes, barStats) {
-      const tbody = document.getElementById('desktopBarsTable');
-      if (!tbody) return;
+      function renderDesktopBars(allVotes, barStats) {
+        const tbody = document.getElementById('desktopBarsTable');
+        if (!tbody) return;
+
+        const voteCounts = {};
+        allVotes.forEach(vote => {
+          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        });
+
+        const votersByBar = {};
+        allVotes.forEach(vote => {
+          const voter = {
+            avatar_url: vote.usuarios?.avatar_url || '',
+            nombre: vote.usuarios?.nombre || ''
+          };
+          if (!votersByBar[vote.bar]) votersByBar[vote.bar] = [];
+          votersByBar[vote.bar].push(voter);
+        });
       
-      const voteCounts = {};
-      allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
-      });
+        const statsMap = {};
+        barStats.forEach(stat => {
+          statsMap[stat.bar] = stat;
+        });
+
+        const sortedBars = bars.slice().sort((a, b) => {
+          const aVotes = voteCounts[a.name] || 0;
+          const bVotes = voteCounts[b.name] || 0;
+          if (bVotes !== aVotes) return bVotes - aVotes;
+          return a.name.localeCompare(b.name);
+        });
+
+        const winningBars = getWinningBars(allVotes);
+
+        tbody.innerHTML = '';
+
+        if (sortedBars.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
+          return;
+        }
       
-      const statsMap = {};
-      barStats.forEach(stat => {
-        statsMap[stat.bar] = stat;
-      });
-      
-      const sortedBars = bars.slice().sort((a, b) => {
-        const aVotes = voteCounts[a.name] || 0;
-        const bVotes = voteCounts[b.name] || 0;
-        if (bVotes !== aVotes) return bVotes - aVotes;
-        return a.name.localeCompare(b.name);
-      });
-      
-      const winningBars = getWinningBars(allVotes);
-      
-      tbody.innerHTML = '';
-      
-      if (sortedBars.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted-light">No hay bares para mostrar.</td></tr>';
-        return;
-      }
-      
-      sortedBars.forEach(bar => {
-        const votesForBar = voteCounts[bar.name] || 0;
-        const userHasVotedForThisBar = userVotes.includes(bar.name);
-        const stats = statsMap[bar.name];
-        const isWinner = winningBars.includes(bar.name) && votesForBar > 0;
+        sortedBars.forEach(bar => {
+          const votesForBar = voteCounts[bar.name] || 0;
+          const userHasVotedForThisBar = userVotes.includes(bar.name);
+          const voters = votersByBar[bar.name] || [];
+          const stats = statsMap[bar.name];
+          const isWinner = winningBars.includes(bar.name) && votesForBar > 0;
 
         let socialLinks = '';
         if (bar.ig) socialLinks += `<a class="icon-link" href="${bar.ig}" target="_blank" title="Instagram">${igIcon()}</a>`;
@@ -1791,26 +1818,35 @@
           row.classList.add('winner-highlight');
         }
         
-        row.innerHTML = `
-          <td style="font-weight: 600;">
-            ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
-          </td>
-          <td>${socialLinks}</td>
-          <td>
-            <button class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}" 
-                    ${currentWeek?.estado !== 'activa' ? 'disabled' : ''} 
-                    data-bar="${encodeURIComponent(bar.name)}" 
-                    data-action="vote">
-              ${userHasVotedForThisBar ? '🍺' : 'VOTE'}
-            </button>
-          </td>
-          <td style="font-size: 1.2em; font-weight: 700;">
-            <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}">
-              ${votesForBar}
-            </span>
-          </td>
-          <td class="last-visit">${lastVisitText}</td>
-        `;
+          const votersHtml = voters.map(v => {
+            const name = v.nombre ? v.nombre.toString().trim() : '';
+            const firstLetter = name ? name.charAt(0).toUpperCase() : '';
+            return v.avatar_url
+              ? `<img src="${v.avatar_url}" class="voter-avatar" alt="Avatar" onerror="this.outerHTML='<div class=&quot;voter-avatar&quot;>${firstLetter}</div>'">`
+              : `<div class="voter-avatar">${firstLetter}</div>`;
+          }).join('');
+
+          row.innerHTML = `
+            <td style="font-weight: 600;">
+              ${bar.name}${isWinner ? '<span class="crown-icon">👑</span>' : ''}
+            </td>
+            <td>${socialLinks}</td>
+            <td>
+              <button class="vote-btn${userHasVotedForThisBar ? ' voted' : ''}"
+                      ${currentWeek?.estado !== 'activa' ? 'disabled' : ''}
+                      data-bar="${encodeURIComponent(bar.name)}"
+                      data-action="vote">
+                ${userHasVotedForThisBar ? '🍺' : 'VOTE'}
+              </button>
+            </td>
+            <td style="font-size: 1.2em; font-weight: 700;">
+              <span class="${votesForBar > 0 ? 'text-warning' : 'text-muted-light'}">
+                ${votesForBar}
+              </span>
+            </td>
+            <td>${votersHtml}</td>
+            <td class="last-visit">${lastVisitText}</td>
+          `;
         tbody.appendChild(row);
       });
     }
