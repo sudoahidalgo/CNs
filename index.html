@@ -1078,6 +1078,7 @@
     let isMobile = false;
     let currentMobileSection = 'voting';
     let isAdmin = false;
+    let currentUserProfile = null;
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -1165,6 +1166,7 @@
       userVotes = [];
       userAttendance = false;
       isAdmin = false;
+      currentUserProfile = null;
       bars = [];
       showAuthContainer();
     }
@@ -1222,9 +1224,12 @@
 
     function updateUserDisplay() {
       if (!currentUser) return;
-      
-      const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
-      const avatarUrl = currentUser.user_metadata?.avatar_url;
+
+      const profileName = currentUserProfile?.nombre;
+      const profileAvatar = currentUserProfile?.avatar_url;
+
+      const name = profileName || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Usuario';
+      const avatarUrl = currentUser.user_metadata?.avatar_url || profileAvatar;
       const firstLetter = (currentUser.email || 'U').charAt(0).toUpperCase();
       
       // Check if user is admin
@@ -1446,25 +1451,30 @@
     // ========== DATA LOADING ==========
     async function ensureUserProfile() {
       try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('usuarios')
           .select('*')
           .eq('id', currentUser.id)
           .single();
-        
+
         if (error && error.code !== 'PGRST116') throw error;
-        
+
         if (!data) {
-          const { error: insertError } = await supabase
+          const { data: inserted, error: insertError } = await supabase
             .from('usuarios')
             .insert({
               id: currentUser.id,
               email: currentUser.email,
               nombre: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
               avatar_url: currentUser.user_metadata?.avatar_url
-            });
+            })
+            .select()
+            .single();
           if (insertError) throw insertError;
+          data = inserted;
         }
+
+        currentUserProfile = data;
       } catch (error) {
         console.error('❌ Error en ensureUserProfile:', error);
       }
