@@ -656,12 +656,14 @@
     }
 
     function formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('es-ES', {
+      const d = new Date(dateString);
+      const formatted = d.toLocaleDateString('es-ES', {
         weekday: 'short',
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       });
+      return d.getDay() === 2 ? formatted : `⚠️ ${formatted}`;
     }
 
     function formatDateTime(dateString) {
