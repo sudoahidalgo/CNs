@@ -1585,6 +1585,42 @@
       }
     }
 
+    async function getLastVisitStats() {
+      try {
+        const { data, error } = await supabase
+          .from('semanas_cn')
+          .select('bar_ganador, fecha_martes')
+          .eq('estado', 'finalizada')
+          .not('bar_ganador', 'is', null)
+          .order('fecha_martes', { ascending: false });
+
+        if (error) throw error;
+
+        const lastVisits = {};
+        data.forEach(week => {
+          if (week.bar_ganador && !lastVisits[week.bar_ganador]) {
+            lastVisits[week.bar_ganador] = week.fecha_martes;
+          }
+        });
+
+        const statsMap = {};
+        const today = new Date();
+        Object.entries(lastVisits).forEach(([bar, dateStr]) => {
+          const visitDate = parseLocalDate(dateStr);
+          const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
+          statsMap[bar] = {
+            ultima_visita: dateStr,
+            dias_desde_ultima_visita: daysDiff
+          };
+        });
+
+        return statsMap;
+      } catch (error) {
+        console.error('❌ Error obteniendo estadísticas de visitas:', error);
+        return {};
+      }
+    }
+
     async function loadVotingData() {
       if (!currentUser || !currentWeek) return;
       
@@ -1600,16 +1636,12 @@
           .filter(v => v.user_id === currentUser.id)
           .map(v => v.bar);
         
-        const { data: barStats, error: statsError } = await supabase
-          .from('estadisticas_bares')
-          .select('*');
-        
-        if (statsError) console.error('Error loading bar stats:', statsError);
+        const barStatsMap = await getLastVisitStats();
         
         if (isMobile) {
-          renderMobileBars(votesInWeek || [], barStats || []);
+          renderMobileBars(votesInWeek || [], barStatsMap);
         } else {
-          renderDesktopBars(votesInWeek || [], barStats || []);
+          renderDesktopBars(votesInWeek || [], barStatsMap);
         }
         
       } catch (error) {
@@ -1658,7 +1690,7 @@
     }
 
     // ========== MOBILE RENDERING ==========
-    function renderMobileBars(allVotes, barStats) {
+    function renderMobileBars(allVotes, statsMap) {
       const container = document.getElementById('mobileBarsContainer');
       if (!container) return;
       
@@ -1667,10 +1699,6 @@
         voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
       });
       
-      const statsMap = {};
-      barStats.forEach(stat => {
-        statsMap[stat.bar] = stat;
-      });
       
       const sortedBars = bars.slice().sort((a, b) => {
         const aVotes = voteCounts[a.name] || 0;
@@ -1779,7 +1807,7 @@
     }
 
     // ========== DESKTOP RENDERING ==========
-      function renderDesktopBars(allVotes, barStats) {
+      function renderDesktopBars(allVotes, statsMap) {
         const tbody = document.getElementById('desktopBarsTable');
         if (!tbody) return;
 
@@ -1798,10 +1826,6 @@
           votersByBar[vote.bar].push(voter);
         });
       
-        const statsMap = {};
-        barStats.forEach(stat => {
-          statsMap[stat.bar] = stat;
-        });
 
         const sortedBars = bars.slice().sort((a, b) => {
           const aVotes = voteCounts[a.name] || 0;
