@@ -1339,6 +1339,13 @@
       return nextTuesday;
     }
 
+    function parseLocalDate(dateString) {
+      if (!dateString) return null;
+      const [datePart] = dateString.split('T');
+      const [y, m, d] = datePart.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
     function formatTuesdayDate(date) {
       const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
       const day = date.getDate().toString().padStart(2, '0');
@@ -1413,7 +1420,7 @@
     function formatDate(dateString) {
       if (!dateString) return 'N/A';
       try {
-        const date = new Date(dateString);
+        const date = parseLocalDate(dateString);
         // Check if it's a Tuesday (day 2)
         if (date.getDay() === 2) {
           return date.toLocaleDateString('es-ES', {
@@ -1436,7 +1443,7 @@
     function formatTuesdayDateLong(dateString) {
       if (!dateString) return 'N/A';
       try {
-        const date = new Date(dateString);
+        const date = parseLocalDate(dateString);
         return date.toLocaleDateString('es-ES', {
           weekday: 'long',
           day: 'numeric',
@@ -1561,7 +1568,7 @@
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(new Date(currentWeek.fecha_martes))} - CN #${totalCNs}`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(parseLocalDate(currentWeek.fecha_martes))} - CN #${totalCNs}`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
@@ -2153,7 +2160,7 @@
               let visitClass = 'never-visited';
               
               if (bar.lastVisit) {
-                const visitDate = new Date(bar.lastVisit);
+                const visitDate = parseLocalDate(bar.lastVisit);
                 const today = new Date();
                 const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
                 const dateStr = formatDate(bar.lastVisit);
@@ -2358,7 +2365,7 @@
               let visitText = 'Nunca ganó';
               let visitClass = 'never-visited';
               if (bar.lastVisit) {
-                const visitDate = new Date(bar.lastVisit);
+                const visitDate = parseLocalDate(bar.lastVisit);
                 const today = new Date();
                 const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
                 const dateStr = formatDate(bar.lastVisit);
