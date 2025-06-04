@@ -9,7 +9,8 @@ exports.handler = async (event) => {
   const ip = event.headers["client-ip"] || "unknown";
   const today = new Date();
   const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Lunes como inicio (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+  // Calcular el martes anterior a las 00:00 como inicio de la semana
+  weekStart.setDate(today.getDate() - ((today.getDay() + 5) % 7)); // Martes como inicio
   weekStart.setHours(0, 0, 0, 0);
 
   if (event.httpMethod === "GET") {
@@ -52,6 +53,18 @@ exports.handler = async (event) => {
   if (event.httpMethod === "POST") {
     try {
       const { place } = JSON.parse(event.body);
+
+      // Calcular la fecha límite de votación: martes a las 23:59 UTC
+      const votingDeadline = new Date(weekStart);
+      votingDeadline.setUTCHours(23, 59, 59, 999);
+
+      // Si ya pasó la fecha límite, rechazar el voto
+      if (today > votingDeadline) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: "Voting closed" }),
+        };
+      }
 
       // Contar cuántos votos ha hecho esta IP esta semana
       const { data: existingVotes, error: checkError } = await supabase
