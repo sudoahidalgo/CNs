@@ -775,6 +775,16 @@
       vertical-align: middle;
       padding: 12px 8px;
     }
+
+    .desktop-week-info {
+      font-size: 1.2rem;
+    }
+
+    .desktop-week-info .cn-number {
+      font-size: 1.6em;
+      font-weight: 700;
+      color: #ffe066;
+    }
   </style>
 </head>
 <body>
@@ -911,7 +921,7 @@
 
     <div class="desktop-header">
       <h1>🍺 CORKY NIGHTS 🍺</h1>
-      <div id="desktopWeekInfo" class="text-light"></div>
+      <div id="desktopWeekInfo" class="text-light desktop-week-info"></div>
     </div>
 
     <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
@@ -1568,7 +1578,7 @@
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(parseLocalDate(currentWeek.fecha_martes))} - CN #${totalCNs}`;
+          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(parseLocalDate(currentWeek.fecha_martes))} - <span class="cn-number">CN #${totalCNs}</span>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
