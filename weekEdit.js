@@ -57,6 +57,7 @@ async function saveWeekChanges() {
   try {
     const res = await fetch('/.netlify/functions/updateAttendance', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         weekId: editingWeekId,
         bar,
