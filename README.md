@@ -16,7 +16,7 @@ Estas variables deben estar disponibles en el entorno donde se despliega `netlif
 
 La función `netlify/functions/updateAttendance.js` también usa estas variables para modificar las asistencias y el bar ganador desde el panel de administración.
 
-Si alguna de estas variables falta, `updateAttendance.js` registrará un error y responderá con un estado 500. Asegúrate de configurarlas en las variables de entorno de tu sitio en Netlify.
+Si alguna de estas variables falta, `updateAttendance.js` registrará cuál falta y responderá con un estado 500. Asegúrate de configurarlas en las variables de entorno de tu sitio en Netlify.
 
 ## Proceso Semanal
 
