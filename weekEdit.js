@@ -48,7 +48,7 @@ async function saveWeekChanges() {
   const bar = document.getElementById('editWeekBar').value || null;
   const selected = Array.from(
     document.querySelectorAll('#editWeekUsers input:checked')
-  ).map(el => parseInt(el.value, 10));
+  ).map(el => el.value);
   const total = selected.length;
 
   try {
@@ -70,7 +70,7 @@ async function saveWeekChanges() {
 
     if (selected.length) {
       const rows = selected.map((id) => ({
-        user_id: parseInt(id, 10),
+        user_id: id,
         semana_id: editingWeekId,
         confirmado: true,
       }));
