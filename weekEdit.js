@@ -112,3 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('saveWeekChanges');
   if (btn) btn.addEventListener('click', saveWeekChanges);
 });
+
+// Export for testing in Node environments
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    openEditWeek,
+    saveWeekChanges,
+    _setEditingWeekId: (id) => { editingWeekId = id; },
+    _getEditingWeekId: () => editingWeekId,
+  };
+}
