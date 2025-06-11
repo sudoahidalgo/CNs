@@ -2,7 +2,7 @@
 const { saveWeekChanges, _setEditingWeekId, _getEditingWeekId } = require('../weekEdit');
 
 describe('saveWeekChanges', () => {
-  let updateEqMock, deleteEqMock, insertMock, hideMock;
+  let hideMock;
 
   beforeEach(() => {
     document.body.innerHTML = `
@@ -21,23 +21,14 @@ describe('saveWeekChanges', () => {
       }
     };
 
-    updateEqMock = jest.fn().mockResolvedValue({ error: null });
-    const updateMock = jest.fn(() => ({ eq: updateEqMock }));
-    deleteEqMock = jest.fn().mockResolvedValue({ error: null });
-    const deleteMock = jest.fn(() => ({ eq: deleteEqMock }));
-    insertMock = jest.fn().mockResolvedValue({ error: null });
-
-    global.supabase = {
-      from: jest.fn((table) => {
-        if (table === 'semanas_cn') {
-          return { update: updateMock };
-        }
-        if (table === 'asistencias') {
-          return { delete: deleteMock, insert: insertMock };
-        }
-        return {};
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true })
       })
-    };
+    );
+
+    global.isAdmin = true;
 
     global.showAlert = jest.fn();
 
@@ -45,7 +36,8 @@ describe('saveWeekChanges', () => {
   });
 
   afterEach(() => {
-    delete global.supabase;
+    delete global.fetch;
+    delete global.isAdmin;
     delete global.bootstrap;
     delete global.showAlert;
   });
@@ -53,15 +45,17 @@ describe('saveWeekChanges', () => {
   test('updates week and attendees then resets editingWeekId', async () => {
     await saveWeekChanges();
 
-    expect(global.supabase.from).toHaveBeenCalledWith('semanas_cn');
-    expect(updateEqMock).toHaveBeenCalledWith('id', 1);
-
-    expect(global.supabase.from).toHaveBeenCalledWith('asistencias');
-    expect(deleteEqMock).toHaveBeenCalledWith('semana_id', 1);
-
-    expect(insertMock).toHaveBeenCalledWith([
-      { user_id: 'u1', semana_id: 1, confirmado: true }
-    ]);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/.netlify/functions/updateAttendance',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          weekId: 1,
+          bar: 'Bar1',
+          attendees: ['u1']
+        })
+      })
+    );
 
     expect(hideMock).toHaveBeenCalled();
     expect(_getEditingWeekId()).toBeNull();
