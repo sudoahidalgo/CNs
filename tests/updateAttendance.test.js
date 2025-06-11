@@ -41,11 +41,7 @@ const loadHandler = () => {
 describe('updateAttendance handler', () => {
   beforeEach(() => {
     supabaseMock = {
-      from: jest.fn(() => supabaseMock),
-      update: jest.fn(() => supabaseMock),
-      delete: jest.fn(() => supabaseMock),
-      insert: jest.fn(() => Promise.resolve({ error: null })),
-      eq: jest.fn(() => Promise.resolve({ error: null }))
+      rpc: jest.fn(() => Promise.resolve({ error: null }))
     };
     globalThis.createClientMock = jest.fn(() => supabaseMock);
   });
@@ -59,13 +55,11 @@ describe('updateAttendance handler', () => {
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body)).toEqual({ success: true });
-    expect(supabaseMock.from).toHaveBeenCalledWith('semanas_cn');
-    expect(supabaseMock.from).toHaveBeenCalledWith('asistencias');
-    expect(supabaseMock.update).toHaveBeenCalled();
-    expect(supabaseMock.delete).toHaveBeenCalled();
-    expect(supabaseMock.insert).toHaveBeenCalled();
-    expect(supabaseMock.eq).toHaveBeenCalledWith('id', 1);
-    expect(supabaseMock.eq).toHaveBeenCalledWith('semana_id', 1);
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('update_week_and_visits', {
+      week_id: 1,
+      bar: 'Bar',
+      attendees: ['u1', 'u2']
+    });
   });
 
   test('returns 400 when weekId missing', async () => {

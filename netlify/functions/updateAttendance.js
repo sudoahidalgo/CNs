@@ -34,34 +34,16 @@ if (missingVars.length) {
         };
       }
 
-      const { error: updErr } = await supabase
-        .from('semanas_cn')
-        .update({
-          bar_ganador: bar,
-          total_asistentes: (attendees || []).length,
-          hubo_quorum: (attendees || []).length >= 3
-        })
-        .eq('id', weekId);
-      if (updErr) throw updErr;
+      const attendeeIds = (attendees || []).map((id) =>
+        /^\d+$/.test(id) ? parseInt(id, 10) : id
+      );
 
-      const { error: delErr } = await supabase
-        .from('asistencias')
-        .delete()
-        .eq('semana_id', weekId);
-      if (delErr) throw delErr;
-
-      const rows = (attendees || []).map((id) => ({
-        user_id: /^\d+$/.test(id) ? parseInt(id, 10) : id,
-        semana_id: weekId,
-        confirmado: true
-      }));
-
-      if (rows.length) {
-        const { error: insErr } = await supabase
-          .from('asistencias')
-          .insert(rows);
-        if (insErr) throw insErr;
-      }
+      const { error: rpcErr } = await supabase.rpc('update_week_and_visits', {
+        week_id: weekId,
+        bar,
+        attendees: attendeeIds
+      });
+      if (rpcErr) throw rpcErr;
 
       return {
         statusCode: 200,
