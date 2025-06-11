@@ -24,6 +24,17 @@ Estas variables deben estar disponibles en el entorno donde se despliegan las fu
 
 En el frontend, las credenciales de Supabase se definen en `config.js`. Los archivos `index.html`, `admin.html` y `votacion.html` importan estas constantes desde ese módulo en lugar de declararlas de forma individual.
 
+## Local Development
+
+Para que las rutas `/.netlify/functions/*` funcionen correctamente se deben servir los archivos HTML con Netlify.
+
+```bash
+npm install -g netlify-cli        # if not installed
+netlify dev                        # runs functions locally
+```
+
+Antes de ejecutar `netlify dev` asegúrate de que las variables `SUPABASE_URL` y `SUPABASE_SERVICE_KEY` estén disponibles en el entorno. Si abres los archivos HTML directamente sin usar Netlify el `fetch` en `weekEdit.js` fallará.
+
 
 ## Proceso Semanal
 
