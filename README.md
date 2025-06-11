@@ -20,11 +20,8 @@ Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
 - `SUPABASE_URL` – la URL de tu proyecto de Supabase.
 - `SUPABASE_SERVICE_KEY` – la clave de servicio para las funciones backend.
 
-Estas variables deben estar disponibles en el entorno donde se despliega `netlify/functions/vote.js`.
+Estas variables deben estar disponibles en el entorno donde se despliegan las funciones serverless `netlify/functions/vote.js` y `netlify/functions/updateAttendance.js`.
 
-La función `netlify/functions/updateAttendance.js` también usa estas variables para modificar las asistencias y el bar ganador desde el panel de administración.
-
-Si alguna de estas variables falta, `updateAttendance.js` registrará cuál falta y responderá con un estado 500. Asegúrate de configurarlas en las variables de entorno de tu sitio en Netlify.
 
 ## Proceso Semanal
 
