@@ -49,36 +49,23 @@ async function saveWeekChanges() {
   const selected = Array.from(
     document.querySelectorAll('#editWeekUsers input:checked')
   ).map(el => el.value);
-  const total = selected.length;
+
+  if (typeof isAdmin !== 'undefined' && !isAdmin) {
+    return;
+  }
 
   try {
-    const { error: updErr } = await supabase
-      .from('semanas_cn')
-      .update({
-        bar_ganador: bar,
-        total_asistentes: total,
-        hubo_quorum: total >= 3,
-      })
-      .eq('id', editingWeekId);
-    if (updErr) throw updErr;
+    const res = await fetch('/.netlify/functions/updateAttendance', {
+      method: 'POST',
+      body: JSON.stringify({
+        weekId: editingWeekId,
+        bar,
+        attendees: selected,
+      }),
+    });
 
-    const { error: delErr } = await supabase
-      .from('asistencias')
-      .delete()
-      .eq('semana_id', editingWeekId);
-    if (delErr) throw delErr;
-
-    if (selected.length) {
-      const rows = selected.map(id => ({
-        user_id: /^\d+$/.test(id) ? parseInt(id, 10) : id,
-        semana_id: editingWeekId,
-        confirmado: true,
-      }));
-      const { error: insErr } = await supabase
-        .from('asistencias')
-        .insert(rows);
-      if (insErr) throw insErr;
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editWeekModal'));
     modal.hide();

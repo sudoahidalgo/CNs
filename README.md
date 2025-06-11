@@ -14,6 +14,8 @@ Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
 
 Estas variables deben estar disponibles en el entorno donde se despliega `netlify/functions/vote.js`.
 
+La función `netlify/functions/updateAttendance.js` también usa estas variables para modificar las asistencias y el bar ganador desde el panel de administración.
+
 ## Proceso Semanal
 
 Cada martes se actualizan las estadísticas y se registra el bar ganador en la tabla `semanas_cn`. Esto se realiza mediante la función almacenada `process_weekly_reset`, la cual finaliza la semana vigente, crea una nueva y reinicia los votos.
