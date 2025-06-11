@@ -785,6 +785,14 @@
       font-weight: 700;
       color: #ffe066;
     }
+
+    .edit-week-btn {
+      margin-left: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .edit-week-btn { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -2336,7 +2344,7 @@
         ] = await Promise.all([
           supabase
             .from('semanas_cn')
-            .select('bar_ganador, fecha_martes')
+            .select('id, bar_ganador, fecha_martes')
             .eq('estado', 'finalizada')
             .not('bar_ganador', 'is', null)
             .order('fecha_martes', { ascending: false }),
@@ -2426,13 +2434,13 @@
             const lastVisits = {};
             weeksData.forEach(week => {
               if (week.bar_ganador && !lastVisits[week.bar_ganador]) {
-                lastVisits[week.bar_ganador] = week.fecha_martes;
+                lastVisits[week.bar_ganador] = { date: week.fecha_martes, id: week.id };
               }
             });
 
             const barsWithVisits = bars.map(bar => {
-              const lastVisit = lastVisits[bar.name];
-              return { name: bar.name, lastVisit };
+              const visit = lastVisits[bar.name];
+              return { name: bar.name, lastVisit: visit?.date, weekId: visit?.id };
             }).sort((a, b) => {
               if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
               if (!a.lastVisit) return 1;
@@ -2457,6 +2465,7 @@
                 <div class="d-flex justify-content-between align-items-center py-1">
                   <span>${bar.name}</span>
                   <span class="${visitClass}">${visitText}</span>
+                  ${isAdmin && bar.weekId ? `<button class="btn btn-sm btn-outline-info edit-week-btn" onclick="openEditWeek(${bar.weekId})">Editar</button>` : ''}
                 </div>`;
             }).join('');
           }
@@ -2851,5 +2860,30 @@
     window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
   </script>
+  <div class="modal fade" id="editWeekModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Semana</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editWeekBar" class="form-label">Bar visitado</label>
+            <select id="editWeekBar" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Asistentes</label>
+            <div id="editWeekUsers" class="d-flex flex-wrap" style="gap: 10px; max-height: 300px; overflow-y: auto;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveWeekChanges">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="weekEdit.js"></script>
 </body>
 </html>
