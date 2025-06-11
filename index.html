@@ -2173,7 +2173,12 @@
         // Convert to array and sort
         const sortedUsers = Object.values(userStats)
           .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
-          .sort((a, b) => b.asistencias - a.asistencias)
+          .sort((a, b) => {
+            if (b.asistencias === a.asistencias) {
+              return b.streak - a.streak;
+            }
+            return b.asistencias - a.asistencias;
+          })
           .slice(0, 20);
         
         const userRankingEl = document.getElementById('mobileUserRanking');
@@ -2406,7 +2411,12 @@
 
         const sortedUsers = Object.values(userStats)
           .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
-          .sort((a, b) => b.asistencias - a.asistencias)
+          .sort((a, b) => {
+            if (b.asistencias === a.asistencias) {
+              return b.streak - a.streak;
+            }
+            return b.asistencias - a.asistencias;
+          })
           .slice(0, 20);
 
         const userRankingEl = document.getElementById('desktopUserRanking');
