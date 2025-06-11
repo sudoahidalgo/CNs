@@ -22,6 +22,8 @@ Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
 
 Estas variables deben estar disponibles en el entorno donde se despliegan las funciones serverless `netlify/functions/vote.js` y `netlify/functions/updateAttendance.js`.
 
+En el frontend, las credenciales de Supabase se definen en `config.js`. Los archivos `index.html`, `admin.html` y `votacion.html` importan estas constantes desde ese módulo en lugar de declararlas de forma individual.
+
 
 ## Proceso Semanal
 
