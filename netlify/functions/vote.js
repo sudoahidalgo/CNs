@@ -54,9 +54,9 @@ exports.handler = async (event) => {
     try {
       const { place } = JSON.parse(event.body);
 
-      // Calcular la fecha límite de votación: martes a las 23:59 UTC
+      // Calcular la fecha límite de votación: martes a las 23:00 UTC
       const votingDeadline = new Date(weekStart);
-      votingDeadline.setUTCHours(23, 59, 59, 999);
+      votingDeadline.setUTCHours(23, 0, 0, 0);
 
       // Si ya pasó la fecha límite, rechazar el voto
       if (today > votingDeadline) {
