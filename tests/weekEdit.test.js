@@ -61,4 +61,20 @@ describe('saveWeekChanges', () => {
     expect(hideMock).toHaveBeenCalled();
     expect(_getEditingWeekId()).toBeNull();
   });
+
+  test('shows status code and error message when request fails', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: () => Promise.resolve({ error: 'Bad request' }),
+    });
+
+    await saveWeekChanges();
+
+    expect(global.showAlert).toHaveBeenCalledWith(
+      'Error actualizando semana: 400: Bad request',
+      'danger'
+    );
+    expect(_getEditingWeekId()).toBeNull();
+  });
 });

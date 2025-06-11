@@ -66,7 +66,9 @@ async function saveWeekChanges() {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Request failed');
+    if (!res.ok) {
+      throw new Error(`${res.status}: ${data.error || 'Request failed'}`);
+    }
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editWeekModal'));
     modal.hide();
