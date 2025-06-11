@@ -1,10 +1,15 @@
 const { createClient } = require('@supabase/supabase-js');
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-  console.error('Missing SUPABASE configuration');
+const missingVars = [];
+if (!process.env.SUPABASE_URL) missingVars.push('SUPABASE_URL');
+if (!process.env.SUPABASE_SERVICE_KEY) missingVars.push('SUPABASE_SERVICE_KEY');
+
+if (missingVars.length) {
+  const msg = `Missing ${missingVars.join(', ')}`;
+  console.error(msg);
   exports.handler = async () => ({
     statusCode: 500,
-    body: JSON.stringify({ error: 'Missing SUPABASE configuration' })
+    body: JSON.stringify({ error: msg })
   });
   return;
 }
