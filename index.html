@@ -1465,11 +1465,17 @@
       }
     }
 
-    function calculateStreak(dates) {
+    function calculateStreak(dates, lastTuesday) {
       if (!dates || !dates.length) return 0;
       const sorted = dates
         .map(d => parseLocalDate(d))
         .sort((a, b) => b - a);
+
+      const lastDate = sorted[0];
+      if (lastTuesday && (!lastDate || lastDate.getTime() !== parseLocalDate(lastTuesday).getTime())) {
+        return 0;
+      }
+
       let streak = 1;
       for (let i = 1; i < sorted.length; i++) {
         const diff = (sorted[i - 1] - sorted[i]) / (1000 * 60 * 60 * 24);
@@ -2138,6 +2144,7 @@
         
         // Process user ranking data
         let userStats = {};
+        let lastWeekDate = null;
         if (userRankingData && !userRankingError) {
           userRankingData.forEach(record => {
             const userId = record.user_id;
@@ -2148,13 +2155,16 @@
             userStats[userId].asistencias += 1;
             if (record.semanas_cn?.fecha_martes) {
               userStats[userId].dates.push(record.semanas_cn.fecha_martes);
+              if (!lastWeekDate || parseLocalDate(record.semanas_cn.fecha_martes) > parseLocalDate(lastWeekDate)) {
+                lastWeekDate = record.semanas_cn.fecha_martes;
+              }
             }
           });
         }
-        
+
         // Convert to array and sort
         const sortedUsers = Object.values(userStats)
-          .map(u => ({ ...u, streak: calculateStreak(u.dates) }))
+          .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
           .sort((a, b) => b.asistencias - a.asistencias)
           .slice(0, 20);
         
@@ -2168,7 +2178,7 @@
                 <span style="font-weight: 500;">${i + 1}. ${user.nombre}</span>
                 <span>
                   <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
-                  <span style="background: rgba(255, 110, 80, 0.2); color: #ff6e50; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 4px;">🔥 ${user.streak}</span>
+                  ${user.streak > 0 ? `<span style="background: rgba(255, 110, 80, 0.2); color: #ff6e50; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 4px;">🔥 ${user.streak}</span>` : ''}
                 </span>
               </div>
             `).join('');
@@ -2368,6 +2378,7 @@
 
         // ===== User Ranking =====
         let userStats = {};
+        let lastWeekDate = null;
         if (userRankingData && !userRankingError) {
           userRankingData.forEach(record => {
             const userId = record.user_id;
@@ -2378,12 +2389,15 @@
             userStats[userId].asistencias += 1;
             if (record.semanas_cn?.fecha_martes) {
               userStats[userId].dates.push(record.semanas_cn.fecha_martes);
+              if (!lastWeekDate || parseLocalDate(record.semanas_cn.fecha_martes) > parseLocalDate(lastWeekDate)) {
+                lastWeekDate = record.semanas_cn.fecha_martes;
+              }
             }
           });
         }
 
         const sortedUsers = Object.values(userStats)
-          .map(u => ({ ...u, streak: calculateStreak(u.dates) }))
+          .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
           .sort((a, b) => b.asistencias - a.asistencias)
           .slice(0, 20);
 
@@ -2397,7 +2411,7 @@
                 <span>${index + 1}. ${user.nombre}</span>
                 <span>
                   <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
-                  <span class="badge bg-danger rounded-pill ms-1">🔥 ${user.streak}</span>
+                  ${user.streak > 0 ? `<span class="badge bg-danger rounded-pill ms-1">🔥 ${user.streak}</span>` : ''}
                 </span>
               </div>`).join('');
           }
