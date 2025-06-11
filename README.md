@@ -5,6 +5,14 @@
 * La votación queda abierta cada semana hasta el **martes a las 23:00**.
 * Los votos emitidos después de esa hora son ignorados por `vote.js`.
 
+## Setup
+
+Antes de ejecutar las pruebas o las funciones de Netlify de forma local, asegúrate de instalar las dependencias con:
+
+```bash
+npm install
+```
+
 ## Variables de Entorno
 
 Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
@@ -14,7 +22,6 @@ Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
 
 Estas variables deben estar disponibles en el entorno donde se despliegan las funciones serverless `netlify/functions/vote.js` y `netlify/functions/updateAttendance.js`.
 
-Ambas funciones validan su presencia al ejecutarse. Si falta alguna, registrarán un error y responderán con un estado 500. Asegúrate de configurarlas en las variables de entorno de tu sitio en Netlify.
 
 ## Proceso Semanal
 
