@@ -15,7 +15,12 @@ const supabase = createClient(
 );
 
 exports.handler = async (event) => {
-  const ip = event.headers["client-ip"] || "unknown";
+  const ip =
+    event.headers["client-ip"] ||
+    event.headers["x-nf-client-connection-ip"] ||
+    (event.headers["x-forwarded-for"]
+      ? event.headers["x-forwarded-for"].split(",")[0].trim()
+      : "unknown");
   const today = new Date();
   const weekStart = new Date(today);
   // Calcular el martes anterior a las 00:00 como inicio de la semana
