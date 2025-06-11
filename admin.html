@@ -558,6 +558,21 @@
       );
     }
 
+    async function finalizeWeek(id) {
+      confirmAction(
+        '¿Finalizar esta semana? Esto procesará los datos de la semana seleccionada.',
+        async () => {
+          try {
+            await supabase.rpc('finalize_specific_week', { week_id: id });
+            showAlert('Semana finalizada exitosamente', 'success');
+            await loadWeeks();
+          } catch (error) {
+            showAlert('Error finalizando semana: ' + error.message, 'danger');
+          }
+        }
+      );
+    }
+
     async function resetCurrentVotes() {
       confirmAction(
         '⚠️ ¿Eliminar TODOS los votos de la semana actual? Esta acción no se puede deshacer.',
@@ -744,6 +759,7 @@
     // Expose functions for onclick handlers
     window.createNewWeek = createNewWeek;
     window.finalizeCurrentWeek = finalizeCurrentWeek;
+    window.finalizeWeek = finalizeWeek;
     window.resetCurrentVotes = resetCurrentVotes;
     window.resetAttendances = resetAttendances;
     window.runWeeklyProcess = runWeeklyProcess;
