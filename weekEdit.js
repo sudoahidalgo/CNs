@@ -50,7 +50,7 @@ async function saveWeekChanges() {
   const total = selected.length;
 
   try {
-    const { error: updError } = await supabase
+    const { error: updErr } = await supabase
       .from('semanas_cn')
       .update({
         bar_ganador: bar,
@@ -58,13 +58,13 @@ async function saveWeekChanges() {
         hubo_quorum: total >= 3,
       })
       .eq('id', editingWeekId);
-    if (updError) throw updError;
+    if (updErr) throw updErr;
 
-    const { error: delError } = await supabase
+    const { error: delErr } = await supabase
       .from('asistencias')
       .delete()
       .eq('semana_id', editingWeekId);
-    if (delError) throw delError;
+    if (delErr) throw delErr;
 
     if (selected.length) {
       const rows = selected.map((id) => ({
@@ -72,10 +72,10 @@ async function saveWeekChanges() {
         semana_id: editingWeekId,
         confirmado: true,
       }));
-      const { error: insError } = await supabase
+      const { error: insErr } = await supabase
         .from('asistencias')
         .insert(rows);
-      if (insError) throw insError;
+      if (insErr) throw insErr;
     }
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editWeekModal'));
