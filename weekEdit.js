@@ -69,8 +69,8 @@ async function saveWeekChanges() {
     if (delErr) throw delErr;
 
     if (selected.length) {
-      const rows = selected.map((id) => ({
-        user_id: id,
+      const rows = selected.map(id => ({
+        user_id: /^\d+$/.test(id) ? parseInt(id, 10) : id,
         semana_id: editingWeekId,
         confirmado: true,
       }));
