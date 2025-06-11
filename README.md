@@ -5,6 +5,14 @@
 * La votación queda abierta cada semana hasta el **martes a las 23:00**.
 * Los votos emitidos después de esa hora son ignorados por `vote.js`.
 
+## Setup
+
+Antes de ejecutar las pruebas o las funciones de Netlify de forma local, asegúrate de instalar las dependencias con:
+
+```bash
+npm install
+```
+
 ## Variables de Entorno
 
 Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
