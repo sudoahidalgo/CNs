@@ -21,3 +21,7 @@ Cada martes se actualizan las estadísticas y se registra el bar ganador en la t
 ## Panel de Administración
 
 Abre `admin.html` y accede con un correo autorizado para ver el panel. Desde allí puedes finalizar la semana actual, ejecutar el proceso semanal o borrar todos los votos con los botones **Finalizar Semana** y **Resetear Votos**.
+
+## Flujo de Desarrollo
+
+Cuando contribuyas al código, escribe mensajes de commit breves y descriptivos que expliquen el propósito de los cambios. Evita frases genéricas como "update" o "fix" sin contexto. Un ejemplo de buen mensaje es **"Add admin week edit controls"**.
