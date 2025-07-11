@@ -84,6 +84,21 @@
       margin-top: 2px;
     }
 
+    .mobile-user-info {
+      display: flex;
+      align-items: center;
+    }
+
+    .mobile-streak {
+      background: rgba(255, 110, 80, 0.2);
+      color: #ff6e50;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-right: 8px;
+      display: none;
+    }
+
     .user-avatar-mobile {
       width: 36px;
       height: 36px;
@@ -814,10 +829,13 @@
           <h1 class="app-title">🍺 CORKY NIGHTS</h1>
           <div id="mobileWeekInfo" class="week-info"></div>
         </div>
-        <div class="user-avatar-mobile" id="mobileUserAvatar">
-          <div class="user-menu" id="mobileUserMenu">
-            <div class="user-menu-item" onclick="signOut()">
-              👋 Cerrar sesión
+        <div class="mobile-user-info">
+          <span id="mobileStreak" class="mobile-streak"></span>
+          <div class="user-avatar-mobile" id="mobileUserAvatar">
+            <div class="user-menu" id="mobileUserMenu">
+              <div class="user-menu-item" onclick="signOut()">
+                👋 Cerrar sesión
+              </div>
             </div>
           </div>
         </div>
@@ -2186,7 +2204,19 @@
             return b.asistencias - a.asistencias;
           })
           .slice(0, 20);
-        
+
+        const streakEl = document.getElementById('mobileStreak');
+        if (streakEl && currentUser) {
+          const myStats = userStats[currentUser.id];
+          const myStreak = myStats ? calculateStreak(myStats.dates, lastWeekDate) : 0;
+          if (myStreak > 0) {
+            streakEl.textContent = `🔥 ${myStreak}`;
+            streakEl.style.display = 'inline-block';
+          } else {
+            streakEl.style.display = 'none';
+          }
+        }
+
         const userRankingEl = document.getElementById('mobileUserRanking');
         if (userRankingEl) {
           if (userRankingError || !sortedUsers?.length) {
