@@ -2117,6 +2117,8 @@
             .eq('confirmado', true)
             .eq('semanas_cn.estado', 'finalizada')
         ]);
+
+        const totalCNs = weeksData?.length || 0;
         
         // Process top bars from historical data
         const topBarsEl = document.getElementById('mobileTopBars');
@@ -2172,7 +2174,11 @@
 
         // Convert to array and sort
         const sortedUsers = Object.values(userStats)
-          .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
+          .map(u => ({
+            ...u,
+            streak: calculateStreak(u.dates, lastWeekDate),
+            percentage: totalCNs ? Math.round((u.asistencias / totalCNs) * 100) : 0
+          }))
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
               return b.streak - a.streak;
@@ -2192,6 +2198,7 @@
                 <span>
                   ${user.streak > 0 ? `<span style="background: rgba(255, 110, 80, 0.2); color: #ff6e50; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 4px;">🔥 ${user.streak}</span>` : ''}
                   <span style="background: rgba(255, 224, 102, 0.2); color: #ffe066; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
+                  <span style="background: rgba(255,255,255,0.1); color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 4px;">${user.percentage}%</span>
                 </span>
               </div>
             `).join('');
@@ -2360,6 +2367,8 @@
             .eq('semanas_cn.estado', 'finalizada')
         ]);
 
+        const totalCNs = weeksData?.length || 0;
+
         // ===== Top Bars =====
         const topBarsEl = document.getElementById('desktopTopBars');
         if (topBarsEl) {
@@ -2410,7 +2419,11 @@
         }
 
         const sortedUsers = Object.values(userStats)
-          .map(u => ({ ...u, streak: calculateStreak(u.dates, lastWeekDate) }))
+          .map(u => ({
+            ...u,
+            streak: calculateStreak(u.dates, lastWeekDate),
+            percentage: totalCNs ? Math.round((u.asistencias / totalCNs) * 100) : 0
+          }))
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
               return b.streak - a.streak;
@@ -2430,6 +2443,7 @@
                 <span>
                   ${user.streak > 0 ? `<span class="badge bg-danger rounded-pill me-1">🔥 ${user.streak}</span>` : ''}
                   <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
+                  <span class="badge bg-secondary rounded-pill ms-1">${user.percentage}%</span>
                 </span>
               </div>`).join('');
           }
