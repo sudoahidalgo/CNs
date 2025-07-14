@@ -2982,8 +2982,10 @@
       const total = end - start;
       const elapsed = now - start;
       const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
-      const bar = document.getElementById("voteProgressBar");
-      if (bar) bar.style.width = progress + "%";
+      const bars = document.querySelectorAll(".vote-progress-bar");
+      bars.forEach(bar => {
+        bar.style.width = progress + "%";
+      });
     }
 
     const voteStart = new Date("2025-07-15T00:00:00");
