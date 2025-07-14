@@ -1653,14 +1653,14 @@
         const formattedDate = formatTuesdayDateLongNoYear(nextTuesday);
         const totalCNs = calculateTotalCNs();
         const remainingDays = daysUntil(nextTuesday);
-        const weekText = `Martes ${formattedDate} - T- ${remainingDays} dias - CN #${totalCNs}`;
+        const weekText = `Martes ${formattedDate} • T- ${remainingDays} dias • CN #${totalCNs}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Martes ${formattedDate} - T- ${remainingDays} dias - <span class="cn-number">CN #${totalCNs}</span>`;
+          if (el) el.innerHTML = `Martes ${formattedDate} • T- ${remainingDays} dias • <span class="cn-number">CN #${totalCNs}</span>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
