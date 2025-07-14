@@ -3050,15 +3050,20 @@
 
     function updateVoteProgressBar() {
       const now = new Date();
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - ((now.getDay() + 5) % 7));
-      weekStart.setHours(0, 0, 0, 0);
+      const nowCR = new Date(now.toLocaleString('en-US', { timeZone: 'America/Costa_Rica' }));
 
-      const voteEnd = new Date(weekStart);
-      voteEnd.setHours(23, 0, 0, 0);
+      const start = new Date(nowCR);
+      start.setDate(start.getDate() - ((start.getDay() + 5) % 7));
+      start.setHours(19, 0, 0, 0);
+      if (nowCR < start) {
+        start.setDate(start.getDate() - 7);
+      }
 
-      const total = voteEnd - weekStart;
-      const elapsed = now - weekStart;
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+
+      const total = end - start;
+      const elapsed = nowCR - start;
       const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
       const bars = document.querySelectorAll(".vote-progress-bar");
       bars.forEach(bar => {
