@@ -2965,10 +2965,17 @@
     window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
 
-    function updateVoteProgressBar(start, end) {
+    function updateVoteProgressBar() {
       const now = new Date();
-      const total = end - start;
-      const elapsed = now - start;
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - ((now.getDay() + 5) % 7));
+      weekStart.setHours(0, 0, 0, 0);
+
+      const voteEnd = new Date(weekStart);
+      voteEnd.setHours(23, 0, 0, 0);
+
+      const total = voteEnd - weekStart;
+      const elapsed = now - weekStart;
       const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
       const bars = document.querySelectorAll(".vote-progress-bar");
       bars.forEach(bar => {
@@ -2976,10 +2983,8 @@
       });
     }
 
-    const voteStart = new Date("2025-07-15T00:00:00");
-    const voteEnd = new Date("2025-07-15T20:00:00");
-    updateVoteProgressBar(voteStart, voteEnd);
-    setInterval(() => updateVoteProgressBar(voteStart, voteEnd), 60000);
+    updateVoteProgressBar();
+    setInterval(updateVoteProgressBar, 60000);
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
