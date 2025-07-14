@@ -847,6 +847,9 @@
         <div>
           <h1 class="app-title">🍺 CORKY NIGHTS</h1>
           <div id="mobileWeekInfo" class="week-info"></div>
+  <div class="vote-progress-container">
+    <div class="vote-progress-bar" id="voteProgressBar"></div>
+  </div>
         </div>
         <div class="mobile-user-info">
           <span id="mobileStreak" class="mobile-streak"></span>
@@ -971,6 +974,9 @@
     <div class="desktop-header">
       <h1>🍺 CORKY NIGHTS 🍺</h1>
       <div id="desktopWeekInfo" class="text-light desktop-week-info"></div>
+      <div class="vote-progress-container">
+        <div class="vote-progress-bar" id="voteProgressBar"></div>
+      </div>
     </div>
 
     <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
@@ -2970,6 +2976,20 @@
     window.saveBarEdit = saveBarEdit;
     window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
+
+    function updateVoteProgressBar(start, end) {
+      const now = new Date();
+      const total = end - start;
+      const elapsed = now - start;
+      const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
+      const bar = document.getElementById("voteProgressBar");
+      if (bar) bar.style.width = progress + "%";
+    }
+
+    const voteStart = new Date("2025-07-15T00:00:00");
+    const voteEnd = new Date("2025-07-15T20:00:00");
+    updateVoteProgressBar(voteStart, voteEnd);
+    setInterval(() => updateVoteProgressBar(voteStart, voteEnd), 60000);
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
