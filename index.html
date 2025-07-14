@@ -1417,12 +1417,21 @@
       return `${day} de ${capitalizedMonth}`;
     }
 
-    function daysUntil(date) {
-      const today = new Date();
-      const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const diff = target.getTime() - start.getTime();
-      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    function getNextTuesdayAt7pm() {
+      const nextTuesday = getNextTuesday();
+      nextTuesday.setHours(19, 0, 0, 0); // 7pm local time
+      return nextTuesday;
+    }
+
+    function countdownTo(date) {
+      const now = new Date();
+      const diffMs = date.getTime() - now.getTime();
+      const hours = diffMs / (1000 * 60 * 60);
+      if (hours < 24) {
+        return { value: Math.ceil(hours), unit: 'hrs' };
+      }
+      const days = diffMs / (1000 * 60 * 60 * 24);
+      return { value: Math.ceil(days), unit: 'dias' };
     }
 
     function calculateTotalCNs() {
@@ -1652,15 +1661,16 @@
         const nextTuesday = getNextTuesday();
         const formattedDate = formatTuesdayDateLongNoYear(nextTuesday);
         const totalCNs = calculateTotalCNs();
-        const remainingDays = daysUntil(nextTuesday);
-        const weekText = `Martes ${formattedDate} • T- ${remainingDays} dias • CN #${totalCNs}`;
+        const countdown = countdownTo(getNextTuesdayAt7pm());
+        const countdownText = `${countdown.value} ${countdown.unit}`;
+        const weekText = `Martes ${formattedDate} • T- ${countdownText} • CN #${totalCNs}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Martes ${formattedDate} • T- ${remainingDays} dias • <span class="cn-number">CN #${totalCNs}</span>`;
+          if (el) el.innerHTML = `Martes ${formattedDate} • T- ${countdownText} • <span class="cn-number">CN #${totalCNs}</span>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
