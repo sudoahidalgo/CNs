@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randomizer - ¿A dónde vamos a la CN hoy?</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
       body {
-        background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+        background: #1e1b16 url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
         background-size: cover;
+        color: #fdf7e3;
+        font-family: 'Inter', sans-serif;
       }
       .overlay {
-        background: rgba(25,25,25,0.85);
+        background: rgba(30,27,22,0.85);
         position: fixed;
         top:0; left:0; width:100vw; height:100vh;
         z-index: 0;
@@ -86,7 +89,7 @@
     <a href="index.html" class="btn-back shadow-lg" style="position: fixed; top: 20px; left: 20px; z-index: 10;">
         ⬅️ Volver
     </a>
-    <div class="container main-container mx-auto text-center p-6 bg-gray-800 bg-opacity-90 rounded-2xl shadow-2xl max-w-xl">
+    <div class="container main-container mx-auto text-center p-6 rounded-2xl shadow-2xl max-w-xl" style="background:#3e2f1c; color:#fdf7e3;">
         <h1 class="text-4xl font-extrabold text-yellow-200 mb-3 drop-shadow-lg mt-2">🎲 Randomizer de Birras 🍺</h1>
         <p class="text-lg text-yellow-100 mb-6">¿Empate? ¿No se ponen de acuerdo? ¡Dejá que la suerte decida el bar de hoy!</p>
         <button id="decideBtn" class="btn-randomizer">
