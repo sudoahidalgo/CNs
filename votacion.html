@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <title>¿A dónde vamos este martes?</title>
@@ -18,6 +18,39 @@
     body {
       background: url('fondo.png') no-repeat center center fixed;
       background-size: cover;
+    }
+    .loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .beer {
+      width: 60px;
+      height: 80px;
+      border: 4px solid #fff;
+      border-radius: 0 0 10px 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .beer-liquid {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0;
+      background: #ffbf00;
+      animation: fillBeer 2s forwards;
+    }
+    @keyframes fillBeer {
+      from { height: 0; }
+      to { height: 100%; }
     }
     .overlay {
       position: fixed;
@@ -122,6 +155,20 @@
     .ig-icon {
       filter: drop-shadow(0 0 4px #ffe06688);
     }
+    [data-bs-theme="light"] body {
+      color: #000;
+    }
+    [data-bs-theme="light"] .overlay {
+      background: rgba(255,255,255,0.5);
+    }
+    [data-bs-theme="light"] table {
+      background: rgba(255,255,255,0.9);
+      color: #000;
+    }
+    [data-bs-theme="light"] th {
+      background: #eee;
+      color: #333;
+    }
     @media (max-width: 700px) {
       .main-content { padding: 2vw; }
       table { font-size: 0.93em; }
@@ -152,14 +199,26 @@
   </style>
 </head>
 <body>
+  <div id="loader" class="loader" style="display:flex">
+    <div class="beer">
+      <div class="beer-liquid"></div>
+    </div>
+  </div>
   <div class="overlay"></div>
   <a href="index.html" class="back-btn">⬅️ Volver</a>
   <div class="main-content">
+    <div class="d-flex align-items-center gap-2" style="margin-top:1rem;">
+      <div id="countdown" style="font-size:1.1rem;color:#ffe066;"></div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="themeToggle">
+        <label class="form-check-label" for="themeToggle">🌙/☀️</label>
+      </div>
+    </div>
     <div id="winner" class="winner-box" style="display:none"></div>
     <h2 class="mb-4 mt-2" style="color:#ffe066; text-shadow: 2px 3px 8px #0008; font-size:2rem; font-weight:700;">¿A dónde vamos este martes?</h2>
     <!-- Tabla de votos -->
     <div class="table-responsive" style="width:100%;max-width:900px;">
-      <table class="table table-dark table-hover align-middle mt-2">
+      <table id="voteTable" class="table table-dark table-hover align-middle mt-2">
         <thead>
           <tr>
             <th>Lugar</th>
@@ -334,7 +393,49 @@
       winnerDiv.style.display = "block";
     }
 
+    function startCountdown() {
+      const el = document.getElementById('countdown');
+      if (!el) return;
+      function update() {
+        const now = new Date();
+        const closing = new Date();
+        closing.setHours(19, 0, 0, 0);
+        if (now >= closing) {
+          el.textContent = 'Votación cerrada';
+          document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
+          return;
+        }
+        const diff = closing - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `Cierre en ${h}h ${m}m ${s}s`;
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    function initTheme() {
+      const toggle = document.getElementById('themeToggle');
+      if (!toggle) return;
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-bs-theme', saved);
+      toggle.checked = saved === 'light';
+      toggle.addEventListener('change', () => {
+        const theme = toggle.checked ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        localStorage.setItem('theme', theme);
+      });
+    }
+
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('loader');
+      if (loader) loader.style.display = 'none';
+    });
+
     fetchVotes();
+    startCountdown();
+    initTheme();
     window.vote = vote;
 
     // ========== LOGICA BOTON CERVEZA ADMIN ==========
