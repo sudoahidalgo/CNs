@@ -1,6 +1,48 @@
+:root {
+    --color-bg: #1e1b16;
+    --color-surface: #3b2f25;
+    --color-accent: #facc15;
+    --color-text-primary: #fef3c7;
+    --color-text-secondary: #d6b77b;
+    --color-button: #fff3c4;
+    --color-button-text: #1e1b16;
+    --color-highlight: #ffcc33;
+}
+
 body {
-    background-color: #1a202c;
-    color: #ffffff;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-size: 16px;
+}
+
+/* Layout Colors */
+.mobile-bar-item,
+.stats-card,
+.auth-card,
+.mobile-quorum-card,
+.mobile-history-item,
+.admin-card,
+table {
+    background-color: var(--color-surface);
+}
+
+.vote-btn,
+.mobile-vote-btn,
+.btn-admin {
+    background-color: var(--color-button);
+    color: var(--color-button-text);
+}
+
+.mobile-nav-item.active,
+.nav-pills .nav-link.active,
+.desktop-header h1,
+.auth-title {
+    color: var(--color-accent);
+}
+
+.winner-highlight {
+    border-color: var(--color-highlight) !important;
 }
 
 #decideBtn:active {

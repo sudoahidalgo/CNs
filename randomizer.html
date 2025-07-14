@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randomizer - ¿A dónde vamos a la CN hoy?</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
       body {
         background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
         background-size: cover;
+        background-color: var(--color-bg);
+        color: var(--color-text-primary);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
       }
       .overlay {
         background: rgba(25,25,25,0.85);
@@ -23,7 +28,7 @@
       .btn-back {
         background: rgba(34,34,34,0.80);
         border-radius: 2em;
-        color: #ffe066;
+        color: var(--color-accent);
         padding: 0.45em 1.8em;
         font-size: 1.25em;
         font-weight: 600;
@@ -37,8 +42,8 @@
       }
       .btn-back:hover { background: #4d3a18; color: #fff; }
       .btn-randomizer {
-        background: #008d4e;
-        color: #fff;
+        background: var(--color-button);
+        color: var(--color-button-text);
         border-radius: 2em;
         padding: 1em 2.6em;
         font-size: 2em;
@@ -51,14 +56,14 @@
         transition: background 0.16s, transform 0.1s;
       }
       .btn-randomizer:hover {
-        background: #19d260;
+        background: var(--color-accent);
         color: #222;
         transform: scale(1.07) rotate(-2deg);
       }
       .bar-pill {
         display: inline-block;
         background: #282e36;
-        color: #ffe066;
+        color: var(--color-accent);
         border-radius: 2em;
         padding: 0.37em 1.1em;
         margin: 0.3em 0.5em;
@@ -69,7 +74,7 @@
         transition: background 0.13s, color 0.13s, transform 0.11s;
       }
       .bar-pill:hover {
-        background: #ffe066;
+        background: var(--color-accent);
         color: #23292f;
         transform: scale(1.11);
       }
@@ -99,7 +104,7 @@
             <input id="newPlaceInput" type="text" placeholder="Agregar bar..." class="p-2 rounded-lg text-black shadow" autocomplete="off">
             <button id="addPlaceBtn" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Agregar</button>
         </div>
-        <div class="desc mt-5" style="font-size: 1em; color:#ffe066; opacity:.8">Powered by Corky’s 🍺</div>
+        <div class="desc mt-5" style="font-size: 1em; color: var(--color-accent); opacity:.8">Powered by Corky’s 🍺</div>
     </div>
     <script>
       // --- randomizer.js embebido aquí, o usa tu archivo externo ---
