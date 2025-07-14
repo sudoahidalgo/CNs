@@ -232,42 +232,6 @@
       font-weight: 500;
     }
 
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background-color: #1e1b16;
-      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.4);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 0;
-      z-index: 100;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 0.8rem;
-      color: #bbb;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .nav-item span {
-      margin-top: 2px;
-    }
-
-    .nav-item.active {
-      color: #facc15;
-      font-weight: bold;
-    }
-
-    .nav-item:active {
-      transform: scale(0.95);
-    }
     /* Mobile Bar List - Improved Design */
     .mobile-bars-container {
       background: rgba(255, 255, 255, 0.02);
@@ -1007,20 +971,34 @@
       </section>
     </main>
 
-<nav class="bottom-nav">
-  <div class="nav-item active" onclick="navigateTo('votacion')">
-    🗳️
-    <span>Votación</span>
-  </div>
-  <div class="nav-item" onclick="navigateTo('asistencia')">
-    👥
-    <span>Asistencia</span>
-  </div>
-  <div class="nav-item" onclick="navigateTo('historial')">
-    📊
-    <span>Historial</span>
-  </div>
-</nav>
+    <nav class="mobile-bottom-nav">
+      <div class="mobile-nav-items">
+        <div class="mobile-nav-item active" data-section="voting">
+          <svg class="mobile-nav-icon" viewBox="0 0 256 256" fill="currentColor">
+            <path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm-34.34,77.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"/>
+          </svg>
+          <div class="mobile-nav-label">Votación</div>
+        </div>
+        <div class="mobile-nav-item" data-section="attendance">
+          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <div class="mobile-nav-label">Asistencia</div>
+        </div>
+        <div class="mobile-nav-item" data-section="history">
+          <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="9" x2="20" y2="9"/>
+            <line x1="4" y1="15" x2="20" y2="15"/>
+            <line x1="10" y1="3" x2="8" y2="21"/>
+            <line x1="16" y1="3" x2="14" y2="21"/>
+          </svg>
+          <div class="mobile-nav-label">Historial</div>
+        </div>
+      </div>
+    </nav>
   </div>
 
   <div id="desktopLayout" class="desktop-layout">
@@ -1436,19 +1414,6 @@
       if (sectionName === 'history' && currentUser) {
         loadMobileStats();
       }
-    }
-
-    function navigateTo(tab) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      const target = {
-        votacion: 0,
-        asistencia: 1,
-        historial: 2
-      }[tab];
-      document.querySelectorAll('.nav-item')[target].classList.add('active');
-
-      // Opcional: cargar contenido dinámico o redirigir
-      // window.location.href = tab + '.html';
     }
 
     // ========== DESKTOP TABS ==========
