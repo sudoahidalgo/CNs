@@ -133,6 +133,13 @@
       background: #e74c3c;
       color: #fff;
     }
+    .beer-icon-animated {
+      display: inline-block;
+      animation: floatBeer 1.8s ease-in-out infinite;
+      font-size: 1.6em;
+      will-change: transform;
+      transition: transform 0.25s ease;
+    }
     .vote-row-animate {
       animation: voteFlash 0.6s ease;
     }
@@ -236,6 +243,12 @@
     }
     #beerBtn:hover {
       filter: drop-shadow(0 0 5px #ffe066) brightness(1.2);
+    }
+
+    @keyframes floatBeer {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
     }
   </style>
 </head>
@@ -416,7 +429,7 @@
             <td>${igCell}</td>
             <td>
               <button class="vote-btn${voted ? ' voted' : ''}" ${voted ? 'disabled' : ''} onclick="vote('${bar.name}', this)">
-                ${voted ? '🍺' : '💪'}
+                ${voted ? '<span class="beer-icon-animated">🍺</span>' : '💪'}
               </button>
             </td>
             <td class="votes-cell">${bar.votes}</td>
