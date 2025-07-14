@@ -133,6 +133,47 @@
       background: #e74c3c;
       color: #fff;
     }
+    .vote-row-animate {
+      animation: voteFlash 0.6s ease;
+    }
+    @keyframes voteFlash {
+      0% { transform: scale(1); background-color: transparent; }
+      50% { transform: scale(1.05); background-color: rgba(255, 224, 102, 0.2); }
+      100% { transform: scale(1); background-color: transparent; }
+    }
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1050;
+    }
+    .confetti span {
+      position: absolute;
+      animation: fall 1s ease-out forwards;
+      font-size: 24px;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    #finalRanking {
+      display: none;
+      background: rgba(0,0,0,0.6);
+      border-radius: 1em;
+      padding: 1em 1.5em;
+      margin-top: 1.5em;
+      color: #ffe066;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    #finalRanking.reveal {
+      opacity: 1;
+    }
     .votes-cell {
       font-size: 1.2em;
       font-weight: 700;
@@ -215,6 +256,7 @@
       </div>
     </div>
     <div id="winner" class="winner-box" style="display:none"></div>
+    <div id="finalRanking"></div>
     <h2 class="mb-4 mt-2" style="color:#ffe066; text-shadow: 2px 3px 8px #0008; font-size:2rem; font-weight:700;">¿A dónde vamos este martes?</h2>
     <!-- Tabla de votos -->
     <div class="table-responsive" style="width:100%;max-width:900px;">
@@ -259,6 +301,19 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-light" id="submitPinBtn">Borrar todo</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INFO EXTRA -->
+  <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="infoModalLabel">Info</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="infoModalBody"></div>
       </div>
     </div>
   </div>
@@ -322,6 +377,14 @@
       userVotes = {};
       data.filter(d => d.ip === ip).forEach(d => { userVotes[d.bar] = true; });
       renderTable();
+      if (isVotingClosed()) {
+        const sorted = votes.slice().sort((a, b) => {
+          if (b.votes !== a.votes) return b.votes - a.votes;
+          if (b.votes === 0 && a.votes === 0) return a.name.localeCompare(b.name);
+          return 0;
+        });
+        showFinalRanking(sorted);
+      }
     }
 
     function igIcon() {
@@ -348,7 +411,7 @@
         if (!igCell) igCell = '<span style="color:#bbb;">—</span>';
         const voted = userVotes[bar.name];
         tbody.innerHTML += `
-          <tr>
+          <tr onmousedown="longPressStart('${bar.name}', this)" onmouseup="longPressEnd()" ontouchstart="longPressStart('${bar.name}', this)" ontouchend="longPressEnd()">
             <td>${bar.name}</td>
             <td>${igCell}</td>
             <td>
@@ -373,6 +436,12 @@
         alert('Error al votar, intenta de nuevo');
         return;
       }
+      launchBeerConfetti();
+      const row = btn.closest('tr');
+      if (row) {
+        row.classList.add('vote-row-animate');
+        setTimeout(() => row.classList.remove('vote-row-animate'), 600);
+      }
       await fetchVotes();
     }
 
@@ -393,6 +462,64 @@
       winnerDiv.style.display = "block";
     }
 
+codex/add-voting-animations-and-tooltips
+    function launchBeerConfetti() {
+      const container = document.createElement('div');
+      container.className = 'confetti';
+      document.body.appendChild(container);
+      for (let i = 0; i < 20; i++) {
+        const span = document.createElement('span');
+        span.textContent = '🍺';
+        span.style.left = Math.random() * 100 + '%';
+        span.style.animationDelay = (Math.random() * 0.5) + 's';
+        container.appendChild(span);
+      }
+      setTimeout(() => container.remove(), 1500);
+    }
+
+    let longPressTimeout;
+    function longPressStart(bar, row) {
+      longPressTimeout = setTimeout(() => showBarInfo(bar), 600);
+    }
+    function longPressEnd() {
+      clearTimeout(longPressTimeout);
+    }
+
+    function showBarInfo(barName) {
+      const info = votes.find(v => v.name === barName) || { votes: 0, ips: [] };
+      const bar = bars.find(b => b.name === barName) || {};
+      let html = `<p><strong>Votos:</strong> ${info.votes}</p>`;
+      if (info.ips.length) {
+        html += `<p><strong>IPs:</strong> ${info.ips.join(', ')}</p>`;
+      }
+      if (bar.map) {
+        html += `<p><a href="${bar.map}" target="_blank">Ver mapa</a></p>`;
+      }
+      if (!html) html = '<p>Sin información adicional</p>';
+      document.getElementById('infoModalLabel').textContent = barName;
+      document.getElementById('infoModalBody').innerHTML = html;
+      new bootstrap.Modal(document.getElementById('infoModal')).show();
+    }
+
+    function isVotingClosed() {
+      const now = new Date();
+      const start = new Date(now);
+      start.setDate(now.getDate() - ((now.getDay() + 5) % 7));
+      start.setHours(19,0,0,0);
+      return now >= start;
+    }
+
+    function showFinalRanking(sorted) {
+      const ranking = document.getElementById('finalRanking');
+      ranking.innerHTML = '<h4>\uD83C\uDFC6 Ranking final</h4><ol>' +
+        sorted.map(b => `<li>${b.name} - ${b.votes}</li>`).join('') +
+        '</ol>';
+      ranking.style.display = 'block';
+      setTimeout(() => ranking.classList.add('reveal'), 50);
+    }
+
+
+    main
     function startCountdown() {
       const el = document.getElementById('countdown');
       if (!el) return;
