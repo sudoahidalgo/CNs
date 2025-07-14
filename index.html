@@ -249,6 +249,7 @@
     .mobile-bar-item.voted-card {
       background: #5e3b1e;
       animation: scaleIn 0.25s ease-out;
+      cursor: pointer;
     }
 
     @keyframes scaleIn {
@@ -1811,7 +1812,7 @@
         }
         
         return `
-          <div class="mobile-bar-item ${isWinner ? 'winner-highlight' : ''} ${userVoted ? 'voted-card' : ''}">
+          <div class="mobile-bar-item ${isWinner ? 'winner-highlight' : ''} ${userVoted ? 'voted-card' : ''}" ${userVoted ? `onclick="toggleVote('${bar.name.replace(/'/g, "\\'")}', this.querySelector('.beer-icon'))"` : ''}>
             <div class="mobile-bar-left">
               <div class="mobile-bar-votes ${votes > 0 ? 'has-votes' : ''}"
                    ${votes > 0 ? `onclick="showVoteDetails('${bar.name}', ${votes})"` : ''}>
@@ -1826,8 +1827,8 @@
             </div>
             <div class="mobile-bar-right">
               ${userVoted
-                ? '<span class="beer-icon animate">🍺</span>'
-                : `<button class="mobile-vote-btn" ${!isActive ? 'disabled' : ''} onclick="toggleVote('${bar.name}', this)">VOTAR</button>`}
+                ? `<span class="beer-icon animate" onclick="toggleVote('${bar.name.replace(/'/g, "\\'")}', this)">🍺</span>`
+                : `<button class="mobile-vote-btn" ${!isActive ? 'disabled' : ''} onclick="toggleVote('${bar.name.replace(/'/g, "\\'")}', this)">VOTAR</button>`}
             </div>
           </div>
         `;
