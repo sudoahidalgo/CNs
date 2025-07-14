@@ -133,20 +133,6 @@
       background: #e74c3c;
       color: #fff;
     }
-    .vote-button {
-      background-color: #fff3c4;
-      color: #1e1b16;
-      font-weight: bold;
-      font-size: 0.85rem;
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 8px;
-      width: 60px;
-      height: 40px;
-      box-shadow: inset 0 0 0 2px #1e1b16;
-    }
     .beer-icon-animated {
       display: inline-block;
       animation: floatBeer 1.8s ease-in-out infinite;
@@ -443,7 +429,7 @@
             <td>${igCell}</td>
             <td>
               <button class="vote-btn${voted ? ' voted' : ''}" ${voted ? 'disabled' : ''} onclick="vote('${bar.name}', this)">
-                <div class="vote-button">VOTE</div>
+                ${voted ? '<span class="beer-icon-animated">🍺</span>' : '💪'}
               </button>
             </td>
             <td class="votes-cell">${bar.votes}</td>
