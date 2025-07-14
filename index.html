@@ -1400,7 +1400,8 @@
     function formatTuesdayDateLongNoYear(date) {
       const day = date.getDate().toString().padStart(2, '0');
       const month = date.toLocaleDateString('es-ES', { month: 'long' });
-      return `${day}-${month}`;
+      const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+      return `${day} de ${capitalizedMonth}`;
     }
 
     function daysUntil(date) {
@@ -1639,14 +1640,14 @@
         const formattedDate = formatTuesdayDateLongNoYear(nextTuesday);
         const totalCNs = calculateTotalCNs();
         const remainingDays = daysUntil(nextTuesday);
-        const weekText = `Martes ${formattedDate} - CN #${totalCNs} - Faltan ${remainingDays}`;
+        const weekText = `Martes ${formattedDate} - Faltan ${remainingDays} dias - CN #${totalCNs}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Martes ${formattedDate} - <span class="cn-number">CN #${totalCNs}</span> - Faltan ${remainingDays}`;
+          if (el) el.innerHTML = `Martes ${formattedDate} - Faltan ${remainingDays} dias - <span class="cn-number">CN #${totalCNs}</span>`;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
