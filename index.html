@@ -1371,6 +1371,20 @@
       return `${day}-${month}`;
     }
 
+    function formatPrettyDate(date) {
+      const parts = date
+        .toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+        .replace(',', '')
+        .split(' ');
+      if (parts.length >= 4) {
+        const weekday = parts[0][0].toUpperCase() + parts[0].slice(1);
+        const day = parts[1];
+        const month = parts[3][0].toUpperCase() + parts[3].slice(1);
+        return `${weekday} ${day} de ${month}`;
+      }
+      return parts.join(' ');
+    }
+
     function calculateTotalCNs() {
       // Start from first Tuesday of August 2003
       const startDate = new Date(2003, 7, 5); // August 5, 2003 was a Tuesday
@@ -1596,16 +1610,17 @@
         currentWeek = data;
         
         const nextTuesday = getNextTuesday();
-        const formattedDate = formatTuesdayDate(nextTuesday);
+        const daysLeft = Math.ceil((nextTuesday - new Date()) / (1000 * 60 * 60 * 24));
+        const formattedDate = formatPrettyDate(nextTuesday);
         const totalCNs = calculateTotalCNs();
-        const weekText = `Próximo martes ${formattedDate} • CN #${totalCNs}`;
+        const weekText = `${formattedDate} - Faltan ${daysLeft} dias - CN #${totalCNs}`;
         
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
         } else {
           const el = document.getElementById('desktopWeekInfo');
-          if (el) el.innerHTML = `Semana del martes ${formatTuesdayDate(parseLocalDate(currentWeek.fecha_martes))} - <span class="cn-number">CN #${totalCNs}</span>`;
+          if (el) el.textContent = weekText;
         }
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
