@@ -387,6 +387,10 @@
       border: 2px solid rgba(255, 224, 102, 0.3);
     }
 
+    .mobile-user-stats {
+      margin-top: 16px;
+    }
+
     /* Mobile History & Stats */
     .mobile-stats-section {
       margin-bottom: 24px;
@@ -866,6 +870,7 @@
         <div class="mobile-quorum-card">
           <div id="mobileQuorumStatus" class="quorum-status"></div>
           <div id="mobileAttendeesList" class="mobile-attendees"></div>
+          <div id="mobileUserStats" class="mobile-user-stats"></div>
         </div>
       </section>
 
@@ -1747,6 +1752,7 @@
         
         if (isMobile) {
           updateMobileAttendance(attendances || []);
+          loadMobileUserStats();
         } else {
           updateDesktopAttendance(attendances || []);
         }
@@ -2351,6 +2357,83 @@
         
       } catch (error) {
         console.error('❌ Error loading mobile stats:', error);
+      }
+    }
+
+    async function loadMobileUserStats() {
+      const container = document.getElementById('mobileUserStats');
+      if (!container || !currentUser) return;
+
+      container.innerHTML = '<div class="loading"><div class="spinner"></div><span>Cargando...</span></div>';
+
+      try {
+        const [
+          { data: attendanceData, error: attendanceErr },
+          { data: votesData, error: votesErr }
+        ] = await Promise.all([
+          supabase
+            .from('asistencias')
+            .select('semana_id, semanas_cn!inner(fecha_martes, estado)')
+            .eq('user_id', currentUser.id)
+            .eq('confirmado', true)
+            .eq('semanas_cn.estado', 'finalizada')
+            .order('semanas_cn.fecha_martes', { ascending: false }),
+          supabase
+            .from('votos')
+            .select('bar, semana_id')
+            .eq('user_id', currentUser.id)
+        ]);
+
+        if (attendanceErr) throw attendanceErr;
+        if (votesErr) throw votesErr;
+
+        const lastAttendance = attendanceData && attendanceData[0];
+        const attendedCount = attendanceData ? attendanceData.length : 0;
+
+        let lastCNText = lastAttendance
+          ? formatTuesdayDateLong(lastAttendance.semanas_cn.fecha_martes)
+          : 'Nunca';
+
+        const voteCounts = {};
+        (votesData || []).forEach(v => {
+          voteCounts[v.bar] = (voteCounts[v.bar] || 0) + 1;
+        });
+        let mostVoted = null;
+        let maxVotes = 0;
+        Object.entries(voteCounts).forEach(([bar, count]) => {
+          if (count > maxVotes) {
+            mostVoted = bar;
+            maxVotes = count;
+          }
+        });
+
+        const weeksVoted = new Set((votesData || []).map(v => v.semana_id)).size;
+        const avgVotes = weeksVoted ? (votesData.length / weeksVoted).toFixed(1) : '0';
+
+        container.innerHTML = `
+          <div class="mobile-stats-section">
+            <h4 style="color: var(--color-accent); margin-bottom: 12px; font-size: 1rem;">📈 Tus Estadísticas</h4>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">🕑 Última CN asistida:</div>
+              <div style="font-size: 0.9rem; color: #adb5bd;">${lastCNText}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">✅ Total asistencias:</div>
+              <div style="font-size: 0.9rem; color: #adb5bd;">${attendedCount}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">🍺 Bar más votado:</div>
+              <div style="font-size: 0.9rem; color: #adb5bd;">${mostVoted || 'N/A'}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de votos por CN:</div>
+              <div style="font-size: 0.9rem; color: #adb5bd;">${avgVotes}</div>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        console.error('❌ Error loading user stats:', err);
+        container.innerHTML = '<div style="color:#ff6e50">Error cargando estadísticas</div>';
       }
     }
 
