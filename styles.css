@@ -1,6 +1,7 @@
 body {
-    background-color: #1a202c;
-    color: #ffffff;
+    background-color: #1e1b16;
+    color: #fdf7e3;
+    font-family: 'Inter', sans-serif;
 }
 
 #decideBtn:active {
