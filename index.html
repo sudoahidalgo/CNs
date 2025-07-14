@@ -1142,12 +1142,13 @@
 
     let currentUser = null;
     let currentWeek = null;
-    let userVotes = []; 
+    let userVotes = [];
     let userAttendance = false;
     let isMobile = false;
     let currentMobileSection = 'voting';
     let isAdmin = false;
     let currentUserProfile = null;
+    let voteProgressInterval = null;
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -1666,7 +1667,7 @@
         const totalCNs = calculateTotalCNs();
         const remainingDays = daysUntil(nextTuesday);
         const weekText = `Martes ${formattedDate} - Faltan ${remainingDays} dias - CN #${totalCNs}`;
-        
+
         if (isMobile) {
           const el = document.getElementById('mobileWeekInfo');
           if (el) el.textContent = weekText;
@@ -1674,6 +1675,14 @@
           const el = document.getElementById('desktopWeekInfo');
           if (el) el.innerHTML = `Martes ${formattedDate} - Faltan ${remainingDays} dias - <span class="cn-number">CN #${totalCNs}</span>`;
         }
+
+        const voteStart = new Date(nextTuesday);
+        voteStart.setHours(0, 0, 0, 0);
+        const voteEnd = new Date(nextTuesday);
+        voteEnd.setHours(20, 0, 0, 0);
+        updateVoteProgressBar(voteStart, voteEnd);
+        if (voteProgressInterval) clearInterval(voteProgressInterval);
+        voteProgressInterval = setInterval(() => updateVoteProgressBar(voteStart, voteEnd), 60000);
       } catch (error) {
         console.error('❌ Error en loadCurrentWeek:', error);
       }
@@ -2988,10 +2997,6 @@
       });
     }
 
-    const voteStart = new Date("2025-07-15T00:00:00");
-    const voteEnd = new Date("2025-07-15T20:00:00");
-    updateVoteProgressBar(voteStart, voteEnd);
-    setInterval(() => updateVoteProgressBar(voteStart, voteEnd), 60000);
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
