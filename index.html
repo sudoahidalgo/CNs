@@ -839,9 +839,6 @@
         <div>
           <h1 class="app-title">🍺 CORKY NIGHTS</h1>
           <div id="mobileWeekInfo" class="week-info"></div>
-  <div class="vote-progress-container">
-    <div class="vote-progress-bar" id="voteProgressBar"></div>
-  </div>
         </div>
         <div class="mobile-user-info">
           <span id="mobileStreak" class="mobile-streak"></span>
@@ -967,9 +964,6 @@
     <div class="desktop-header">
       <h1>🍺 CORKY NIGHTS 🍺</h1>
       <div id="desktopWeekInfo" class="text-light desktop-week-info"></div>
-      <div class="vote-progress-container">
-        <div class="vote-progress-bar" id="voteProgressBar"></div>
-      </div>
     </div>
 
     <ul class="nav nav-pills justify-content-center desktop-tabs" id="desktopTabs" role="tablist">
@@ -3047,32 +3041,6 @@
     window.saveBarEdit = saveBarEdit;
     window.cancelBarEdit = cancelBarEdit;
     window.signOut = signOut;
-
-    function updateVoteProgressBar() {
-      const now = new Date();
-      const nowCR = new Date(now.toLocaleString('en-US', { timeZone: 'America/Costa_Rica' }));
-
-      const start = new Date(nowCR);
-      start.setDate(start.getDate() - ((start.getDay() + 5) % 7));
-      start.setHours(19, 0, 0, 0);
-      if (nowCR < start) {
-        start.setDate(start.getDate() - 7);
-      }
-
-      const end = new Date(start);
-      end.setDate(end.getDate() + 7);
-
-      const total = end - start;
-      const elapsed = nowCR - start;
-      const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
-      const bars = document.querySelectorAll(".vote-progress-bar");
-      bars.forEach(bar => {
-        bar.style.width = progress + "%";
-      });
-    }
-
-    updateVoteProgressBar();
-    setInterval(updateVoteProgressBar, 60000);
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
