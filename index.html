@@ -389,6 +389,15 @@
 
     .mobile-user-stats {
       margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-divider {
+      margin: 16px 0;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
     }
 
     /* Mobile History & Stats */
@@ -867,6 +876,7 @@
         <div class="mobile-quorum-card">
           <div id="mobileQuorumStatus" class="quorum-status"></div>
           <div id="mobileAttendeesList" class="mobile-attendees"></div>
+          <hr class="mobile-divider">
           <div id="mobileUserStats" class="mobile-user-stats"></div>
         </div>
       </section>
@@ -2370,7 +2380,6 @@
             .select('semana_id, semanas_cn!inner(fecha_martes, estado)')
             .eq('user_id', currentUser.id)
             .eq('confirmado', true)
-            .eq('semanas_cn.estado', 'finalizada')
             .order('fecha_martes', { foreignTable: 'semanas_cn', ascending: false }),
           supabase
             .from('votos')
@@ -2420,7 +2429,7 @@
               <div style="font-size: 0.9rem; color: #adb5bd;">${mostVoted || 'N/A'}</div>
             </div>
             <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de votos por CN:</div>
+              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de tus votos por CN:</div>
               <div style="font-size: 0.9rem; color: #adb5bd;">${avgVotes}</div>
             </div>
           </div>
