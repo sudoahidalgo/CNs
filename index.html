@@ -2371,7 +2371,7 @@
             .eq('user_id', currentUser.id)
             .eq('confirmado', true)
             .eq('semanas_cn.estado', 'finalizada')
-            .order('semanas_cn.fecha_martes', { ascending: false }),
+            .order('fecha_martes', { foreignTable: 'semanas_cn', ascending: false }),
           supabase
             .from('votos')
             .select('bar, semana_id')
