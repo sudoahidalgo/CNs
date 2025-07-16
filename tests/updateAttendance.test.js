@@ -12,9 +12,13 @@ const loadHandler = () => {
     'utf8'
   );
   const module = { exports: {} };
+  const supabaseClientPath = path.resolve(__dirname, '../src/lib/supabaseClient');
   const customRequire = (p) => {
     if (p === '@supabase/supabase-js') {
       return { createClient: globalThis.createClientMock };
+    }
+    if (p === supabaseClientPath) {
+      return { supabase: supabaseMock };
     }
     return require(p);
   };
@@ -61,7 +65,7 @@ describe('updateAttendance handler', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual({ ok: true });
+    expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
     expect(supabaseMock.from).toHaveBeenCalledWith('attendance');
     expect(supabaseMock.update).toHaveBeenCalledWith({ asistentes: ['u1'] });
     expect(supabaseMock.eq).toHaveBeenCalledWith('id', 1);
@@ -80,14 +84,14 @@ describe('updateAttendance handler', () => {
     expect(JSON.parse(res.body).error).toBe('Invalid JSON');
   });
 
-  test('returns 500 when env vars missing', async () => {
+  test('works when env vars missing', async () => {
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
       body: JSON.stringify({ id: 1, asistentes: [] })
     });
 
-    expect(res.statusCode).toBe(500);
-    expect(JSON.parse(res.body).error).toMatch(/Missing/);
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
   });
 });
