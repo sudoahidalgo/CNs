@@ -2264,7 +2264,7 @@
         if (streakEl && currentUser) {
           const myStats = userStats[currentUser.id];
           const myStreak = myStats ? calculateStreak(myStats.dates, lastWeekDate) : 0;
-          if (myStreak > 0) {
+          if (myStreak >= 2) {
             streakEl.textContent = `🔥 ${myStreak}`;
             streakEl.style.display = 'inline-block';
           } else {
@@ -2281,7 +2281,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;">
                 <span style="font-weight: 500;">${i + 1}. ${user.nombre}</span>
                 <span>
-                  ${user.streak > 0 ? `<span style="background: rgba(255, 110, 80, 0.2); color: #ff6e50; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 4px;">🔥 ${user.streak}</span>` : ''}
+                  ${user.streak >= 2 ? `<span style="background: rgba(255, 110, 80, 0.2); color: #ff6e50; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 4px;">🔥 ${user.streak}</span>` : ''}
                   <span style="background: rgba(255, 224, 102, 0.2); color: var(--color-accent); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${user.asistencias} CNs</span>
                   <span style="background: rgba(255,255,255,0.1); color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 4px;">${user.percentage}%</span>
                 </span>
@@ -2608,7 +2608,7 @@
               <div class="d-flex justify-content-between align-items-center py-1">
                 <span>${index + 1}. ${user.nombre}</span>
                 <span>
-                  ${user.streak > 0 ? `<span class="badge bg-danger rounded-pill me-1">🔥 ${user.streak}</span>` : ''}
+                  ${user.streak >= 2 ? `<span class="badge bg-danger rounded-pill me-1">🔥 ${user.streak}</span>` : ''}
                   <span class="badge bg-success rounded-pill">${user.asistencias} CNs</span>
                   <span class="badge bg-secondary rounded-pill ms-1">${user.percentage}%</span>
                 </span>
