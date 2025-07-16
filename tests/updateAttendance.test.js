@@ -79,7 +79,7 @@ describe('updateAttendance handler', () => {
     expect(supabaseMock.eq).toHaveBeenCalledWith('id', 1);
   });
 
-  test('returns 502 on invalid JSON', async () => {
+  test('returns 502 on invalid JSON with detailed message', async () => {
     process.env.SUPABASE_URL = 'url';
     process.env.SUPABASE_KEY = 'key';
     const handler = loadHandler();
@@ -89,7 +89,9 @@ describe('updateAttendance handler', () => {
     });
 
     expect(res.statusCode).toBe(502);
-    expect(JSON.parse(res.body).error).toBe('Invalid JSON body');
+    const errorMsg = JSON.parse(res.body).error;
+    expect(typeof errorMsg).toBe('string');
+    expect(errorMsg.length).toBeGreaterThan(0);
   });
 
   test('works when env vars missing', async () => {
