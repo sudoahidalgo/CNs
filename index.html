@@ -2379,8 +2379,7 @@
             .from('asistencias')
             .select('semana_id, semanas_cn!inner(fecha_martes, estado)')
             .eq('user_id', currentUser.id)
-            .eq('confirmado', true)
-            .order('fecha_martes', { foreignTable: 'semanas_cn', ascending: false }),
+            .eq('confirmado', true),
           supabase
             .from('votos')
             .select('bar, semana_id')
@@ -2390,8 +2389,14 @@
         if (attendanceErr) throw attendanceErr;
         if (votesErr) throw votesErr;
 
-        const lastAttendance = attendanceData && attendanceData[0];
-        const attendedCount = attendanceData ? attendanceData.length : 0;
+        const sortedAttendance = (attendanceData || []).sort((a, b) => {
+          const dateA = parseLocalDate(a.semanas_cn?.fecha_martes);
+          const dateB = parseLocalDate(b.semanas_cn?.fecha_martes);
+          return dateB - dateA;
+        });
+
+        const lastAttendance = sortedAttendance[0];
+        const attendedCount = sortedAttendance.length;
 
         let lastCNText = lastAttendance
           ? formatTuesdayDateLong(lastAttendance.semanas_cn.fecha_martes)
