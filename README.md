@@ -43,3 +43,15 @@ Cada martes se actualizan las estadísticas y se registra el bar ganador en la t
 ## Panel de Administración
 
 Abre `admin.html` y accede con un correo autorizado para ver el panel. Desde allí puedes finalizar la semana actual, ejecutar el proceso semanal o borrar todos los votos con los botones **Finalizar Semana** y **Resetear Votos**. También puedes corregir semanas anteriores utilizando el botón **Editar**, que abre un formulario para actualizar el bar visitado y los asistentes confirmados.
+
+## Script para corregir una semana
+
+Para actualizar manualmente el bar visitado en una fecha específica puedes usar el script `scripts/updateWeekBar.js`.
+
+```
+SUPABASE_URL=<tu URL> \
+SUPABASE_SERVICE_KEY=<tu service key> \
+node scripts/updateWeekBar.js <YYYY-MM-DD> <texto a buscar del bar>
+```
+
+El script busca el bar que contenga el texto indicado, obtiene los asistentes confirmados de esa semana y ejecuta la función `update_week_and_visits` para mantener la asistencia.
