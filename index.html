@@ -2185,9 +2185,15 @@
             .eq('semanas_cn.estado', 'finalizada')
         ]);
 
-        const totalCNs = weeksData?.length || 0;
-        const totalAttendees = (weeksData || []).reduce((sum, w) => sum + (w.total_asistentes || 0), 0);
-        const avgAttendance = totalCNs ? (totalAttendees / totalCNs).toFixed(1) : 0;
+        const allCns = weeksData || [];
+        const totalCns = allCns.length;
+        const totalAttendees = allCns.reduce(
+          (sum, w) => sum + (w.total_asistentes || 0),
+          0
+        );
+        const avgAttendance = totalCns
+          ? (totalAttendees / totalCns).toFixed(1)
+          : 0;
         const avgMobileEl = document.getElementById('mobileAverageAttendance');
         if (avgMobileEl) {
           avgMobileEl.textContent = `${avgAttendance} personas`;
@@ -2250,7 +2256,9 @@
           .map(u => ({
             ...u,
             streak: calculateStreak(u.dates, lastWeekDate),
-            percentage: totalCNs ? Math.round((u.asistencias / totalCNs) * 100) : 0
+            percentage: totalCns
+              ? Math.round((u.asistencias / totalCns) * 100)
+              : 0
           }))
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
@@ -2533,9 +2541,15 @@
             .eq('semanas_cn.estado', 'finalizada')
         ]);
 
-        const totalCNs = weeksData?.length || 0;
-        const totalAttendees = (weeksData || []).reduce((sum, w) => sum + (w.total_asistentes || 0), 0);
-        const avgAttendance = totalCNs ? (totalAttendees / totalCNs).toFixed(1) : 0;
+        const allCns = weeksData || [];
+        const totalCns = allCns.length;
+        const totalAttendees = allCns.reduce(
+          (sum, w) => sum + (w.total_asistentes || 0),
+          0
+        );
+        const avgAttendance = totalCns
+          ? (totalAttendees / totalCns).toFixed(1)
+          : 0;
         const avgDesktopEl = document.getElementById('desktopAverageAttendance');
         if (avgDesktopEl) {
           avgDesktopEl.textContent = `${avgAttendance} personas`;
@@ -2594,7 +2608,9 @@
           .map(u => ({
             ...u,
             streak: calculateStreak(u.dates, lastWeekDate),
-            percentage: totalCNs ? Math.round((u.asistencias / totalCNs) * 100) : 0
+            percentage: totalCns
+              ? Math.round((u.asistencias / totalCns) * 100)
+              : 0
           }))
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
