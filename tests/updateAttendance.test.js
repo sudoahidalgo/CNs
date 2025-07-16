@@ -7,10 +7,18 @@ const fs = require('fs');
 
 const loadHandler = () => {
   jest.resetModules();
-  const code = fs.readFileSync(
+  let code = fs.readFileSync(
     path.join(__dirname, '../netlify/functions/updateAttendance.js'),
     'utf8'
   );
+  // Convert ESM import/export to CommonJS for the test runtime
+  code = code
+    .replace(
+      /import\s+\{\s*supabase\s*\}\s*from\s*['"]..\/..\/src\/lib\/supabaseClient['"];?/,
+      "const { supabase } = require('../../src/lib/supabaseClient');"
+    )
+    .replace(/export\s+const\s+handler\s*=\s*/, 'const handler = ')
+    .concat('\nmodule.exports = { handler };');
   const module = { exports: {} };
   const supabaseClientPath = path.resolve(__dirname, '../src/lib/supabaseClient');
   const customRequire = (p) => {
