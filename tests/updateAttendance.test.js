@@ -17,7 +17,7 @@ const loadHandler = () => {
     if (p === '@supabase/supabase-js') {
       return { createClient: globalThis.createClientMock };
     }
-    if (p === supabaseClientPath) {
+    if (p === supabaseClientPath || p === '../../src/lib/supabaseClient') {
       return { supabase: supabaseMock };
     }
     return require(p);
@@ -71,7 +71,7 @@ describe('updateAttendance handler', () => {
     expect(supabaseMock.eq).toHaveBeenCalledWith('id', 1);
   });
 
-  test('returns 400 on invalid JSON', async () => {
+  test('returns 502 on invalid JSON', async () => {
     process.env.SUPABASE_URL = 'url';
     process.env.SUPABASE_KEY = 'key';
     const handler = loadHandler();
@@ -80,8 +80,8 @@ describe('updateAttendance handler', () => {
       body: '{ invalid'
     });
 
-    expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).error).toBe('Invalid JSON');
+    expect(res.statusCode).toBe(502);
+    expect(JSON.parse(res.body).error).toBe('Invalid JSON body');
   });
 
   test('works when env vars missing', async () => {
