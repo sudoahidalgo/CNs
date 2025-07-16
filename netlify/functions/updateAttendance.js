@@ -1,35 +1,22 @@
 // netlify/functions/updateAttendance.js
-// Variables de entorno (SUPABASE_URL, SUPABASE_KEY) ya estan configuradas en Netlify
+// Usa el cliente Supabase definido en src/lib/supabaseClient.js
 import { supabase } from '../../src/lib/supabaseClient'
 
-export const handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    }
-  }
-
+export const handler = async (event, context) => {
   try {
-    let body
-    try {
-      body = JSON.parse(event.body)
-    } catch (err) {
-      console.error('JSON parse error:', err)
-      return {
-        statusCode: 502,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Invalid JSON body' })
-      }
+    // 1. Parsear y validar JSON
+    const { id, asistentes } = JSON.parse(event.body)
+    if (!id || !Array.isArray(asistentes)) {
+      throw new Error('Invalid payload: id and asistentes are required')
     }
 
-    const { id, asistentes } = body
+    // 2. Ejecutar la actualización
     const { data, error } = await supabase
       .from('attendance')
       .update({ asistentes })
       .eq('id', id)
 
+    // 3. Manejo de errores de Supabase
     if (error) {
       console.error('Supabase update error:', error)
       return {
@@ -39,17 +26,19 @@ export const handler = async (event) => {
       }
     }
 
+    // 4. Respuesta exitosa
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data })
     }
   } catch (err) {
+    // 5. Manejo de excepciones generales (JSON.parse, red, etc.)
     console.error('updateAttendance failed:', err)
     return {
-      statusCode: 502,
+      statusCode: err.statusCode || 502,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: err.message || 'Unknown error' })
     }
   }
 }
