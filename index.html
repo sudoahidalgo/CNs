@@ -2379,7 +2379,8 @@
             .from('asistencias')
             .select('semana_id, semanas_cn!inner(fecha_martes, estado)')
             .eq('user_id', currentUser.id)
-            .eq('confirmado', true),
+            .eq('confirmado', true)
+            .eq('semanas_cn.estado', 'finalizada'),
           supabase
             .from('votos')
             .select('bar, semana_id')
