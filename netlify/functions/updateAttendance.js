@@ -1,13 +1,20 @@
-const { createClient } = require('@supabase/supabase-js');
+/**
+ * Las claves ya están configuradas en el cliente importado y
+ * aquí solo se realiza la actualización.
+ */
+const path = require('path');
+const { supabase } = require(path.resolve(__dirname, '../../src/lib/supabaseClient'));
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  let body;
+  let id, asistentes;
   try {
-    body = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body);
+    id = body.id;
+    asistentes = body.asistentes;
   } catch (err) {
     console.error('JSON parse error:', err);
     return {
@@ -15,25 +22,6 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: 'Invalid JSON' })
     };
   }
-
-  const missing = [];
-  if (!process.env.SUPABASE_URL) missing.push('SUPABASE_URL');
-  if (!process.env.SUPABASE_KEY) missing.push('SUPABASE_KEY');
-  if (missing.length) {
-    const msg = `Missing environment variables: ${missing.join(', ')}`;
-    console.error(msg);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: msg })
-    };
-  }
-
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY
-  );
-
-  const { id, asistentes } = body;
 
   try {
     const { data, error } = await supabase
@@ -51,13 +39,13 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      body: JSON.stringify({ data })
     };
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error(err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: err.message || err })
     };
   }
 };
