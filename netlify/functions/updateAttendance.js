@@ -2,30 +2,23 @@
 // Usa el cliente Supabase definido en src/lib/supabaseClient.js
 import { supabase } from '../../src/lib/supabaseClient'
 
-export const handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' }
-  }
-
+export const handler = async (event, context) => {
   try {
-    const { weekId, bar, attendees } = JSON.parse(event.body || '{}')
-
-    if (!weekId) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing weekId' })
-      }
+    // 1. Parsear y validar JSON
+    const { id, asistentes } = JSON.parse(event.body)
+    if (!id || !Array.isArray(asistentes)) {
+      throw new Error('Invalid payload: id and asistentes are required')
     }
 
-    const { error } = await supabase.rpc('update_week_and_visits', {
-      week_id: weekId,
-      bar,
-      attendees
-    })
+    // 2. Ejecutar la actualización
+    const { data, error } = await supabase
+      .from('attendance')
+      .update({ asistentes })
+      .eq('id', id)
 
+    // 3. Manejo de errores de Supabase
     if (error) {
-      console.error('Supabase RPC error:', error)
+      console.error('Supabase update error:', error)
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -33,17 +26,19 @@ export const handler = async (event) => {
       }
     }
 
+    // 4. Respuesta exitosa
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true })
+      body: JSON.stringify({ data })
     }
   } catch (err) {
+    // 5. Manejo de excepciones generales (JSON.parse, red, etc.)
     console.error('updateAttendance failed:', err)
     return {
-      statusCode: 502,
+      statusCode: err.statusCode || 502,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: err.message || 'Unknown error' })
     }
   }
 }
