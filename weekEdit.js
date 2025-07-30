@@ -59,11 +59,9 @@ async function saveWeekChanges() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        event_id: editingWeekId,
-        updates: {
-          bar,
-          attendees: selected,
-        }
+        weekId: editingWeekId,
+        bar,
+        attendees: selected,
       }),
     });
 

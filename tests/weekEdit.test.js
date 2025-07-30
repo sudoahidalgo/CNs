@@ -51,11 +51,9 @@ describe('saveWeekChanges', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          event_id: 1,
-          updates: {
-            bar: 'Bar1',
-            attendees: ['u1']
-          }
+          weekId: 1,
+          bar: 'Bar1',
+          attendees: ['u1']
         })
       })
     );

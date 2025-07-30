@@ -8,16 +8,16 @@ const fs = require('fs');
 const loadHandler = () => {
   jest.resetModules();
   let code = fs.readFileSync(
-    path.join(__dirname, '../netlify/functions/updateAttendance.mjs'),
+    path.join(__dirname, '../netlify/functions/updateAttendance.js'),
     'utf8'
   );
   // Convert ESM import/export to CommonJS for the test runtime
   code = code
     .replace(
-      /import\s+\{\s*createClient\s*\}\s*from\s*['"]@supabase\/supabase-js['"];?/,
-      "const { createClient } = require('@supabase/supabase-js');"
+      /import\s+\{\s*supabase\s*\}\s*from\s*['"]..\/..\/src\/lib\/supabaseClient['"];?/,
+      "const { supabase } = require('../../src/lib/supabaseClient');"
     )
-    .replace(/export\s+async\s+function\s+handler/, 'async function handler')
+    .replace(/export\s+const\s+handler\s*=\s*/, 'const handler = ')
     .concat('\nmodule.exports = { handler };');
   const module = { exports: {} };
   const supabaseClientPath = path.resolve(__dirname, '../src/lib/supabaseClient');
@@ -42,7 +42,7 @@ const loadHandler = () => {
     module.exports,
     customRequire,
     module,
-    path.join(__dirname, '../netlify/functions/updateAttendance.mjs'),
+    path.join(__dirname, '../netlify/functions/updateAttendance.js'),
     path.join(__dirname, '../netlify/functions')
   );
   return module.exports.handler;
@@ -58,20 +58,20 @@ describe('updateAttendance handler', () => {
 
   afterEach(() => {
     delete process.env.SUPABASE_URL;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_KEY;
   });
 
   test('successful update with valid data', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'key';
+    process.env.SUPABASE_KEY = 'key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
-      body: JSON.stringify({ event_id: 1, updates: { bar: 'Bar1', attendees: ['u1'] } })
+      body: JSON.stringify({ weekId: 1, bar: 'Bar1', attendees: ['u1'] })
     });
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual({ ok: true, data: { ok: true } });
+    expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
     expect(supabaseMock.rpc).toHaveBeenCalledWith('update_week_and_visits', {
       week_id: 1,
       bar: 'Bar1',
@@ -79,22 +79,29 @@ describe('updateAttendance handler', () => {
     });
   });
 
-  test('returns 400 on invalid JSON with detailed message', async () => {
+  test('returns 502 on invalid JSON with detailed message', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'key';
+    process.env.SUPABASE_KEY = 'key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
       body: '{ invalid'
     });
 
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(502);
     const errorMsg = JSON.parse(res.body).error;
     expect(typeof errorMsg).toBe('string');
     expect(errorMsg.length).toBeGreaterThan(0);
   });
 
-  test('throws when env vars missing', () => {
-    expect(() => loadHandler()).toThrow('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  test('works when env vars missing', async () => {
+    const handler = loadHandler();
+    const res = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ weekId: 1, bar: null, attendees: [] })
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
   });
 });
