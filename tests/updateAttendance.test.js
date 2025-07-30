@@ -51,9 +51,7 @@ const loadHandler = () => {
 describe('updateAttendance handler', () => {
   beforeEach(() => {
     supabaseMock = {
-      from: jest.fn(() => supabaseMock),
-      update: jest.fn(() => supabaseMock),
-      eq: jest.fn(() => Promise.resolve({ data: { ok: true }, error: null }))
+      rpc: jest.fn(() => Promise.resolve({ data: { ok: true }, error: null }))
     };
     globalThis.createClientMock = jest.fn(() => supabaseMock);
   });
@@ -69,14 +67,16 @@ describe('updateAttendance handler', () => {
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
-      body: JSON.stringify({ id: 1, asistentes: ['u1'] })
+      body: JSON.stringify({ weekId: 1, bar: 'Bar1', attendees: ['u1'] })
     });
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
-    expect(supabaseMock.from).toHaveBeenCalledWith('attendance');
-    expect(supabaseMock.update).toHaveBeenCalledWith({ asistentes: ['u1'] });
-    expect(supabaseMock.eq).toHaveBeenCalledWith('id', 1);
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('update_week_and_visits', {
+      week_id: 1,
+      bar: 'Bar1',
+      attendees: ['u1']
+    });
   });
 
   test('returns 502 on invalid JSON with detailed message', async () => {
@@ -98,10 +98,15 @@ describe('updateAttendance handler', () => {
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
-      body: JSON.stringify({ id: 1, asistentes: [] })
+      body: JSON.stringify({ weekId: 2, attendees: [] })
     });
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('update_week_and_visits', {
+      week_id: 2,
+      bar: undefined,
+      attendees: []
+    });
   });
 });

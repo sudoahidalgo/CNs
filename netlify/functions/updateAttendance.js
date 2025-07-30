@@ -5,16 +5,17 @@ import { supabase } from '../../src/lib/supabaseClient'
 export const handler = async (event, context) => {
   try {
     // 1. Parsear y validar JSON
-    const { id, asistentes } = JSON.parse(event.body)
-    if (!id || !Array.isArray(asistentes)) {
-      throw new Error('Invalid payload: id and asistentes are required')
+    const { weekId, bar, attendees } = JSON.parse(event.body)
+    if (!weekId || !Array.isArray(attendees)) {
+      throw new Error('Invalid payload: weekId and attendees are required')
     }
 
-    // 2. Ejecutar la actualización
-    const { data, error } = await supabase
-      .from('attendance')
-      .update({ asistentes })
-      .eq('id', id)
+    // 2. Ejecutar la actualización vía RPC
+    const { data, error } = await supabase.rpc('update_week_and_visits', {
+      week_id: weekId,
+      bar,
+      attendees,
+    })
 
     // 3. Manejo de errores de Supabase
     if (error) {
