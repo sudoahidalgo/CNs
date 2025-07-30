@@ -1,24 +1,30 @@
 // netlify/functions/updateAttendance.js
-// Usa el cliente Supabase definido en src/lib/supabaseClient.js
+// Actualiza el bar ganador y los asistentes usando la funcion SQL
 import { supabase } from '../../src/lib/supabaseClient'
 
-export const handler = async (event, context) => {
+export const handler = async (event) => {
   try {
-    // 1. Parsear y validar JSON
-    const { id, asistentes } = JSON.parse(event.body)
-    if (!id || !Array.isArray(asistentes)) {
-      throw new Error('Invalid payload: id and asistentes are required')
+    const { weekId, bar, attendees } = JSON.parse(event.body)
+    if (!weekId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Missing weekId' })
+      }
     }
 
-    // 2. Ejecutar la actualización
-    const { data, error } = await supabase
-      .from('attendance')
-      .update({ asistentes })
-      .eq('id', id)
+    const attendeeIds = (attendees || []).map(id =>
+      /^\d+$/.test(id) ? parseInt(id, 10) : id
+    )
 
-    // 3. Manejo de errores de Supabase
+    const { error } = await supabase.rpc('update_week_and_visits', {
+      week_id: weekId,
+      bar,
+      attendees: attendeeIds
+    })
+
     if (error) {
-      console.error('Supabase update error:', error)
+      console.error('Supabase RPC error:', error)
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -26,19 +32,17 @@ export const handler = async (event, context) => {
       }
     }
 
-    // 4. Respuesta exitosa
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data })
+      body: JSON.stringify({ success: true })
     }
   } catch (err) {
-    // 5. Manejo de excepciones generales (JSON.parse, red, etc.)
     console.error('updateAttendance failed:', err)
     return {
-      statusCode: err.statusCode || 502,
+      statusCode: 502,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message || 'Unknown error' })
+      body: JSON.stringify({ error: err.message || 'Invalid payload' })
     }
   }
 }
