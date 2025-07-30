@@ -18,7 +18,7 @@ npm install
 Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
 
 - `SUPABASE_URL` – la URL de tu proyecto de Supabase.
-- `SUPABASE_SERVICE_ROLE_KEY` – la clave de servicio para las funciones backend.
+- `SUPABASE_SERVICE_KEY` – la clave de servicio para las funciones backend.
 
 Estas variables deben estar disponibles en el entorno donde se despliegan las funciones serverless `netlify/functions/vote.js` y `netlify/functions/updateAttendance.js`.
 
@@ -33,7 +33,7 @@ npm install -g netlify-cli        # if not installed
 netlify dev                        # runs functions locally
 ```
 
-Antes de ejecutar `netlify dev` asegúrate de que las variables `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` estén disponibles en el entorno. Si abres los archivos HTML directamente sin usar Netlify el `fetch` en `weekEdit.js` fallará.
+Antes de ejecutar `netlify dev` asegúrate de que las variables `SUPABASE_URL` y `SUPABASE_SERVICE_KEY` estén disponibles en el entorno. Si abres los archivos HTML directamente sin usar Netlify el `fetch` en `weekEdit.js` fallará.
 
 
 ## Proceso Semanal
@@ -50,7 +50,7 @@ Para actualizar manualmente el bar visitado en una fecha específica puedes usar
 
 ```
 SUPABASE_URL=<tu URL> \
-SUPABASE_SERVICE_ROLE_KEY=<tu service key> \
+SUPABASE_SERVICE_KEY=<tu service key> \
 node scripts/updateWeekBar.js <YYYY-MM-DD> <texto a buscar del bar>
 ```
 
