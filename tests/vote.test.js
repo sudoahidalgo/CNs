@@ -4,7 +4,6 @@ let supabaseMock;
 
 const path = require('path');
 const fs = require('fs');
-const vm = require('vm');
 
 const loadHandler = () => {
   jest.resetModules();
@@ -13,8 +12,8 @@ const loadHandler = () => {
   const code = fs.readFileSync(path.join(__dirname, '../netlify/functions/vote.js'), 'utf8');
   const module = { exports: {} };
   const customRequire = (p) => {
-    if (p === '@supabase/supabase-js') {
-      return { createClient: globalThis.createClientMock };
+    if (p === '../../src/lib/supabaseClient') {
+      return { supabase: supabaseMock };
     }
     return require(p);
   };
@@ -26,7 +25,6 @@ const loadHandler = () => {
 describe('vote ip detection', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2025-06-10T12:00:00Z'));
-    globalThis.createClientMock = jest.fn(() => supabaseMock);
     supabaseMock = {
       from: jest.fn(() => supabaseMock),
       select: jest.fn(() => supabaseMock),
@@ -37,7 +35,6 @@ describe('vote ip detection', () => {
       delete: jest.fn(() => Promise.resolve({ error: null })),
       single: jest.fn(() => Promise.resolve({ data: null, error: { code: 'PGRST116' } }))
     };
-    globalThis.createClientMock.mockReturnValue(supabaseMock);
   });
 
   afterEach(() => {
