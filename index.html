@@ -1115,7 +1115,8 @@
                       <th style="width: 25%;">Nombre</th>
                       <th style="width: 20%;">Instagram</th>
                       <th style="width: 20%;">Facebook</th>
-                      <th style="width: 35%;">Acciones</th>
+                      <th style="width: 15%;">Estado</th>
+                      <th style="width: 20%;">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="adminBarsTable">
@@ -1591,7 +1592,7 @@
       try {
         const { data, error } = await supabase
           .from('bares')
-          .select('*')
+          .select('nombre, instagram_url, facebook_url, activo')
           .order('nombre');
         
         if (error) throw error;
@@ -1600,7 +1601,8 @@
         bars = (data || []).map(bar => ({
           name: bar.nombre,
           ig: bar.instagram_url || undefined,
-          fb: bar.facebook_url || undefined
+          fb: bar.facebook_url || undefined,
+          active: bar.activo !== false
         }));
         
         console.log('✅ Bares cargados desde BD:', bars.length);
@@ -1609,28 +1611,28 @@
         console.error('❌ Error cargando bares:', error);
         // Fallback to default bars if database fails
         bars = [
-          { name: "Hooligans Tempo", ig: "https://www.instagram.com/hooligans_cr/" },
-          { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/" }, 
-          { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en" },
-          { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/" },
-          { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/" },
-          { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/" },
-          { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/" },
-          { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/" },
-          { name: "Rio de Janeiro", ig: "https://www.instagram.com/rioescazu/" },
-          { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/" },
-          { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/" },
-          { name: "Zompopas" },
-          { name: "Casa Adrián" },
-          { name: "Casa Nino" },
-          { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/" },
-          { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/" },
-          { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/" },
-          { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/" },
-          { name: "El Pub Escazu" },
-          { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/" },
-          { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/" },
-          { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/" }
+          { name: "Hooligans Tempo", ig: "https://www.instagram.com/hooligans_cr/", active: true },
+          { name: "Distrito Federal", fb: "https://www.facebook.com/distritofederalcr/", active: true },
+          { name: "Old West", ig: "https://www.instagram.com/oldwestcr/?hl=en", active: true },
+          { name: "El Jardín", ig: "https://www.instagram.com/el_jardin_bar_y_restaurante/", active: true },
+          { name: "Stiefel", ig: "https://www.instagram.com/stiefelpubcr/", active: true },
+          { name: "CRCC", ig: "https://www.instagram.com/elcountrycr/", active: true },
+          { name: "Pocket", ig: "https://www.instagram.com/pocketcostarica/", active: true },
+          { name: "La Planta", ig: "https://www.instagram.com/laplantacrcb/", active: true },
+          { name: "Rio de Janeiro", ig: "https://www.instagram.com/rioescazu/", active: true },
+          { name: "Tap House City", ig: "https://www.instagram.com/taphousecr/", active: true },
+          { name: "Eremita", ig: "https://www.instagram.com/eremita.cerveza/", active: true },
+          { name: "Zompopas", active: true },
+          { name: "Casa Adrián", active: true },
+          { name: "Casa Nino", active: true },
+          { name: "Soberanos", ig: "https://www.instagram.com/soberanosbrewers/", active: true },
+          { name: "Cebolla Verde", ig: "https://www.instagram.com/cebollaverdecr/", active: true },
+          { name: "Hoppys", ig: "https://www.instagram.com/hoppys_place/", active: true },
+          { name: "CharlesBBQ", ig: "https://www.instagram.com/charlesbbqcr/", active: true },
+          { name: "El Pub Escazu", active: true },
+          { name: "Chubbs", ig: "https://www.instagram.com/chubbssportabar/", active: true },
+          { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/", active: true },
+          { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/", active: true }
         ];
       }
     }
@@ -1726,6 +1728,8 @@
         userVotes = (votesInWeek || [])
           .filter(v => v.user_id === currentUser.id)
           .map(v => v.bar);
+        const activeNames = new Set(bars.filter(b => b.active !== false).map(b => b.name));
+        userVotes = userVotes.filter(v => activeNames.has(v));
         
         const barStatsMap = await getLastVisitStats();
         
@@ -1769,15 +1773,20 @@
     // ========== WINNER DETECTION ==========
     function getWinningBars(allVotes) {
       if (!allVotes.length) return [];
-      
+
+      const activeNames = new Set(bars.filter(b => b.active !== false).map(b => b.name));
       const voteCounts = {};
       allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        if (activeNames.has(vote.bar)) {
+          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        }
       });
-      
-      const maxVotes = Math.max(...Object.values(voteCounts));
+
+      const counts = Object.values(voteCounts);
+      if (!counts.length) return [];
+      const maxVotes = Math.max(...counts);
       if (maxVotes === 0) return [];
-      
+
       return Object.keys(voteCounts).filter(bar => voteCounts[bar] === maxVotes);
     }
 
@@ -1786,18 +1795,23 @@
       const container = document.getElementById('mobileBarsContainer');
       if (!container) return;
       
+      const activeNames = new Set(bars.filter(b => b.active !== false).map(b => b.name));
       const voteCounts = {};
       allVotes.forEach(vote => {
-        voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        if (activeNames.has(vote.bar)) {
+          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+        }
       });
       
       
-      const sortedBars = bars.slice().sort((a, b) => {
-        const aVotes = voteCounts[a.name] || 0;
-        const bVotes = voteCounts[b.name] || 0;
-        if (bVotes !== aVotes) return bVotes - aVotes;
-        return a.name.localeCompare(b.name);
-      });
+      const sortedBars = bars
+        .filter(b => b.active !== false)
+        .sort((a, b) => {
+          const aVotes = voteCounts[a.name] || 0;
+          const bVotes = voteCounts[b.name] || 0;
+          if (bVotes !== aVotes) return bVotes - aVotes;
+          return a.name.localeCompare(b.name);
+        });
       
       const winningBars = getWinningBars(allVotes);
       
@@ -1901,13 +1915,18 @@
         const tbody = document.getElementById('desktopBarsTable');
         if (!tbody) return;
 
+        const activeNames = new Set(bars.filter(b => b.active !== false).map(b => b.name));
+
         const voteCounts = {};
         allVotes.forEach(vote => {
-          voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+          if (activeNames.has(vote.bar)) {
+            voteCounts[vote.bar] = (voteCounts[vote.bar] || 0) + 1;
+          }
         });
 
         const votersByBar = {};
         allVotes.forEach(vote => {
+          if (!activeNames.has(vote.bar)) return;
           const voter = {
             avatar_url: vote.usuarios?.avatar_url || '',
             nombre: vote.usuarios?.nombre || ''
@@ -1917,12 +1936,14 @@
         });
       
 
-        const sortedBars = bars.slice().sort((a, b) => {
-          const aVotes = voteCounts[a.name] || 0;
-          const bVotes = voteCounts[b.name] || 0;
-          if (bVotes !== aVotes) return bVotes - aVotes;
-          return a.name.localeCompare(b.name);
-        });
+        const sortedBars = bars
+          .filter(b => b.active !== false)
+          .sort((a, b) => {
+            const aVotes = voteCounts[a.name] || 0;
+            const bVotes = voteCounts[b.name] || 0;
+            if (bVotes !== aVotes) return bVotes - aVotes;
+            return a.name.localeCompare(b.name);
+          });
 
         const winningBars = getWinningBars(allVotes);
 
@@ -2719,6 +2740,9 @@
             <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
           </td>
           <td>
+            <span class="bar-status-display">${bar.active !== false ? '<span class="badge bg-success">Abierto</span>' : '<span class="badge bg-secondary">Cerrado</span>'}</span>
+          </td>
+          <td>
             <div class="btn-group" style="gap: 5px;">
               <button class="btn btn-sm btn-warning bar-edit-btn" onclick="editBar(${index}, '${bar.name.replace(/'/g, "\\'")}')">
                 ✏️ Editar
@@ -2728,6 +2752,9 @@
               </button>
               <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
                 ❌ Cancelar
+              </button>
+              <button class="btn btn-sm btn-outline-${bar.active !== false ? 'warning' : 'success'} bar-toggle-btn" onclick="toggleBarStatus('${bar.name.replace(/'/g, "\\'")}', ${bar.active !== false})">
+                ${bar.active !== false ? 'Cerrar' : 'Reabrir'}
               </button>
               <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
                 🗑️ Eliminar
@@ -2789,7 +2816,8 @@
         const barData = {
           nombre: name,
           instagram_url: socialType === 'ig' ? socialUrl : null,
-          facebook_url: socialType === 'fb' ? socialUrl : null
+          facebook_url: socialType === 'fb' ? socialUrl : null,
+          activo: true
         };
         
         // Insert into database
@@ -2823,6 +2851,36 @@
       } finally {
         btnText.style.display = 'inline';
         btnSpinner.style.display = 'none';
+      }
+    }
+
+    async function toggleBarStatus(barName, isActive) {
+      if (!isAdmin) {
+        alert('No tienes permisos de administrador');
+        return;
+      }
+
+      const action = isActive ? 'cerrar' : 'reabrir';
+      if (!confirm(`¿Seguro que deseas ${action} el bar "${barName}"?`)) {
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('bares')
+          .update({ activo: !isActive, updated_at: new Date() })
+          .eq('nombre', barName);
+
+        if (error) throw error;
+
+        await loadBarsFromDatabase();
+        loadAdminBarsTable();
+        await loadVotingData();
+
+        alert(`Bar "${barName}" ${isActive ? 'cerrado' : 'reabierto'} exitosamente`);
+      } catch (error) {
+        console.error('Error toggling bar:', error);
+        alert('Error al cambiar estado del bar: ' + error.message);
       }
     }
 
@@ -2883,6 +2941,8 @@
       // Hide edit/delete buttons, show save/cancel buttons
       row.querySelector('.bar-edit-btn').style.display = 'none';
       row.querySelector('.bar-delete-btn').style.display = 'none';
+      const toggleBtn = row.querySelector('.bar-toggle-btn');
+      if (toggleBtn) toggleBtn.style.display = 'none';
       row.querySelector('.bar-save-btn').style.display = 'inline-block';
       row.querySelector('.bar-cancel-btn').style.display = 'inline-block';
     }
@@ -2909,6 +2969,8 @@
       // Show edit/delete buttons, hide save/cancel buttons
       row.querySelector('.bar-edit-btn').style.display = 'inline-block';
       row.querySelector('.bar-delete-btn').style.display = 'inline-block';
+      const toggleBtn = row.querySelector('.bar-toggle-btn');
+      if (toggleBtn) toggleBtn.style.display = 'inline-block';
       row.querySelector('.bar-save-btn').style.display = 'none';
       row.querySelector('.bar-cancel-btn').style.display = 'none';
     }
@@ -3070,6 +3132,7 @@
     window.editBar = editBar;
     window.saveBarEdit = saveBarEdit;
     window.cancelBarEdit = cancelBarEdit;
+    window.toggleBarStatus = toggleBarStatus;
     window.signOut = signOut;
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
