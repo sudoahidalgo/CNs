@@ -1,6 +1,6 @@
-const { supabase } = require('../../src/lib/supabaseClient');
+const { createClient } = require('@supabase/supabase-js');
 
-if (!supabase) {
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
   console.error('Missing SUPABASE configuration');
   exports.handler = async () => ({
     statusCode: 500,
@@ -8,6 +8,11 @@ if (!supabase) {
   });
   return;
 }
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY // Usa la Service Role Key para funciones backend
+);
 
 exports.handler = async (event) => {
   const ip =
