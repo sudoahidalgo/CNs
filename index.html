@@ -1137,6 +1137,7 @@
     window.supabase = supabase;
 
     let bars = []; // Will be loaded from Supabase
+    let hasActivoColumn = true; // Tracks availability of "activo" column in Supabase
 
     let currentUser = null;
     let currentWeek = null;
@@ -1590,23 +1591,35 @@
 
     async function loadBarsFromDatabase() {
       try {
+        const selectCols = hasActivoColumn
+          ? 'nombre, instagram_url, facebook_url, activo'
+          : 'nombre, instagram_url, facebook_url';
+
         const { data, error } = await supabase
           .from('bares')
-          .select('nombre, instagram_url, facebook_url, activo')
+          .select(selectCols)
           .order('nombre');
-        
-        if (error) throw error;
-        
+
+        if (error) {
+          // If the "activo" column doesn't exist, retry without it
+          if (hasActivoColumn && error.message && error.message.includes("'activo'")) {
+            console.warn('Columna "activo" no encontrada, reintentando sin ella');
+            hasActivoColumn = false;
+            return await loadBarsFromDatabase();
+          }
+          throw error;
+        }
+
         // Convert database format to app format
         bars = (data || []).map(bar => ({
           name: bar.nombre,
           ig: bar.instagram_url || undefined,
           fb: bar.facebook_url || undefined,
-          active: bar.activo !== false
+          active: hasActivoColumn ? bar.activo !== false : true
         }));
-        
+
         console.log('✅ Bares cargados desde BD:', bars.length);
-        
+
       } catch (error) {
         console.error('❌ Error cargando bares:', error);
         // Fallback to default bars if database fails
@@ -2724,8 +2737,17 @@
     function loadAdminBarsTable() {
       const tbody = document.getElementById('adminBarsTable');
       if (!tbody) return;
-      
-      tbody.innerHTML = bars.map((bar, index) => `
+
+      tbody.innerHTML = bars.map((bar, index) => {
+        const statusDisplay = hasActivoColumn
+          ? (bar.active !== false
+              ? '<span class="badge bg-success">Abierto</span>'
+              : '<span class="badge bg-secondary">Cerrado</span>')
+          : '<span class="text-muted">N/A</span>';
+        const toggleButton = hasActivoColumn
+          ? `<button class="btn btn-sm btn-outline-${bar.active !== false ? 'warning' : 'success'} bar-toggle-btn" onclick="toggleBarStatus('${bar.name.replace(/'/g, "\\'")}', ${bar.active !== false})">${bar.active !== false ? 'Cerrar' : 'Reabrir'}</button>`
+          : '';
+        return `
         <tr id="bar-row-${index}">
           <td style="font-weight: 600;">
             <span class="bar-name-display">${bar.name}</span>
@@ -2740,7 +2762,7 @@
             <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
           </td>
           <td>
-            <span class="bar-status-display">${bar.active !== false ? '<span class="badge bg-success">Abierto</span>' : '<span class="badge bg-secondary">Cerrado</span>'}</span>
+            <span class="bar-status-display">${statusDisplay}</span>
           </td>
           <td>
             <div class="btn-group" style="gap: 5px;">
@@ -2753,16 +2775,15 @@
               <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
                 ❌ Cancelar
               </button>
-              <button class="btn btn-sm btn-outline-${bar.active !== false ? 'warning' : 'success'} bar-toggle-btn" onclick="toggleBarStatus('${bar.name.replace(/'/g, "\\'")}', ${bar.active !== false})">
-                ${bar.active !== false ? 'Cerrar' : 'Reabrir'}
-              </button>
+              ${toggleButton}
               <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
                 🗑️ Eliminar
               </button>
             </div>
           </td>
         </tr>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function setupAddBarForm() {
@@ -2816,15 +2837,26 @@
         const barData = {
           nombre: name,
           instagram_url: socialType === 'ig' ? socialUrl : null,
-          facebook_url: socialType === 'fb' ? socialUrl : null,
-          activo: true
+          facebook_url: socialType === 'fb' ? socialUrl : null
         };
-        
+        if (hasActivoColumn) {
+          barData.activo = true;
+        }
+
         // Insert into database
-        const { error } = await supabase
+        let { error } = await supabase
           .from('bares')
           .insert(barData);
-        
+
+        // If the activo column doesn't exist, retry without it
+        if (error && hasActivoColumn && error.message && error.message.includes("'activo'")) {
+          hasActivoColumn = false;
+          delete barData.activo;
+          ({ error } = await supabase
+            .from('bares')
+            .insert(barData));
+        }
+
         if (error) throw error;
         
         // Reload bars from database
@@ -2857,6 +2889,11 @@
     async function toggleBarStatus(barName, isActive) {
       if (!isAdmin) {
         alert('No tienes permisos de administrador');
+        return;
+      }
+
+      if (!hasActivoColumn) {
+        alert('La columna "activo" no está disponible en la base de datos');
         return;
       }
 
