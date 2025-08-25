@@ -925,14 +925,18 @@
               <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
               <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
             </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de participación:</div>
-              <div id="mobileAverageAttendance" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+                <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de participación:</div>
+                <div id="mobileAverageAttendance" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+                <div style="font-weight: 500; margin-bottom: 4px;">🔥 Longest Streak:</div>
+                <div id="mobileLongestStreak" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
 
     <nav class="mobile-bottom-nav">
       <div class="mobile-nav-items">
@@ -1057,15 +1061,19 @@
                 <span id="desktopTimeSince" class="text-info">Cargando...</span>
               </div>
               <div>
-                <strong>🎉 Próximo aniversario:</strong><br>
-                <span id="desktopAnniversary" class="text-warning">Cargando...</span>
-              </div>
-                <div class="mb-3">
-                  <strong>📊 Promedio de participación:</strong><br>
-                  <span id="desktopAverageAttendance" class="text-info">Cargando...</span>
+                  <strong>🎉 Próximo aniversario:</strong><br>
+                  <span id="desktopAnniversary" class="text-warning">Cargando...</span>
                 </div>
+                  <div class="mb-3">
+                    <strong>📊 Promedio de participación:</strong><br>
+                    <span id="desktopAverageAttendance" class="text-info">Cargando...</span>
+                  </div>
+                  <div>
+                    <strong>🔥 Longest Streak:</strong><br>
+                    <span id="desktopLongestStreak" class="text-info">Cargando...</span>
+                  </div>
+              </div>
             </div>
-          </div>
         </div>
         </div>
 
@@ -2285,15 +2293,31 @@
           });
         }
 
-        // Convert to array and sort
-        const sortedUsers = Object.values(userStats)
-          .map(u => ({
-            ...u,
-            streak: calculateStreak(u.dates, lastWeekDate),
-            percentage: totalCns
-              ? Math.round((u.asistencias / totalCns) * 100)
-              : 0
-          }))
+        // Prepare user array with streaks and percentages
+        const usersArray = Object.values(userStats).map(u => ({
+          ...u,
+          streak: calculateStreak(u.dates, lastWeekDate),
+          percentage: totalCns
+            ? Math.round((u.asistencias / totalCns) * 100)
+            : 0
+        }));
+
+        // Determine longest streak
+        const longest = usersArray.reduce(
+          (max, u) => (u.streak > max.streak ? u : max),
+          { streak: 0 }
+        );
+
+        const mobileLongestEl = document.getElementById('mobileLongestStreak');
+        if (mobileLongestEl) {
+          if (usersArray.length && longest.streak > 0) {
+            mobileLongestEl.textContent = `${longest.streak} asistencias - ${longest.nombre}`;
+          } else {
+            mobileLongestEl.textContent = 'N/A';
+          }
+        }
+
+        const sortedUsers = usersArray
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
               return b.streak - a.streak;
@@ -2638,14 +2662,29 @@
           });
         }
 
-        const sortedUsers = Object.values(userStats)
-          .map(u => ({
-            ...u,
-            streak: calculateStreak(u.dates, lastWeekDate),
-            percentage: totalCns
-              ? Math.round((u.asistencias / totalCns) * 100)
-              : 0
-          }))
+        const usersArray = Object.values(userStats).map(u => ({
+          ...u,
+          streak: calculateStreak(u.dates, lastWeekDate),
+          percentage: totalCns
+            ? Math.round((u.asistencias / totalCns) * 100)
+            : 0
+        }));
+
+        const longest = usersArray.reduce(
+          (max, u) => (u.streak > max.streak ? u : max),
+          { streak: 0 }
+        );
+
+        const desktopLongestEl = document.getElementById('desktopLongestStreak');
+        if (desktopLongestEl) {
+          if (usersArray.length && longest.streak > 0) {
+            desktopLongestEl.textContent = `${longest.streak} asistencias - ${longest.nombre}`;
+          } else {
+            desktopLongestEl.textContent = 'N/A';
+          }
+        }
+
+        const sortedUsers = usersArray
           .sort((a, b) => {
             if (b.asistencias === a.asistencias) {
               return b.streak - a.streak;
