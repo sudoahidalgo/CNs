@@ -58,12 +58,12 @@ describe('updateAttendance handler', () => {
 
   afterEach(() => {
     delete process.env.SUPABASE_URL;
-    delete process.env.SUPABASE_KEY;
+    delete process.env.SUPABASE_SERVICE_KEY;
   });
 
   test('successful update with valid data', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_KEY = 'key';
+    process.env.SUPABASE_SERVICE_KEY = 'service-key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
@@ -81,7 +81,7 @@ describe('updateAttendance handler', () => {
 
   test('returns 502 on invalid JSON with detailed message', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_KEY = 'key';
+    process.env.SUPABASE_SERVICE_KEY = 'service-key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
