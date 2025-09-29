@@ -58,12 +58,13 @@ describe('updateAttendance handler', () => {
 
   afterEach(() => {
     delete process.env.SUPABASE_URL;
-    delete process.env.SUPABASE_KEY;
+    delete process.env.SUPABASE_SERVICE_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   });
 
   test('successful update with valid data', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_KEY = 'key';
+    process.env.SUPABASE_SERVICE_KEY = 'service-key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
@@ -81,7 +82,7 @@ describe('updateAttendance handler', () => {
 
   test('returns 502 on invalid JSON with detailed message', async () => {
     process.env.SUPABASE_URL = 'url';
-    process.env.SUPABASE_KEY = 'key';
+    process.env.SUPABASE_SERVICE_KEY = 'service-key';
     const handler = loadHandler();
     const res = await handler({
       httpMethod: 'POST',
@@ -103,5 +104,36 @@ describe('updateAttendance handler', () => {
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body)).toEqual({ data: { ok: true } });
+  });
+
+});
+
+describe('supabaseClient configuration', () => {
+  afterEach(() => {
+    jest.resetModules();
+    jest.dontMock('@supabase/supabase-js');
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_KEY;
+  });
+
+  test('falls back to SUPABASE_SERVICE_ROLE_KEY when service key missing', () => {
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'role-key';
+    const createClientSpy = jest.fn(() => ({}));
+
+    jest.doMock('@supabase/supabase-js', () => ({
+      createClient: createClientSpy
+    }));
+
+    jest.isolateModules(() => {
+      require('../src/lib/supabaseClient');
+    });
+
+    expect(createClientSpy).toHaveBeenCalledWith(
+      'https://example.supabase.co',
+      'role-key'
+    );
   });
 });
