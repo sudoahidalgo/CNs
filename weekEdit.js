@@ -44,7 +44,7 @@ const fetchBarsWithHeaders = async () => {
   }
 
   const response = await fetch(
-    `${url}/rest/v1/bares?select=nombre,instagram_url,facebook_url,activo&order=nombre`,
+    `${url}/rest/v1/bares?select=id,nombre,instagram_url,facebook_url,activo&order=nombre`,
     {
       headers: {
         apikey: anonKey,
@@ -72,7 +72,7 @@ async function openEditWeek(weekId) {
 
     const [weekRes, barsRes, usersRes, attendsRes] = await Promise.all([
       supabase.from('semanas_cn').select('*').eq('id', weekId).single(),
-      supabase.from('bares').select('nombre, instagram_url, facebook_url, activo').order('nombre'),
+      supabase.from('bares').select('id, nombre, instagram_url, facebook_url, activo').order('nombre'),
       supabase.from('usuarios').select('id, nombre').order('nombre'),
       supabase.from('asistencias').select('user_id').eq('semana_id', weekId).eq('confirmado', true)
     ]);
@@ -83,7 +83,7 @@ async function openEditWeek(weekId) {
 
     editingWeekId = weekId;
 
-    const barSelect = document.getElementById('editWeekBar');
+    const barSelect = document.getElementById('editBarSelect');
     let barsData = barsRes.data || [];
 
     if (barsRes.error) {
@@ -91,9 +91,21 @@ async function openEditWeek(weekId) {
       barsData = await fetchBarsWithHeaders();
     }
 
-    barSelect.innerHTML = (barsData || []).map(b => `<option value="${b.nombre}">${b.nombre}</option>`).join('');
-    if (weekRes.data?.bar_ganador) {
-      barSelect.value = weekRes.data.bar_ganador;
+    barSelect.innerHTML = (barsData || [])
+      .map((b) => `<option value="${b.id}">${b.nombre}</option>`)
+      .join('');
+
+    const initialBarId = (() => {
+      if (weekRes.data?.bar_id) return String(weekRes.data.bar_id);
+      if (weekRes.data?.bar_ganador) {
+        const found = (barsData || []).find((bar) => bar.nombre === weekRes.data.bar_ganador);
+        if (found?.id) return String(found.id);
+      }
+      return '';
+    })();
+
+    if (initialBarId) {
+      barSelect.value = initialBarId;
     }
 
     const attendees = new Set((attendsRes.data || []).map(a => a.user_id));
@@ -105,7 +117,24 @@ async function openEditWeek(weekId) {
       </div>
     `).join('');
 
-    const modal = new bootstrap.Modal(document.getElementById('editWeekModal'));
+    const asistentesInput = document.getElementById('editAsistentes');
+    if (asistentesInput) {
+      const totalAsistentes =
+        weekRes.data?.asistentes ??
+        weekRes.data?.total_asistentes ??
+        attendees.size ??
+        '';
+      asistentesInput.value = totalAsistentes !== undefined && totalAsistentes !== null ? totalAsistentes : '';
+    }
+
+    const modalEl = document.getElementById('editWeekModal');
+    if (!modalEl) {
+      throw new Error('No se encontró el modal de edición.');
+    }
+
+    modalEl.dataset.weekId = String(weekId);
+
+    const modal = new bootstrap.Modal(modalEl);
     modal.show();
   } catch (error) {
     if (window.showAlert) {
@@ -117,12 +146,51 @@ async function openEditWeek(weekId) {
 }
 
 async function saveWeekChanges() {
-  if (!editingWeekId) return;
+  const modalEl = document.getElementById('editWeekModal');
+  if (!modalEl) {
+    alert('Faltan datos: week_id o fields');
+    return;
+  }
 
-  const bar = document.getElementById('editWeekBar').value || null;
+  const normalizeId = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = Number(value);
+    return Number.isNaN(num) || num <= 0 ? null : num;
+  };
+
+  const datasetWeekId = modalEl.dataset?.weekId;
+  const weekIdFromDataset = normalizeId(datasetWeekId);
+  const weekIdFromState = normalizeId(editingWeekId);
+  const week_id = weekIdFromDataset || weekIdFromState;
+
+  const barSelect = modalEl?.querySelector('#editBarSelect');
+  const asistentesInput = modalEl?.querySelector('#editAsistentes');
   const selected = Array.from(
-    document.querySelectorAll('#editWeekUsers input:checked')
+    modalEl.querySelectorAll('#editWeekUsers input:checked')
   ).map(el => el.value);
+
+  const barId = barSelect && barSelect.value !== '' ? Number(barSelect.value) : null;
+  const asistentesRaw = asistentesInput ? asistentesInput.value.trim() : '';
+  const asistentesNumber = asistentesRaw === '' ? selected.length : Number(asistentesRaw);
+  const asistentes = Number.isNaN(asistentesNumber) ? selected.length : asistentesNumber;
+
+  const attendees = selected.map((value) => {
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? value : numeric;
+  });
+
+  const fields = {
+    bar_id: barId !== null && !Number.isNaN(barId) ? barId : null,
+    asistentes,
+    attendees,
+  };
+
+  if (!week_id || !fields || typeof fields !== 'object') {
+    alert('Faltan datos: week_id o fields');
+    return;
+  }
+
+  const payload = { week_id, fields };
 
   if (typeof isAdmin !== 'undefined' && !isAdmin) {
     return;
@@ -132,11 +200,7 @@ async function saveWeekChanges() {
     const res = await fetch('/.netlify/functions/updateAttendance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        weekId: editingWeekId,
-        bar,
-        attendees: selected,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -144,8 +208,10 @@ async function saveWeekChanges() {
       throw new Error(`${res.status}: ${data.error || 'Request failed'}`);
     }
 
-    const modal = bootstrap.Modal.getInstance(document.getElementById('editWeekModal'));
-    modal.hide();
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
 
     if (window.showAlert) {
       window.showAlert('Semana actualizada exitosamente', 'success');
@@ -169,6 +235,9 @@ async function saveWeekChanges() {
     }
   } finally {
     editingWeekId = null;
+    if (modalEl) {
+      delete modalEl.dataset.weekId;
+    }
   }
 }
 
