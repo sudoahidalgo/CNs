@@ -222,6 +222,7 @@
     // ========== CONFIGURACIÓN SUPABASE ==========
     import { supabaseUrl, supabaseKey, ADMIN_EMAILS } from './config.js';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    window.supabaseClient = supabase;
     window.supabase = supabase;
 
     // ========== CONFIGURACIÓN DE ADMINS ==========

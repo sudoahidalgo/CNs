@@ -1,7 +1,71 @@
 let editingWeekId = null;
+let supabaseClientOverride = null;
+
+const getSupabaseClient = () => {
+  if (supabaseClientOverride) return supabaseClientOverride;
+
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
+    return window.supabaseClient;
+  }
+
+  if (window.supabase && typeof window.supabase.from === 'function') {
+    window.supabaseClient = window.supabase;
+    return window.supabaseClient;
+  }
+
+  if (
+    window.supabase &&
+    typeof window.supabase.createClient === 'function' &&
+    window.supabaseUrl &&
+    window.supabaseKey
+  ) {
+    const client = window.supabase.createClient(window.supabaseUrl, window.supabaseKey);
+    window.supabaseClient = client;
+    return client;
+  }
+
+  return null;
+};
+
+const fetchBarsWithHeaders = async () => {
+  if (typeof window === 'undefined') {
+    throw new Error('Supabase REST API requires a browser environment');
+  }
+
+  const url = window.supabaseUrl;
+  const anonKey = window.supabaseKey;
+
+  if (!url || !anonKey) {
+    throw new Error('Supabase configuration missing. Please define supabaseUrl and supabaseKey.');
+  }
+
+  const response = await fetch(`${url}/rest/v1/bares?select=nombre&order=nombre`, {
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to load bars (${response.status}): ${errorText || 'Unknown error'}`);
+  }
+
+  return response.json();
+};
 
 async function openEditWeek(weekId) {
   try {
+    const supabase = getSupabaseClient();
+
+    if (!supabase) {
+      throw new Error('Supabase client no está inicializado.');
+    }
+
     const [weekRes, barsRes, usersRes, attendsRes] = await Promise.all([
       supabase.from('semanas_cn').select('*').eq('id', weekId).single(),
       supabase.from('bares').select('nombre').order('nombre'),
@@ -10,14 +74,20 @@ async function openEditWeek(weekId) {
     ]);
 
     if (weekRes.error) throw weekRes.error;
-    if (barsRes.error) throw barsRes.error;
     if (usersRes.error) throw usersRes.error;
     if (attendsRes.error) throw attendsRes.error;
 
     editingWeekId = weekId;
 
     const barSelect = document.getElementById('editWeekBar');
-    barSelect.innerHTML = (barsRes.data || []).map(b => `<option value="${b.nombre}">${b.nombre}</option>`).join('');
+    let barsData = barsRes.data || [];
+
+    if (barsRes.error) {
+      console.warn('Fallo cargando bares con el cliente de Supabase, reintentando con fetch directo.', barsRes.error);
+      barsData = await fetchBarsWithHeaders();
+    }
+
+    barSelect.innerHTML = (barsData || []).map(b => `<option value="${b.nombre}">${b.nombre}</option>`).join('');
     if (weekRes.data?.bar_ganador) {
       barSelect.value = weekRes.data.bar_ganador;
     }
@@ -110,5 +180,6 @@ if (typeof module !== 'undefined' && module.exports) {
     saveWeekChanges,
     _setEditingWeekId: (id) => { editingWeekId = id; },
     _getEditingWeekId: () => editingWeekId,
+    _setSupabaseClient: (client) => { supabaseClientOverride = client; },
   };
 }
