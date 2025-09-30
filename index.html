@@ -3025,7 +3025,24 @@
         }
 
         if (error) throw error;
-        
+
+        // Ensure the new bar is marked as active so it appears immediately in the voting list
+        if (hasActivoColumn) {
+          const { error: activateError } = await supabase
+            .from('bares')
+            .update({ activo: true })
+            .eq('nombre', name);
+
+          if (activateError) {
+            if (activateError.message && activateError.message.includes("'activo'")) {
+              console.warn('Columna "activo" no disponible durante la activación del bar.');
+              hasActivoColumn = false;
+            } else {
+              throw activateError;
+            }
+          }
+        }
+
         // Reload bars from database
         await loadBarsFromDatabase();
         
