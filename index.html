@@ -2804,6 +2804,19 @@
           ? formatTuesdayDateLong(lastAttendance.semanas_cn.fecha_martes)
           : 'Nunca';
 
+        const daysSinceLast = lastAttendance
+          ? Math.max(
+              0,
+              Math.floor(
+                (
+                  new Date().setHours(0, 0, 0, 0) -
+                  new Date(lastAttendance.semanas_cn.fecha_martes).setHours(0, 0, 0, 0)
+                ) /
+                  (1000 * 60 * 60 * 24)
+              )
+            )
+          : null;
+
         const voteCounts = {};
         (votesData || []).forEach(v => {
           voteCounts[v.bar] = (voteCounts[v.bar] || 0) + 1;
@@ -2816,9 +2829,6 @@
             maxVotes = count;
           }
         });
-
-        const weeksVoted = new Set((votesData || []).map(v => v.semana_id)).size;
-        const avgVotes = weeksVoted ? (votesData.length / weeksVoted).toFixed(1) : '0';
 
         const attendanceCard = document.getElementById('mobileAttendanceCard');
         if (attendanceCard) {
@@ -2856,16 +2866,18 @@
                 <span class="mobile-user-stat-value">${lastCNText}</span>
               </div>
               <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">📅 Días desde última CN</span>
+                <span class="mobile-user-stat-value">${
+                  daysSinceLast !== null ? daysSinceLast : 'N/A'
+                }</span>
+              </div>
+              <div class="mobile-user-stat">
                 <span class="mobile-user-stat-label">✅ Total asistencias</span>
                 <span class="mobile-user-stat-value">${attendedCount}</span>
               </div>
               <div class="mobile-user-stat">
                 <span class="mobile-user-stat-label">🍺 Bar más votado</span>
                 <span class="mobile-user-stat-value">${mostVoted || 'N/A'}</span>
-              </div>
-              <div class="mobile-user-stat">
-                <span class="mobile-user-stat-label">📊 Promedio de votos</span>
-                <span class="mobile-user-stat-value">${avgVotes}</span>
               </div>
               <div class="mobile-user-stat">
                 <span class="mobile-user-stat-label">🔥 Longest streak</span>
