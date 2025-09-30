@@ -43,12 +43,16 @@ const fetchBarsWithHeaders = async () => {
     throw new Error('Supabase configuration missing. Please define supabaseUrl and supabaseKey.');
   }
 
-  const response = await fetch(`${url}/rest/v1/bares?select=nombre&order=nombre`, {
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
+  const response = await fetch(
+    `${url}/rest/v1/bares?select=nombre,instagram_url,facebook_url,activo&order=nombre`,
+    {
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        'Content-Type': 'application/json',
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -68,7 +72,7 @@ async function openEditWeek(weekId) {
 
     const [weekRes, barsRes, usersRes, attendsRes] = await Promise.all([
       supabase.from('semanas_cn').select('*').eq('id', weekId).single(),
-      supabase.from('bares').select('nombre').order('nombre'),
+      supabase.from('bares').select('nombre, instagram_url, facebook_url, activo').order('nombre'),
       supabase.from('usuarios').select('id, nombre').order('nombre'),
       supabase.from('asistencias').select('user_id').eq('semana_id', weekId).eq('confirmado', true)
     ]);

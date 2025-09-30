@@ -1,49 +1,19 @@
 // netlify/functions/updateAttendance.js
 const { getSupabaseAdminClient } = require('../lib/supabaseAdminClient');
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  'https://corkys.netlify.app',
-  'http://localhost:8888',
-  'http://127.0.0.1:8888',
-];
+const getCorsHeaders = () => ({
+  'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+});
 
-const resolveAllowedOrigins = () => {
-  const raw =
-    process.env.ALLOWED_ORIGINS ||
-    process.env.CORS_ALLOWED_ORIGINS ||
-    DEFAULT_ALLOWED_ORIGINS.join(',');
-
-  return raw
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
-};
-
-const getCorsHeaders = (origin = '') => {
-  const allowedOrigins = resolveAllowedOrigins();
-  const hasWildcard = allowedOrigins.includes('*');
-  const normalizedOrigin = origin.trim();
-
-  let allowOrigin = hasWildcard ? '*' : allowedOrigins[0] || '*';
-  if (!hasWildcard && normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) {
-    allowOrigin = normalizedOrigin;
-  }
-
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Max-Age': '86400',
-  };
-};
-
-const jsonResponse = (statusCode, body, origin) => ({
+const jsonResponse = (statusCode, body) => ({
   statusCode,
   headers: {
     'Content-Type': 'application/json',
     Vary: 'Origin',
-    ...getCorsHeaders(origin),
+    ...getCorsHeaders(),
   },
   body: JSON.stringify(body),
 });
@@ -127,12 +97,10 @@ const normalizeSupabaseError = (error) => {
 };
 
 exports.handler = async (event = {}) => {
-  const origin = event.headers?.origin || event.headers?.Origin || '';
-
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 204,
-      headers: getCorsHeaders(origin),
+      headers: getCorsHeaders(),
       body: '',
     };
   }
@@ -141,7 +109,7 @@ exports.handler = async (event = {}) => {
     return {
       statusCode: 405,
       headers: {
-        ...getCorsHeaders(origin),
+        ...getCorsHeaders(),
         Allow: 'POST, OPTIONS',
         'Content-Type': 'application/json',
         Vary: 'Origin',
@@ -234,12 +202,12 @@ exports.handler = async (event = {}) => {
         attendees,
         totalAttendees,
       },
-    }, origin);
+    });
   } catch (error) {
     const normalizedError = error.statusCode ? error : normalizeSupabaseError(error);
     console.error('updateAttendance failed:', error);
     return jsonResponse(normalizedError.statusCode || 500, {
       error: normalizedError.message || 'Unknown error',
-    }, origin);
+    });
   }
 };
