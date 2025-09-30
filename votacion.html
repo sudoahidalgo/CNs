@@ -495,6 +495,33 @@ codex/add-voting-animations-and-tooltips
       setTimeout(() => container.remove(), 1500);
     }
 
+    const COSTA_RICA_OFFSET_MS = -6 * 60 * 60 * 1000; // UTC-6 sin DST
+
+    function toCostaRicaTime(date = new Date()) {
+      return new Date(date.getTime() + COSTA_RICA_OFFSET_MS);
+    }
+
+    function fromCostaRicaTime(date) {
+      return new Date(date.getTime() - COSTA_RICA_OFFSET_MS);
+    }
+
+    function getWeekStartInCostaRica(baseDate = new Date()) {
+      const costaRicaNow = toCostaRicaTime(baseDate);
+      const weekStart = new Date(costaRicaNow);
+      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 5) % 7));
+      weekStart.setHours(0, 0, 0, 0);
+      return weekStart;
+    }
+
+    function getVotingDeadline(baseDate = new Date()) {
+      const costaRicaNow = toCostaRicaTime(baseDate);
+      const deadlineInCostaRica = new Date(costaRicaNow);
+      const daysUntilTuesday = (9 - deadlineInCostaRica.getDay()) % 7;
+      deadlineInCostaRica.setDate(deadlineInCostaRica.getDate() + daysUntilTuesday);
+      deadlineInCostaRica.setHours(20, 0, 0, 0);
+      return fromCostaRicaTime(deadlineInCostaRica);
+    }
+
     let longPressTimeout;
     function longPressStart(bar, row) {
       longPressTimeout = setTimeout(() => showBarInfo(bar), 600);
@@ -521,10 +548,8 @@ codex/add-voting-animations-and-tooltips
 
     function isVotingClosed() {
       const now = new Date();
-      const start = new Date(now);
-      start.setDate(now.getDate() - ((now.getDay() + 5) % 7));
-      start.setHours(19,0,0,0);
-      return now >= start;
+      const deadline = getVotingDeadline(now);
+      return now >= deadline;
     }
 
     function showFinalRanking(sorted) {
@@ -543,8 +568,7 @@ codex/add-voting-animations-and-tooltips
       if (!el) return;
       function update() {
         const now = new Date();
-        const closing = new Date();
-        closing.setHours(19, 0, 0, 0);
+        const closing = getVotingDeadline(now);
         if (now >= closing) {
           el.textContent = 'Votación cerrada';
           document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);

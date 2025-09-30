@@ -14,6 +14,35 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY // Usa la Service Role Key para funciones backend
 );
 
+const COSTA_RICA_OFFSET_MS = -6 * 60 * 60 * 1000; // UTC-6 todo el año
+
+function toCostaRicaTime(date = new Date()) {
+  return new Date(date.getTime() + COSTA_RICA_OFFSET_MS);
+}
+
+function fromCostaRicaTime(date) {
+  return new Date(date.getTime() - COSTA_RICA_OFFSET_MS);
+}
+
+function getWeekStartInCostaRica(baseDate = new Date()) {
+  const costaRicaNow = toCostaRicaTime(baseDate);
+  const weekStart = new Date(costaRicaNow);
+  // Martes anterior (o actual) a las 00:00 como inicio de la semana
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 5) % 7));
+  weekStart.setHours(0, 0, 0, 0);
+  return weekStart;
+}
+
+function getVotingDeadline(baseDate = new Date()) {
+  const costaRicaNow = toCostaRicaTime(baseDate);
+  const deadlineInCostaRica = new Date(costaRicaNow);
+  // Próximo martes a las 8:00 p.m. hora local (20:00)
+  const daysUntilTuesday = (9 - deadlineInCostaRica.getDay()) % 7;
+  deadlineInCostaRica.setDate(deadlineInCostaRica.getDate() + daysUntilTuesday);
+  deadlineInCostaRica.setHours(20, 0, 0, 0);
+  return fromCostaRicaTime(deadlineInCostaRica);
+}
+
 exports.handler = async (event) => {
   const ip =
     event.headers["client-ip"] ||
@@ -21,11 +50,8 @@ exports.handler = async (event) => {
     (event.headers["x-forwarded-for"]
       ? event.headers["x-forwarded-for"].split(",")[0].trim()
       : "unknown");
-  const today = new Date();
-  const weekStart = new Date(today);
-  // Calcular el martes anterior a las 00:00 como inicio de la semana
-  weekStart.setDate(today.getDate() - ((today.getDay() + 5) % 7)); // Martes como inicio
-  weekStart.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const weekStart = fromCostaRicaTime(getWeekStartInCostaRica(now));
 
   if (event.httpMethod === "GET") {
     try {
@@ -68,12 +94,10 @@ exports.handler = async (event) => {
     try {
       const { place } = JSON.parse(event.body);
 
-      // Calcular la fecha límite de votación: martes a las 23:00 UTC
-      const votingDeadline = new Date(weekStart);
-      votingDeadline.setUTCHours(23, 0, 0, 0);
+      const votingDeadline = getVotingDeadline(now);
 
       // Si ya pasó la fecha límite, rechazar el voto
-      if (today > votingDeadline) {
+      if (now > votingDeadline) {
         return {
           statusCode: 403,
           body: JSON.stringify({ error: "Voting closed" }),
@@ -105,7 +129,7 @@ exports.handler = async (event) => {
         // Si ya votó por este lugar, actualiza el timestamp (opcional, para mantenerlo actualizado)
         const { error: updateError } = await supabase
           .from('votes')
-          .update({ timestamp: today.toISOString() })
+          .update({ timestamp: now.toISOString() })
           .eq('id', existingVoteForPlace.id);
 
         if (updateError) throw updateError;
@@ -113,7 +137,7 @@ exports.handler = async (event) => {
         // Si no ha votado por este lugar, crea un nuevo voto
         const { error: insertError } = await supabase
           .from('votes')
-          .insert([{ ip, place, timestamp: today.toISOString() }]);
+          .insert([{ ip, place, timestamp: now.toISOString() }]);
 
         if (insertError) throw insertError;
       }
