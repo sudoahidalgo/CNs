@@ -57,7 +57,6 @@ describe('saveWeekChanges', () => {
           fields: {
             bar_id: 3,
             asistentes: 5,
-            attendees: ['u1']
           }
         })
       })

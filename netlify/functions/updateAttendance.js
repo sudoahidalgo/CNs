@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+const { createClient } = require('@supabase/supabase-js')
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
@@ -33,9 +33,9 @@ const buildErrorResponse = (error) => {
   return jsonResponse(statusCode, { error: message })
 }
 
-export const handler = async (event) => {
+const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS_HEADERS, body: '' }
+    return { statusCode: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }, body: '' }
   }
 
   const url = process.env.SUPABASE_URL
@@ -58,11 +58,14 @@ export const handler = async (event) => {
     return jsonResponse(422, { error: 'Invalid JSON' })
   }
 
-  const wk = payload?.week_id ?? payload?.weekId ?? payload?.id ?? payload?.asistencia_id
+  const week_id = payload?.week_id ?? payload?.weekId ?? payload?.id ?? payload?.asistencia_id
   const fields = payload?.fields ?? payload?.update ?? payload?.data
 
-  if (!wk || typeof fields !== 'object' || fields === null || Array.isArray(fields)) {
-    console.warn('Invalid payload', { hasWeek: !!wk, fieldsType: typeof fields })
+  console.log('PAYLOAD', { hasWeekId: !!week_id, fieldKeys: Object.keys(fields || {}) })
+  console.log('TARGET', { table: 'asistencias', pk: 'id', week_id })
+
+  if (!week_id || typeof fields !== 'object' || fields === null || Array.isArray(fields)) {
+    console.warn('Invalid payload', { hasWeek: !!week_id, fieldsType: typeof fields })
     return jsonResponse(422, { error: 'Missing week_id or fields' })
   }
 
@@ -72,7 +75,7 @@ export const handler = async (event) => {
     const { data, error } = await supabase
       .from('asistencias')
       .update(fields)
-      .eq('id', wk)
+      .eq('id', week_id)
       .select()
 
     if (error) {
@@ -85,3 +88,5 @@ export const handler = async (event) => {
     return jsonResponse(500, { error: err?.message || 'server error' })
   }
 }
+
+module.exports = { handler }
