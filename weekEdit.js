@@ -152,40 +152,52 @@ async function saveWeekChanges() {
     return;
   }
 
-  const normalizeId = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const num = Number(value);
-    return Number.isNaN(num) || num <= 0 ? null : num;
-  };
+  const week_id = Number(modalEl.dataset?.weekId);
 
-  const datasetWeekId = modalEl.dataset?.weekId;
-  const weekIdFromDataset = normalizeId(datasetWeekId);
-  const weekIdFromState = normalizeId(editingWeekId);
-  const week_id = weekIdFromDataset || weekIdFromState;
+  if (!Number.isFinite(week_id) || week_id <= 0) {
+    alert('Faltan datos: week_id o fields');
+    return;
+  }
 
   const barSelect = modalEl?.querySelector('#editBarSelect');
   const asistentesInput = modalEl?.querySelector('#editAsistentes');
-  const selected = Array.from(
-    modalEl.querySelectorAll('#editWeekUsers input:checked')
-  ).map(el => el.value);
+  const selectedCount = modalEl ? modalEl.querySelectorAll('#editWeekUsers input:checked').length : 0;
 
-  const barId = barSelect && barSelect.value !== '' ? Number(barSelect.value) : null;
-  const asistentesRaw = asistentesInput ? asistentesInput.value.trim() : '';
-  const asistentesNumber = asistentesRaw === '' ? selected.length : Number(asistentesRaw);
-  const asistentes = Number.isNaN(asistentesNumber) ? selected.length : asistentesNumber;
+  let bar_id = null;
+  if (barSelect) {
+    const rawBar = barSelect.value;
+    if (rawBar !== '') {
+      const parsedBar = Number(rawBar);
+      if (Number.isNaN(parsedBar)) {
+        alert('El bar seleccionado es inválido');
+        return;
+      }
+      bar_id = parsedBar;
+    }
+  }
 
-  const attendees = selected.map((value) => {
-    const numeric = Number(value);
-    return Number.isNaN(numeric) ? value : numeric;
-  });
+  let asistentes;
+  if (asistentesInput) {
+    const rawAsistentes = asistentesInput.value.trim();
+    if (rawAsistentes === '') {
+      asistentes = selectedCount;
+    } else {
+      const parsedAsistentes = Number(rawAsistentes);
+      if (Number.isNaN(parsedAsistentes) || parsedAsistentes < 0) {
+        alert('El total de asistentes es inválido');
+        return;
+      }
+      asistentes = parsedAsistentes;
+    }
+  } else {
+    asistentes = selectedCount;
+  }
 
-  const fields = {
-    bar_id: barId !== null && !Number.isNaN(barId) ? barId : null,
-    asistentes,
-    attendees,
-  };
+  const fields = {};
+  fields.bar_id = bar_id;
+  fields.asistentes = asistentes;
 
-  if (!week_id || !fields || typeof fields !== 'object') {
+  if (!fields || typeof fields !== 'object') {
     alert('Faltan datos: week_id o fields');
     return;
   }
