@@ -7,18 +7,18 @@ as $$
   select coalesce(auth.email() in ('ahidalgod@gmail.com'), false);
 $$;
 
--- Attendance policies
-alter table public.attendance enable row level security;
+-- Asistencias policies
+alter table public.asistencias enable row level security;
 
-create policy if not exists "attendance update own"
-  on public.attendance
+create policy if not exists "asistencias update own"
+  on public.asistencias
   for update
   to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
-create policy if not exists "attendance admin can update all"
-  on public.attendance
+create policy if not exists "asistencias admin can update all"
+  on public.asistencias
   for update
   to authenticated
   using (public.is_admin())
