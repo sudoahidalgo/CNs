@@ -119,15 +119,37 @@ describe('updateAttendance handler', () => {
     expect(upsertSpy).toHaveBeenCalledWith([{ bar: 'Bar Azul', semana_id: 12 }], { onConflict: 'bar' });
   });
 
-  test('returns 400 on invalid JSON', async () => {
+  test('returns 422 on invalid JSON', async () => {
     const response = await handler({
       httpMethod: 'POST',
       body: '{ invalid',
       headers: { origin: 'https://corkys.netlify.app' },
     });
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(JSON.parse(response.body).error).toBe('Invalid JSON payload');
     expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
+  });
+
+  test('returns 422 when weekId is missing', async () => {
+    const response = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ attendees: [] }),
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(JSON.parse(response.body).error).toBe('Invalid payload: weekId is required');
+  });
+
+  test('returns 422 when attendees is not an array', async () => {
+    const response = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ weekId: 1, attendees: 'nope' }),
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(JSON.parse(response.body).error).toBe('Invalid payload: attendees must be an array of user IDs');
   });
 
   test('returns 404 when week does not exist', async () => {
@@ -180,10 +202,60 @@ describe('updateAttendance handler', () => {
       headers: { origin: 'https://corkys.netlify.app' },
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(204);
     expect(response.body).toBe('');
     expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
     expect(response.headers['Access-Control-Allow-Methods']).toContain('OPTIONS');
     expect(response.headers['Access-Control-Allow-Headers']).toContain('authorization');
+  });
+
+  test('maps supabase bad request errors to 422', async () => {
+    const supabaseError = Object.assign(new Error('invalid input'), { status: 400 });
+
+    const supabaseMock = buildSupabaseMock({
+      semanasCn: {
+        maybeSingle: () => ({ data: { id: 2 }, error: null }),
+        updateResult: () => ({ data: null, error: supabaseError }),
+      },
+      asistencias: {
+        deleteResult: () => ({ data: null, error: null }),
+      },
+    });
+
+    getSupabaseAdminClient.mockReturnValue(supabaseMock);
+
+    const response = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ weekId: 2, attendees: [] }),
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(JSON.parse(response.body).error).toBe('invalid input');
+  });
+
+  test('bubbles up authorization errors as 403', async () => {
+    const supabaseError = Object.assign(new Error('permission denied'), { status: 403 });
+
+    const supabaseMock = buildSupabaseMock({
+      semanasCn: {
+        maybeSingle: () => ({ data: { id: 3 }, error: null }),
+        updateResult: () => ({ data: null, error: supabaseError }),
+      },
+      asistencias: {
+        deleteResult: () => ({ data: null, error: null }),
+      },
+    });
+
+    getSupabaseAdminClient.mockReturnValue(supabaseMock);
+
+    const response = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ weekId: 3, attendees: [] }),
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(JSON.parse(response.body).error).toBe('permission denied');
   });
 });
