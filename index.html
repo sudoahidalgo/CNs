@@ -2614,14 +2614,12 @@
           </div>
           ${streakRankInfo ? `
             <div style="margin-top: 16px; padding: 16px; border-radius: 10px; border: 1px solid ${streakRankInfo.currentLevel.borderColor}; background: ${streakRankInfo.currentLevel.background};">
-              <div style="font-weight: 600; font-size: 1rem; color: #fff;">${streakRankInfo.currentLevel.title}</div>
-              <div style="font-size: 0.85rem; color: #e1e1e1; margin-top: 4px;">Tu racha más larga es de ${longestStreak} CNs consecutivas.</div>
-              <div style="font-size: 0.75rem; color: rgba(255,255,255,0.75); margin-top: 12px; font-weight: 500;">Todos los niveles</div>
+              <div style="font-size: 0.85rem; color: #e1e1e1;">Tu racha más larga es de ${longestStreak} CNs consecutivas.</div>
               <ul style="list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px;">
                 ${streakRankInfo.levels.map(level => {
                   const isCurrent = level.id === streakRankInfo.currentLevel.id;
                   return `
-                    <li style="padding: 10px 12px; border-radius: 8px; border: 1px solid ${isCurrent ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)'}; background: ${isCurrent ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)'};">
+                    <li style="padding: 10px 12px; border-radius: 8px; border: 1px solid ${isCurrent ? '#ffd166' : 'rgba(255,255,255,0.12)'}; background: ${isCurrent ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)'};">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 600; color: #fff; font-size: 0.9rem;">${level.title}</span>
                         <span style="font-size: 0.75rem; color: #adb5bd;">${level.rangeText}</span>
