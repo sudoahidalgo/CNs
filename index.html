@@ -1595,35 +1595,71 @@
     }
 
     function getStreakRankInfo(streak) {
-      if (streak > 20) {
-        return {
-          title: 'Cuadrillero Lomo dorado alpha',
-          background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 165, 0, 0.15))',
-          borderColor: 'rgba(255, 215, 0, 0.4)'
-        };
-      }
-      if (streak > 10) {
-        return {
-          title: 'Cuadrillero Lomo plateado',
-          background: 'linear-gradient(135deg, rgba(192, 192, 192, 0.25), rgba(255, 255, 255, 0.1))',
-          borderColor: 'rgba(192, 192, 192, 0.4)'
-        };
-      }
-      if (streak > 5) {
-        return {
-          title: 'Cuadrillero Lomo negro',
-          background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.6), rgba(64, 64, 64, 0.3))',
-          borderColor: 'rgba(26, 26, 26, 0.7)'
-        };
-      }
-      if (streak > 2) {
-        return {
-          title: 'Cuadrillero Lomo rosado',
-          background: 'linear-gradient(135deg, rgba(255, 105, 180, 0.25), rgba(255, 182, 193, 0.15))',
-          borderColor: 'rgba(255, 105, 180, 0.4)'
-        };
-      }
-      return null;
+      const normalizedStreak = Math.max(0, streak || 0);
+
+      const STREAK_LEVELS = [
+        {
+          id: 'nightmale',
+          min: 26,
+          max: Infinity,
+          title: '“NightmAle!” 👹🍺',
+          rangeText: '26+ CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(111, 33, 255, 0.4), rgba(19, 22, 70, 0.65))',
+          borderColor: 'rgba(111, 33, 255, 0.5)'
+        },
+        {
+          id: 'ipa-insana',
+          min: 16,
+          max: 25,
+          title: '“IPA Insana” 🌿💥',
+          rangeText: '16 - 25 CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(0, 148, 94, 0.35), rgba(9, 64, 50, 0.6))',
+          borderColor: 'rgba(0, 148, 94, 0.45)'
+        },
+        {
+          id: 'stout-me-plenty',
+          min: 9,
+          max: 15,
+          title: '“Stout Me Plenty” 🍫⚡',
+          rangeText: '9 - 15 CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(94, 56, 19, 0.45), rgba(43, 26, 15, 0.65))',
+          borderColor: 'rgba(94, 56, 19, 0.55)'
+        },
+        {
+          id: 'hurt-me-pilsner',
+          min: 6,
+          max: 8,
+          title: '“Hurt Me Pilsner” 🍺🔥',
+          rangeText: '6 - 8 CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(255, 110, 64, 0.35), rgba(89, 32, 9, 0.55))',
+          borderColor: 'rgba(255, 110, 64, 0.45)'
+        },
+        {
+          id: 'happy-hour',
+          min: 4,
+          max: 5,
+          title: '“Happy Hour” 🍻',
+          rangeText: '4 - 5 CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(255, 187, 0, 0.28), rgba(133, 76, 0, 0.45))',
+          borderColor: 'rgba(255, 187, 0, 0.4)'
+        },
+        {
+          id: 'sed-principiante',
+          min: 0,
+          max: 3,
+          title: '“Sed de Principiante” 🍺',
+          rangeText: '0 - 3 CNs consecutivas',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02))',
+          borderColor: 'rgba(255, 255, 255, 0.18)'
+        }
+      ];
+
+      const currentLevel = STREAK_LEVELS.find(level => normalizedStreak >= level.min && normalizedStreak <= level.max) || STREAK_LEVELS[STREAK_LEVELS.length - 1];
+
+      return {
+        currentLevel,
+        levels: STREAK_LEVELS
+      };
     }
 
     // ========== DATA LOADING ==========
@@ -2577,9 +2613,24 @@
             </div>
           </div>
           ${streakRankInfo ? `
-            <div style="margin-top: 16px; padding: 16px; border-radius: 10px; border: 1px solid ${streakRankInfo.borderColor}; background: ${streakRankInfo.background};">
-              <div style="font-weight: 600; font-size: 1rem; color: #fff;">${streakRankInfo.title}</div>
+            <div style="margin-top: 16px; padding: 16px; border-radius: 10px; border: 1px solid ${streakRankInfo.currentLevel.borderColor}; background: ${streakRankInfo.currentLevel.background};">
+              <div style="font-weight: 600; font-size: 1rem; color: #fff;">${streakRankInfo.currentLevel.title}</div>
               <div style="font-size: 0.85rem; color: #e1e1e1; margin-top: 4px;">Tu racha más larga es de ${longestStreak} CNs consecutivas.</div>
+              <div style="font-size: 0.75rem; color: rgba(255,255,255,0.75); margin-top: 12px; font-weight: 500;">Todos los niveles</div>
+              <ul style="list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px;">
+                ${streakRankInfo.levels.map(level => {
+                  const isCurrent = level.id === streakRankInfo.currentLevel.id;
+                  return `
+                    <li style="padding: 10px 12px; border-radius: 8px; border: 1px solid ${isCurrent ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)'}; background: ${isCurrent ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)'};">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: #fff; font-size: 0.9rem;">${level.title}</span>
+                        <span style="font-size: 0.75rem; color: #adb5bd;">${level.rangeText}</span>
+                      </div>
+                      ${isCurrent ? '<div style="margin-top: 4px; font-size: 0.7rem; color: #ffd166; font-weight: 600;">⬆️ Estás en este nivel</div>' : ''}
+                    </li>
+                  `;
+                }).join('')}
+              </ul>
             </div>
           ` : ''}
         `;
