@@ -6,12 +6,14 @@ describe('saveWeekChanges', () => {
 
   beforeEach(() => {
     document.body.innerHTML = `
-      <select id="editWeekBar"><option value="Bar1">Bar1</option></select>
-      <div id="editWeekUsers">
-        <input type="checkbox" value="u1" checked>
-        <input type="checkbox" value="u2">
+      <div id="editWeekModal" data-week-id="1">
+        <select id="editBarSelect"><option value="3">Bar1</option></select>
+        <input id="editAsistentes" type="number" value="5" />
+        <div id="editWeekUsers">
+          <input type="checkbox" value="u1" checked>
+          <input type="checkbox" value="u2">
+        </div>
       </div>
-      <div id="editWeekModal"></div>
     `;
 
     hideMock = jest.fn();
@@ -51,9 +53,12 @@ describe('saveWeekChanges', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          weekId: 1,
-          bar: 'Bar1',
-          attendees: ['u1']
+          week_id: 1,
+          fields: {
+            bar_id: 3,
+            asistentes: 5,
+            attendees: ['u1']
+          }
         })
       })
     );
