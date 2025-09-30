@@ -1,9 +1,48 @@
 // netlify/functions/updateAttendance.js
 const { getSupabaseAdminClient } = require('../lib/supabaseAdminClient');
 
-const jsonResponse = (statusCode, body) => ({
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://corkys.netlify.app',
+  'http://localhost:8888',
+  'http://127.0.0.1:8888',
+];
+
+const resolveAllowedOrigins = () => {
+  const raw =
+    process.env.ALLOWED_ORIGINS ||
+    process.env.CORS_ALLOWED_ORIGINS ||
+    DEFAULT_ALLOWED_ORIGINS.join(',');
+
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+};
+
+const getCorsHeaders = (origin = '') => {
+  const allowedOrigins = resolveAllowedOrigins();
+  const hasWildcard = allowedOrigins.includes('*');
+  const normalizedOrigin = origin.trim();
+
+  let allowOrigin = hasWildcard ? '*' : allowedOrigins[0] || '*';
+  if (!hasWildcard && normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) {
+    allowOrigin = normalizedOrigin;
+  }
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+};
+
+const jsonResponse = (statusCode, body, origin) => ({
   statusCode,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCorsHeaders(origin),
+  },
   body: JSON.stringify(body),
 });
 
@@ -24,9 +63,19 @@ const sanitizeAttendees = (attendees) => {
   return normalized;
 };
 
-exports.handler = async (event) => {
+exports.handler = async (event = {}) => {
+  const origin = event.headers?.origin || event.headers?.Origin || '';
+
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: getCorsHeaders(origin),
+      body: '',
+    };
+  }
+
   if (event.httpMethod && event.httpMethod !== 'POST') {
-    return jsonResponse(405, { error: 'Method Not Allowed' });
+    return jsonResponse(405, { error: 'Method Not Allowed' }, origin);
   }
 
   let payload;
@@ -34,17 +83,17 @@ exports.handler = async (event) => {
     payload = JSON.parse(event.body || '{}');
   } catch (error) {
     console.error('Invalid JSON payload:', error);
-    return jsonResponse(400, { error: 'Invalid JSON payload' });
+    return jsonResponse(400, { error: 'Invalid JSON payload' }, origin);
   }
 
   const { weekId: rawWeekId, bar: rawBar = null } = payload;
   if (rawWeekId === undefined || rawWeekId === null || rawWeekId === '') {
-    return jsonResponse(400, { error: 'Invalid payload: weekId is required' });
+    return jsonResponse(400, { error: 'Invalid payload: weekId is required' }, origin);
   }
 
   const weekId = Number(rawWeekId);
   if (!Number.isInteger(weekId) || weekId <= 0) {
-    return jsonResponse(400, { error: 'Invalid payload: weekId must be a positive integer' });
+    return jsonResponse(400, { error: 'Invalid payload: weekId must be a positive integer' }, origin);
   }
 
   const attendees = sanitizeAttendees(payload.attendees);
@@ -64,7 +113,7 @@ exports.handler = async (event) => {
     }
 
     if (!week) {
-      return jsonResponse(404, { error: `Week ${weekId} not found` });
+      return jsonResponse(404, { error: `Week ${weekId} not found` }, origin);
     }
 
     const totalAttendees = attendees.length;
@@ -118,12 +167,12 @@ exports.handler = async (event) => {
         attendees,
         totalAttendees,
       },
-    });
+    }, origin);
   } catch (error) {
     console.error('updateAttendance failed:', error);
     const statusCode = error.status || error.statusCode || 500;
     return jsonResponse(statusCode, {
       error: error.message || 'Unknown error',
-    });
+    }, origin);
   }
 };
