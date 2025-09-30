@@ -15,10 +15,11 @@ npm install
 
 ## Variables de Entorno
 
-Para ejecutar las funciones de Netlify se necesitan dos variables de entorno:
+Para ejecutar las funciones de Netlify se necesitan las siguientes variables de entorno:
 
 - `SUPABASE_URL` – la URL de tu proyecto de Supabase.
 - `SUPABASE_SERVICE_KEY` – la clave de servicio para las funciones backend.
+- `ALLOWED_ORIGINS` – lista separada por comas de orígenes permitidos para CORS. Por defecto admite `https://corkys.netlify.app` y `http://localhost:8888`.
 
 Estas variables deben estar disponibles en el entorno donde se despliegan las funciones serverless `netlify/functions/vote.js` y `netlify/functions/updateAttendance.js`.
 
@@ -34,6 +35,23 @@ netlify dev                        # runs functions locally
 ```
 
 Antes de ejecutar `netlify dev` asegúrate de que las variables `SUPABASE_URL` y `SUPABASE_SERVICE_KEY` estén disponibles en el entorno. Si abres los archivos HTML directamente sin usar Netlify el `fetch` en `weekEdit.js` fallará.
+
+### Pruebas manuales recomendadas
+
+1. Inicia el entorno local con `netlify dev` exportando las variables de entorno indicadas y, opcionalmente, define `ALLOWED_ORIGINS="http://localhost:8888,https://corkys.netlify.app"` para habilitar CORS tanto local como en producción.
+2. Desde el navegador abre `http://localhost:8888/admin.html`, inicia sesión y utiliza el formulario **Editar** para actualizar una semana.
+3. En la pestaña **Network** verifica que el `fetch` a `/.netlify/functions/updateAttendance` responda `200` y que la cabecera `Access-Control-Allow-Origin` coincida con tu origen.
+4. Para comprobar el preflight puedes ejecutar:
+
+   ```bash
+   curl -i \
+     -H "Origin: https://corkys.netlify.app" \
+     -H "Access-Control-Request-Method: POST" \
+     -H "Access-Control-Request-Headers: authorization,content-type" \
+     -X OPTIONS http://localhost:8888/.netlify/functions/updateAttendance
+   ```
+
+   Debe responder con `HTTP/1.1 200 OK` y las cabeceras `Access-Control-Allow-*` configuradas.
 
 
 ## Proceso Semanal

@@ -4,6 +4,8 @@ jest.mock('../netlify/lib/supabaseAdminClient', () => ({
   getSupabaseAdminClient: jest.fn(),
 }));
 
+process.env.ALLOWED_ORIGINS = 'https://corkys.netlify.app, http://localhost:8888';
+
 const { getSupabaseAdminClient } = require('../netlify/lib/supabaseAdminClient');
 const { handler } = require('../netlify/functions/updateAttendance');
 
@@ -91,9 +93,11 @@ describe('updateAttendance handler', () => {
     const response = await handler({
       httpMethod: 'POST',
       body: JSON.stringify({ weekId: 12, bar: 'Bar Azul', attendees: ['u1', 'u2'] }),
+      headers: { origin: 'https://corkys.netlify.app' },
     });
 
     expect(response.statusCode).toBe(200);
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
     const payload = JSON.parse(response.body);
     expect(payload.data).toEqual({
       weekId: 12,
@@ -116,9 +120,14 @@ describe('updateAttendance handler', () => {
   });
 
   test('returns 400 on invalid JSON', async () => {
-    const response = await handler({ httpMethod: 'POST', body: '{ invalid' });
+    const response = await handler({
+      httpMethod: 'POST',
+      body: '{ invalid',
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body).error).toBe('Invalid JSON payload');
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
   });
 
   test('returns 404 when week does not exist', async () => {
@@ -132,10 +141,12 @@ describe('updateAttendance handler', () => {
     const response = await handler({
       httpMethod: 'POST',
       body: JSON.stringify({ weekId: 33, attendees: [] }),
+      headers: { origin: 'https://corkys.netlify.app' },
     });
 
     expect(response.statusCode).toBe(404);
     expect(JSON.parse(response.body).error).toBe('Week 33 not found');
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
   });
 
   test('propagates Supabase errors with status code', async () => {
@@ -155,9 +166,24 @@ describe('updateAttendance handler', () => {
     const response = await handler({
       httpMethod: 'POST',
       body: JSON.stringify({ weekId: 5, attendees: [] }),
+      headers: { origin: 'https://corkys.netlify.app' },
     });
 
     expect(response.statusCode).toBe(409);
     expect(JSON.parse(response.body).error).toBe('boom');
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
+  });
+
+  test('responds to OPTIONS preflight with CORS headers', async () => {
+    const response = await handler({
+      httpMethod: 'OPTIONS',
+      headers: { origin: 'https://corkys.netlify.app' },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toBe('');
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
+    expect(response.headers['Access-Control-Allow-Methods']).toContain('OPTIONS');
+    expect(response.headers['Access-Control-Allow-Headers']).toContain('authorization');
   });
 });
