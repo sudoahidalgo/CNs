@@ -349,55 +349,272 @@
     }
 
     /* Mobile Attendance */
-    .mobile-quorum-card {
-      background: rgba(40, 40, 40, 0.9);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
+    .mobile-attendance-card {
+      --attendance-border-color: rgba(255, 255, 255, 0.16);
+      --attendance-background: linear-gradient(135deg, rgba(36, 24, 13, 0.92), rgba(17, 13, 8, 0.85));
+      border-radius: 20px;
+      padding: 22px 20px;
+      border: 1px solid var(--attendance-border-color);
+      background: var(--attendance-background);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mobile-attendance-card[data-level="nightmale"] {
+      --attendance-border-color: rgba(111, 33, 255, 0.5);
+      --attendance-background: linear-gradient(135deg, rgba(111, 33, 255, 0.35), rgba(19, 22, 70, 0.65));
+    }
+
+    .mobile-attendance-card[data-level="ipa-insana"] {
+      --attendance-border-color: rgba(0, 148, 94, 0.45);
+      --attendance-background: linear-gradient(135deg, rgba(0, 148, 94, 0.3), rgba(9, 64, 50, 0.6));
+    }
+
+    .mobile-attendance-card[data-level="stout-me-plenty"] {
+      --attendance-border-color: rgba(94, 56, 19, 0.55);
+      --attendance-background: linear-gradient(135deg, rgba(94, 56, 19, 0.45), rgba(43, 26, 15, 0.65));
+    }
+
+    .mobile-attendance-card[data-level="hurt-me-pilsner"] {
+      --attendance-border-color: rgba(255, 110, 64, 0.45);
+      --attendance-background: linear-gradient(135deg, rgba(255, 110, 64, 0.35), rgba(89, 32, 9, 0.55));
+    }
+
+    .mobile-attendance-card[data-level="happy-hour"] {
+      --attendance-border-color: rgba(255, 187, 0, 0.4);
+      --attendance-background: linear-gradient(135deg, rgba(255, 187, 0, 0.28), rgba(133, 76, 0, 0.45));
+    }
+
+    .mobile-attendance-card[data-level="sed-principiante"] {
+      --attendance-border-color: rgba(255, 255, 255, 0.18);
+      --attendance-background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(26, 26, 26, 0.6));
+    }
+
+    .mobile-attendance-card[data-quorum="yes"] {
+      box-shadow: 0 14px 32px rgba(74, 222, 128, 0.24);
+    }
+
+    .mobile-attendance-card[data-quorum="pending"] {
+      box-shadow: 0 14px 32px rgba(250, 204, 21, 0.22);
+    }
+
+    .mobile-attendance-card[data-quorum="no"] {
+      box-shadow: 0 14px 32px rgba(248, 113, 113, 0.22);
+    }
+
+    .mobile-attendance-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mobile-attendance-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .mobile-attendance-subtitle {
+      margin: 2px 0 0;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .mobile-attendance-status {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .quorum-status {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 0.95rem;
       text-align: center;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .mobile-attendance-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mobile-attendance-section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.65);
+      margin: 0;
     }
 
     .mobile-attendees {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-top: 16px;
     }
 
     .mobile-attendee {
       display: flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.05);
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.28);
       padding: 12px 16px;
-      border-radius: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
     }
 
     .mobile-attendee-avatar {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #6c757d;
+      background: rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-weight: bold;
+      color: #fff;
+      font-weight: 600;
       font-size: 0.85rem;
-      margin-right: 12px;
-      border: 2px solid rgba(255, 224, 102, 0.3);
+      border: 2px solid rgba(255, 224, 102, 0.35);
+    }
+
+    .mobile-attendance-empty {
+      text-align: center;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255, 255, 255, 0.22);
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.24);
+      font-size: 0.85rem;
     }
 
     .mobile-user-stats {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .mobile-divider {
-      margin: 16px 0;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
+    .mobile-user-stats-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mobile-user-stats-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    .mobile-user-stats-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 420px) {
+      .mobile-user-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .mobile-user-stat {
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mobile-user-stat-label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .mobile-user-stat-value {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .mobile-streak-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mobile-streak-summary {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .mobile-streak-levels {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-streak-level {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.28);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mobile-streak-level.current {
+      border-color: #ffd166;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .mobile-streak-level-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mobile-streak-level-title {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.88rem;
+    }
+
+    .mobile-streak-level-range {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mobile-streak-level-note {
+      font-size: 0.72rem;
+      color: #ffd166;
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
 
     /* Mobile History & Stats */
@@ -692,26 +909,20 @@
     .never-visited { color: #ef4444; font-weight: 600; }
     .old-visit { color: #f59e0b; font-weight: 500; }
 
-    .quorum-yes { 
-      background: rgba(0, 141, 78, 0.3); 
-      color: #4ade80; 
-      padding: 12px 20px; 
-      border-radius: 12px; 
-      font-weight: 600;
+    .quorum-yes {
+      background: rgba(0, 141, 78, 0.24);
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.32);
     }
-    .quorum-no { 
-      background: rgba(239, 68, 68, 0.3); 
-      color: #f87171; 
-      padding: 12px 20px; 
-      border-radius: 12px; 
-      font-weight: 600;
+    .quorum-no {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border-color: rgba(248, 113, 113, 0.32);
     }
-    .quorum-pending { 
-      background: rgba(234, 179, 8, 0.3); 
-      color: #facc15; 
-      padding: 12px 20px; 
-      border-radius: 12px; 
-      font-weight: 600;
+    .quorum-pending {
+      background: rgba(234, 179, 8, 0.26);
+      color: #facc15;
+      border-color: rgba(250, 204, 21, 0.3);
     }
 
     /* Hide layouts initially */
@@ -873,11 +1084,27 @@
       </section>
 
       <section id="mobileAttendanceSection" class="mobile-section">
-        <div class="mobile-quorum-card">
-          <div id="mobileQuorumStatus" class="quorum-status"></div>
-          <div id="mobileAttendeesList" class="mobile-attendees"></div>
-          <hr class="mobile-divider">
-          <div id="mobileUserStats" class="mobile-user-stats"></div>
+        <div id="mobileAttendanceCard" class="mobile-attendance-card" data-level="sed-principiante" data-quorum="pending">
+          <div class="mobile-attendance-heading">
+            <span style="font-size: 1.5rem;">👥</span>
+            <div>
+              <h3 class="mobile-attendance-title">Asistencia</h3>
+              <p class="mobile-attendance-subtitle">Confirma tu asistencia y sigue tu racha</p>
+            </div>
+          </div>
+
+          <div class="mobile-attendance-status">
+            <div id="mobileQuorumStatus" class="quorum-status">Cargando quorum...</div>
+          </div>
+
+          <div class="mobile-attendance-section">
+            <h4 class="mobile-attendance-section-title">Confirmados</h4>
+            <div id="mobileAttendeesList" class="mobile-attendees"></div>
+          </div>
+
+          <div class="mobile-attendance-section">
+            <div id="mobileUserStats" class="mobile-user-stats"></div>
+          </div>
         </div>
       </section>
 
@@ -1984,7 +2211,7 @@
       if (statusEl) {
         let statusClass = '';
         let statusText = '';
-        
+
         if (count >= needed) {
           statusClass = 'quorum-yes';
           statusText = `✅ ¡Hay quorum! ${count} confirmados`;
@@ -1995,14 +2222,19 @@
           statusClass = 'quorum-no';
           statusText = `❌ Se necesitan ${needed} para hacer CN`;
         }
-        
+
         statusEl.className = `quorum-status ${statusClass}`;
         statusEl.textContent = statusText;
+
+        const attendanceCard = document.getElementById('mobileAttendanceCard');
+        if (attendanceCard) {
+          attendanceCard.dataset.quorum = statusClass.replace('quorum-', '');
+        }
       }
       
       if (listEl) {
         if (!attendances.length) {
-          listEl.innerHTML = '<div style="text-align: center; color: #adb5bd; padding: 20px;">Nadie ha confirmado asistencia aún</div>';
+          listEl.innerHTML = '<div class="mobile-attendance-empty">Nadie ha confirmado asistencia aún</div>';
           return;
         }
         
@@ -2588,49 +2820,60 @@
         const weeksVoted = new Set((votesData || []).map(v => v.semana_id)).size;
         const avgVotes = weeksVoted ? (votesData.length / weeksVoted).toFixed(1) : '0';
 
-        container.innerHTML = `
-          <div class="mobile-stats-section">
-            <h4 style="color: var(--color-accent); margin-bottom: 12px; font-size: 1rem;">📈 Tus Estadísticas</h4>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">🕑 Última CN asistida:</div>
-              <div style="font-size: 0.9rem; color: #adb5bd;">${lastCNText}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">✅ Total asistencias:</div>
-              <div style="font-size: 0.9rem; color: #adb5bd;">${attendedCount}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">🍺 Bar más votado:</div>
-              <div style="font-size: 0.9rem; color: #adb5bd;">${mostVoted || 'N/A'}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de tus votos por CN:</div>
-              <div style="font-size: 0.9rem; color: #adb5bd;">${avgVotes}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-top: 8px;">
-              <div style="font-weight: 500; margin-bottom: 4px;">🔥 Tu longest streak:</div>
-              <div style="font-size: 0.9rem; color: #adb5bd;">${longestStreak > 0 ? `${longestStreak} CNs consecutivas` : 'N/A'}</div>
-            </div>
-          </div>
-          ${streakRankInfo ? `
-            <div style="margin-top: 16px; padding: 16px; border-radius: 10px; border: 1px solid ${streakRankInfo.currentLevel.borderColor}; background: ${streakRankInfo.currentLevel.background};">
-              <div style="font-size: 0.85rem; color: #e1e1e1;">Tu racha más larga es de ${longestStreak} CNs consecutivas.</div>
-              <ul style="list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px;">
+        const attendanceCard = document.getElementById('mobileAttendanceCard');
+        if (attendanceCard) {
+          attendanceCard.dataset.level = streakRankInfo?.currentLevel?.id || 'sed-principiante';
+        }
+
+        const streakLevelsHtml = streakRankInfo
+          ? `
+            <div class="mobile-streak-card">
+              <div class="mobile-streak-summary">Tu racha más larga es de ${longestStreak} CNs consecutivas.</div>
+              <ul class="mobile-streak-levels">
                 ${streakRankInfo.levels.map(level => {
                   const isCurrent = level.id === streakRankInfo.currentLevel.id;
                   return `
-                    <li style="padding: 10px 12px; border-radius: 8px; border: 1px solid ${isCurrent ? '#ffd166' : 'rgba(255,255,255,0.12)'}; background: ${isCurrent ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)'};">
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 600; color: #fff; font-size: 0.9rem;">${level.title}</span>
-                        <span style="font-size: 0.75rem; color: #adb5bd;">${level.rangeText}</span>
+                    <li class="mobile-streak-level ${isCurrent ? 'current' : ''}">
+                      <div class="mobile-streak-level-header">
+                        <span class="mobile-streak-level-title">${level.title}</span>
+                        <span class="mobile-streak-level-range">${level.rangeText}</span>
                       </div>
-                      ${isCurrent ? '<div style="margin-top: 4px; font-size: 0.7rem; color: #ffd166; font-weight: 600;">⬆️ Estás en este nivel</div>' : ''}
+                      ${isCurrent ? '<div class="mobile-streak-level-note">⬆️ Estás en este nivel</div>' : ''}
                     </li>
                   `;
                 }).join('')}
               </ul>
             </div>
-          ` : ''}
+          `
+          : '';
+
+        container.innerHTML = `
+          <div class="mobile-user-stats-card">
+            <h4 class="mobile-user-stats-title">📈 Tus estadísticas</h4>
+            <div class="mobile-user-stats-grid">
+              <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">🕑 Última CN asistida</span>
+                <span class="mobile-user-stat-value">${lastCNText}</span>
+              </div>
+              <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">✅ Total asistencias</span>
+                <span class="mobile-user-stat-value">${attendedCount}</span>
+              </div>
+              <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">🍺 Bar más votado</span>
+                <span class="mobile-user-stat-value">${mostVoted || 'N/A'}</span>
+              </div>
+              <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">📊 Promedio de votos</span>
+                <span class="mobile-user-stat-value">${avgVotes}</span>
+              </div>
+              <div class="mobile-user-stat">
+                <span class="mobile-user-stat-label">🔥 Longest streak</span>
+                <span class="mobile-user-stat-value">${longestStreak > 0 ? `${longestStreak} CNs consecutivas` : 'N/A'}</span>
+              </div>
+            </div>
+            ${streakLevelsHtml}
+          </div>
         `;
       } catch (err) {
         console.error('❌ Error loading user stats:', err);
