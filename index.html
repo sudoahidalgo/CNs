@@ -1166,14 +1166,17 @@
               <div style="font-weight: 500; margin-bottom: 4px;">🎉 Próximo aniversario:</div>
               <div id="mobileAnniversary" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
             </div>
-              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-                <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de participación:</div>
-                <div id="mobileAverageAttendance" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
-              </div>
-              <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
-                <div style="font-weight: 500; margin-bottom: 4px;">🔥 Longest Streak:</div>
-                <div id="mobileLongestStreak" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
-              </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">📊 Promedio de participación:</div>
+              <div id="mobileAverageAttendance" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">🔥 Racha actual más larga:</div>
+              <div id="mobileLongestStreakCurrent" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 12px;">
+              <div style="font-weight: 500; margin-bottom: 4px;">🏅 Record histórico de racha:</div>
+              <div id="mobileLongestStreakRecord" style="font-size: 0.9rem; color: #adb5bd;">Cargando...</div>
             </div>
           </div>
         </section>
@@ -1314,9 +1317,13 @@
                     <strong>📊 Promedio de participación:</strong><br>
                     <span id="desktopAverageAttendance" class="text-info">Cargando...</span>
                   </div>
+                  <div class="mb-3">
+                    <strong>🔥 Racha actual más larga:</strong><br>
+                    <span id="desktopLongestStreakCurrent" class="text-info">Cargando...</span>
+                  </div>
                   <div>
-                    <strong>🔥 Longest Streak:</strong><br>
-                    <span id="desktopLongestStreak" class="text-info">Cargando...</span>
+                    <strong>🏅 Record histórico de racha:</strong><br>
+                    <span id="desktopLongestStreakRecord" class="text-info">Cargando...</span>
                   </div>
               </div>
             </div>
@@ -2839,23 +2846,45 @@
         const usersArray = Object.values(userStats).map(u => ({
           ...u,
           streak: calculateStreak(u.dates, lastWeekDate),
+          longestStreak: calculateLongestStreak(u.dates),
           percentage: totalCns
             ? Math.round((u.asistencias / totalCns) * 100)
             : 0
         }));
 
-        // Determine longest streak
-        const longest = usersArray.reduce(
-          (max, u) => (u.streak > max.streak ? u : max),
-          { streak: 0 }
-        );
+        const currentStreakLeader = usersArray.reduce((best, user) => {
+          if (!best && user.streak > 0) return user;
+          if (!best) return null;
+          if (user.streak > best.streak) return user;
+          return best;
+        }, null);
 
-        const mobileLongestEl = document.getElementById('mobileLongestStreak');
-        if (mobileLongestEl) {
-          if (usersArray.length && longest.streak > 0) {
-            mobileLongestEl.textContent = `${longest.streak} asistencias - ${longest.nombre}`;
+        const historicalRecordHolder = usersArray.reduce((best, user) => {
+          if (!best && user.longestStreak > 0) {
+            return { ...user };
+          }
+          if (!best) return best;
+          if (user.longestStreak > best.longestStreak) {
+            return { ...user };
+          }
+          return best;
+        }, null);
+
+        const mobileLongestCurrentEl = document.getElementById('mobileLongestStreakCurrent');
+        if (mobileLongestCurrentEl) {
+          if (currentStreakLeader && currentStreakLeader.streak > 0) {
+            mobileLongestCurrentEl.textContent = `${currentStreakLeader.streak} asistencias - ${currentStreakLeader.nombre}`;
           } else {
-            mobileLongestEl.textContent = 'N/A';
+            mobileLongestCurrentEl.textContent = 'N/A';
+          }
+        }
+
+        const mobileLongestRecordEl = document.getElementById('mobileLongestStreakRecord');
+        if (mobileLongestRecordEl) {
+          if (historicalRecordHolder && historicalRecordHolder.longestStreak > 0) {
+            mobileLongestRecordEl.textContent = `${historicalRecordHolder.longestStreak} asistencias - ${historicalRecordHolder.nombre}`;
+          } else {
+            mobileLongestRecordEl.textContent = 'N/A';
           }
         }
 
@@ -3259,22 +3288,45 @@
         const usersArray = Object.values(userStats).map(u => ({
           ...u,
           streak: calculateStreak(u.dates, lastWeekDate),
+          longestStreak: calculateLongestStreak(u.dates),
           percentage: totalCns
             ? Math.round((u.asistencias / totalCns) * 100)
             : 0
         }));
 
-        const longest = usersArray.reduce(
-          (max, u) => (u.streak > max.streak ? u : max),
-          { streak: 0 }
-        );
+        const currentStreakLeader = usersArray.reduce((best, user) => {
+          if (!best && user.streak > 0) return user;
+          if (!best) return null;
+          if (user.streak > best.streak) return user;
+          return best;
+        }, null);
 
-        const desktopLongestEl = document.getElementById('desktopLongestStreak');
-        if (desktopLongestEl) {
-          if (usersArray.length && longest.streak > 0) {
-            desktopLongestEl.textContent = `${longest.streak} asistencias - ${longest.nombre}`;
+        const historicalRecordHolder = usersArray.reduce((best, user) => {
+          if (!best && user.longestStreak > 0) {
+            return { ...user };
+          }
+          if (!best) return best;
+          if (user.longestStreak > best.longestStreak) {
+            return { ...user };
+          }
+          return best;
+        }, null);
+
+        const desktopLongestCurrentEl = document.getElementById('desktopLongestStreakCurrent');
+        if (desktopLongestCurrentEl) {
+          if (currentStreakLeader && currentStreakLeader.streak > 0) {
+            desktopLongestCurrentEl.textContent = `${currentStreakLeader.streak} asistencias - ${currentStreakLeader.nombre}`;
           } else {
-            desktopLongestEl.textContent = 'N/A';
+            desktopLongestCurrentEl.textContent = 'N/A';
+          }
+        }
+
+        const desktopLongestRecordEl = document.getElementById('desktopLongestStreakRecord');
+        if (desktopLongestRecordEl) {
+          if (historicalRecordHolder && historicalRecordHolder.longestStreak > 0) {
+            desktopLongestRecordEl.textContent = `${historicalRecordHolder.longestStreak} asistencias - ${historicalRecordHolder.nombre}`;
+          } else {
+            desktopLongestRecordEl.textContent = 'N/A';
           }
         }
 
