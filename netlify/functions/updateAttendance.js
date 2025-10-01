@@ -139,30 +139,50 @@ async function proxy(r) {
 async function pgPatch(table, filter, data) {
   return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
     body: JSON.stringify(data),
   });
 }
+
 async function pgInsert(table, rows, onConflict = 'error') {
-  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=minimal',
+  };
   if (onConflict === 'ignore') headers.Prefer += ',resolution=ignore-duplicates';
   return fetch(`${urlBase}/rest/v1/${table}`, { method: 'POST', headers, body: JSON.stringify(rows) });
 }
+
 async function pgDelete(table, filter) {
   return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
     method: 'DELETE',
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'return=minimal' },
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      Prefer: 'return=minimal',
+    },
   });
 }
+
 async function pgGetOne(table, filter, select) {
   return fetch(`${urlBase}/rest/v1/${table}?${filter}&select=${encodeURIComponent(select)}&limit=1`, {
-    method: 'GET', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    method: 'GET',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
 }
+
 async function pgGet(table, filter, extraQuery = '') {
   const qs = `${filter}${extraQuery ? `&${extraQuery}` : ''}`;
   return fetch(`${urlBase}/rest/v1/${table}?${qs}`, {
-    method: 'GET', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'count=exact' },
+    method: 'GET',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'count=exact' },
   });
 }
 
@@ -173,7 +193,8 @@ async function safeFetch(call) {
   } catch (e) {
     console.error('NETWORK/FETCH ERROR', e?.message || e);
     return new Response(JSON.stringify({ error: 'upstream fetch failed', detail: String(e?.message || e) }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }
@@ -181,5 +202,44 @@ async function safeFetch(call) {
 // ----- health -----
 async function health() {
   const envOK = { url: !!urlBase, srk: !!serviceKey };
-  let rest = {}, auth = {};
-  try { const r1 = await fetch(`${urlBase}/rest/v1/`, { method: 'HEAD
+  const rest = await checkEndpoint(`${urlBase}/rest/v1/`);
+  const auth = await checkEndpoint(`${urlBase}/auth/v1/`);
+
+  const healthy = envOK.url && envOK.srk && rest.ok && auth.ok;
+  const status = healthy ? 200 : 503;
+
+  return resp(status, {
+    env: envOK,
+    rest,
+    auth,
+  });
+}
+
+async function checkEndpoint(endpointUrl) {
+  if (!endpointUrl || !/^https?:\/\//.test(endpointUrl)) {
+    return { ok: false, error: 'invalid url' };
+  }
+
+  try {
+    const response = await fetch(endpointUrl, {
+      method: 'HEAD',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+    });
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error?.message || String(error),
+    };
+  }
+}
+
+exports.handler = handler;
