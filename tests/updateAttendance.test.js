@@ -6,6 +6,7 @@ describe('updateAttendance handler', () => {
   let handler;
 
   beforeEach(() => {
+    jest.useRealTimers();
     jest.resetModules();
     jest.resetAllMocks();
     process.env.SUPABASE_URL = 'https://test.supabase.co';
@@ -21,6 +22,41 @@ describe('updateAttendance handler', () => {
   afterAll(() => {
     if (originalUrl) process.env.SUPABASE_URL = originalUrl; else delete process.env.SUPABASE_URL;
     if (originalKey) process.env.SUPABASE_SERVICE_ROLE_KEY = originalKey; else delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  });
+
+  test('retries network failures before succeeding', async () => {
+    jest.useFakeTimers();
+
+    const deleteResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
+    const countResponse = {
+      ok: true,
+      status: 200,
+      headers: { get: () => '0-0/0' },
+      text: () => Promise.resolve('[]'),
+    };
+    const patchTotalResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+
+    global.fetch
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(deleteResponse)
+      .mockResolvedValueOnce(countResponse)
+      .mockResolvedValueOnce(patchTotalResponse);
+
+    const body = {
+      week_id: 30,
+      set_user_ids: [],
+      recompute_total: true,
+    };
+
+    const handlerPromise = handler({ httpMethod: 'POST', body: JSON.stringify(body) });
+
+    await jest.runOnlyPendingTimersAsync();
+    const response = await handlerPromise;
+
+    jest.useRealTimers();
+
+    expect(response.statusCode).toBe(200);
+    expect(global.fetch).toHaveBeenCalledTimes(4);
   });
 
   test('responds to OPTIONS with CORS headers', async () => {
