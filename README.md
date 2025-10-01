@@ -1,166 +1,126 @@
 # CNs — Guía Técnica
 
+📖 **Estructura del proyecto**
+
 ## Arquitectura
-- **Frontend:** aplicación estática desplegada en Netlify (dominio público). Consume Supabase desde el navegador mediante la clave anónima.
-- **Backend:**
-  - **Netlify Functions** como capa serverless privada (`/.netlify/functions/*`).
-  - **Supabase** provee autenticación, PostgREST y acceso directo al esquema `public` de PostgreSQL.
-  - Las Functions utilizan la `SERVICE_ROLE_KEY` para ejecutar operaciones administrativas y coordinar PostgREST.
-- **Infraestructura compartida:**
-  - `netlify.toml` define builds y redirecciones.
-  - `config.js` expone `SUPABASE_URL` y `SUPABASE_ANON_KEY` en el navegador.
-  - `weekEdit.js`/`admin.html` orquestan la edición de semana consumiendo la función `updateAttendance`.
+- **Frontend:** App estática desplegada en Netlify → [https://corkys.netlify.app](https://corkys.netlify.app).
+- **Backend:** Netlify Functions privadas que orquestan operaciones sobre Supabase vía PostgREST.
+- **Base de datos:** Supabase (PostgreSQL) usando exclusivamente el esquema `public`.
 
-## Variables de entorno (Netlify → Environment variables)
-Configurar en Netlify (Settings → Environment variables) para todos los contexts (Production, Deploy previews, Branch deploys):
+## Variables de entorno en Netlify
+Configurar en *Site settings → Environment variables* para production, deploy previews y branch deploys:
 
-| Variable | Scope | Uso |
-|----------|-------|-----|
-| `SUPABASE_URL` | Builds, Functions, Runtime | URL del proyecto Supabase **sin `/` final**. Ej: `https://<project>.supabase.co`. |
-| `SUPABASE_ANON_KEY` | Builds, Runtime | Clave pública usada por el frontend (no exponer en Functions). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Functions, Runtime | Clave con permisos elevados para Netlify Functions. **Nunca** exponer en frontend ni en variables `VITE_*`. |
+| Variable | Uso sugerido | Nota |
+|----------|--------------|------|
+| `SUPABASE_URL` | URL base del proyecto Supabase (sin `/` final). | Ejemplo: `https://xxx.supabase.co`. |
+| `SUPABASE_ANON_KEY` | Clave pública expuesta en el frontend. | Disponible para llamadas desde el navegador. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave con permisos elevados usada **solo** en Functions. | No exponer jamás en el frontend. |
 
-> Tras editar variables, ejecutar **Clear cache and deploy site** en Netlify para que las Functions tomen el nuevo valor.
+> Tras modificar variables se recomienda **Clear cache and deploy site** para que Netlify vuelva a construir Functions con los valores actualizados.
 
-## Esquema de Base de Datos (schema `public`)
-### Tablas clave
-#### `semanas_cn`
-| columna | tipo | descripción |
-|---------|------|-------------|
-| `id` | `integer` (PK) | Identificador de semana. |
-| `fecha_martes` | `date` | Fecha del martes de esa semana de CN. |
-| `bar_ganador` | `text` | Bar ganador (nombre texto). |
-| `total_votos` | `integer` | Total de votos registrados. |
-| `total_asistentes` | `integer` (nullable) | Total de asistentes confirmados (si la columna existe). |
-| `estado` | `text` | Estado de la semana (abierta, cerrada, etc.). |
-| `created_at`, `updated_at` | `timestamp` | Timestamps de auditoría. |
+## Tablas principales (resumen funcional)
+- **`semanas_cn`**: Define cada semana (fecha, bar ganador, estado, totales). Columna clave: `bar_ganador` (texto del bar ganador).
+- **`asistencias`**: Registro de cada usuario confirmado por semana (`user_id`, `semana_id`).
+- **`visitas_bares`**: Histórico de bares visitados en cada semana (`semana_id`, `bar`).
+- **`votos`**: Votos individuales por bar/semana (`user_id`, `bar`, `semana_id`).
+- **`bares`**: Catálogo de bares (`id`, `nombre`, `activo`).
+- **`usuarios`**: Catálogo de usuarios (con `uuid`).
 
-- Define el bar ganador por semana (`bar_ganador`).
+🔑 La UI de “Última vez que ganó” se alimenta de `semanas_cn.bar_ganador` y/o de `visitas_bares`. El error 500 se producía porque la Function intentaba actualizar columnas inexistentes en otras tablas.
 
-#### `asistencias`
-| columna | tipo | descripción |
-|---------|------|-------------|
-| `id` | `integer` (PK) | Identificador del registro de asistencia. |
-| `user_id` | `uuid` | Usuario que confirma asistencia. |
-| `semana_id` | `integer` | FK hacia `semanas_cn.id`. |
-| `confirmado` | `boolean` | Marca asistencia confirmada (`true` cuando se agrega desde la función). |
-| `created_at` | `timestamp` | Fecha de creación del registro. |
-
-- Un registro por persona y semana.
-
-#### `visitas_bares`
-| columna | tipo | descripción |
-|---------|------|-------------|
-| `id` | `integer` (PK) | Identificador de la visita. |
-| `bar` | `text` | Nombre del bar visitado. |
-| `semana_id` | `integer` | Semana a la que corresponde la visita. |
-| `asistentes` | `integer` (nullable) | Conteo manual de asistentes. |
-| `fecha_visita` | `timestamp` | Fecha y hora de la visita. |
-| `created_at` | `timestamp` | Registro de creación. |
-
-- Histórico de bares (texto) por semana, usado para “⏰ Última vez que ganó”.
-
-#### `votos`
-| columna | tipo | descripción |
-|---------|------|-------------|
-| `id` | `integer` (PK) | Identificador del voto. |
-| `bar` | `text` | Bar votado (nombre texto). |
-| `user_id` | `uuid` | Usuario que votó. |
-| `semana_id` | `integer` | Semana asociada al voto. |
-| `created_at` | `timestamp` | Fecha del voto. |
-
-- Votos por bar y semana.
-
-#### `bares`
-| columna | tipo | descripción |
-|---------|------|-------------|
-| `id` | `integer` (PK) | Identificador del bar. |
-| `nombre` | `text` | Nombre canónico. |
-| `activo` | `boolean` | Indica si se puede mostrar en la UI. |
-| `created_at`, `updated_at` | `timestamp` | Auditoría. |
-
-- Fuente de bares disponibles. La UI usa `semanas_cn.bar_ganador` y/o `visitas_bares` para “⏰ Última vez que ganó”.
-
-### Relaciones destacadas
-- `asistencias.semana_id` ↔ `semanas_cn.id` (1:N).
-- `votos.semana_id` ↔ `semanas_cn.id` (1:N).
-- `visitas_bares.semana_id` ↔ `semanas_cn.id` (1:1 opcional).
-- `visitas_bares.bar` y `votos.bar` guardan texto, pero pueden mapearse con `bares.nombre` en la UI/Functions.
-
-## API interna (Function) — `POST /.netlify/functions/updateAttendance`
-### Request JSON
-```json
-{
-  "week_id": 1366,
-  "bar_id": 32,
-  "bar_nombre": "Otro",
-  "add_user_ids": ["uuid1", "uuid2"],
-  "recompute_total": true
-}
-```
-
-Alias aceptados: `weekId` — también `id`; `barId`; `bar` o `barNombre`; `user_ids` para `add_user_ids`.
+## API interna — Function `updateAttendance`
+- **Endpoint:** `POST /.netlify/functions/updateAttendance`
+- **Payload JSON esperado:**
+  ```json
+  {
+    "week_id": 1366,
+    "bar_id": 32,
+    "add_user_ids": ["uuid1", "uuid2"],
+    "recompute_total": true
+  }
+  ```
+- **Alias aceptados:** `weekId`, `id`, `bar`, `bar_nombre`, `user_ids`.
 
 ### Efectos
-- `semanas_cn.bar_ganador` se actualiza a `<bar_nombre>`.
-- `visitas_bares.bar` se sincroniza con `<bar_nombre>` cuando existe fila para esa semana.
-- Inserta filas en `asistencias` para cada `user_id` con `confirmado=true` (evitar duplicados via `ON CONFLICT DO NOTHING`).
-- `semanas_cn.total_asistentes` se recalcula con el conteo de `asistencias` cuando `recompute_total` es `true` y la columna existe.
+1. Actualiza `semanas_cn.bar_ganador`.
+2. Sincroniza `visitas_bares.bar` para esa semana.
+3. Inserta asistencias para los `user_id` recibidos (`confirmado=true`).
+4. Opcionalmente recalcula `semanas_cn.total_asistentes`.
 
-### Responses
-- `200 { "ok": true }`
-- `422 { "error": "Missing week_id" | "Invalid JSON" | "bar_id not found" }`
-- `403 { "error": "permission denied" }` (si falla por políticas RLS).
-- `500 { "error": "..." }` para errores inesperados.
+### Respuestas posibles
+- `200 { ok: true }`
+- `422 { error: "Missing week_id" | "Invalid JSON" | ... }`
+- `403 { error: "permission denied" }`
+- `500 { error: "..." }`
 
-### CORS
-- Responder `OPTIONS 200`.
-- Incluir en **todas** las respuestas:
-  - `Access-Control-Allow-Origin: https://corkys.netlify.app`
-  - `Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type`
-  - `Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS`
+## 🔍 Diccionario de datos (anexo técnico)
+Salida basada en `SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;`
 
-## Troubleshooting
-- `TypeError: fetch failed` → revisar `SUPABASE_URL` (https, sin espacios, sin slash final) y `SUPABASE_SERVICE_ROLE_KEY` válida.
-- Respuesta `422` → payload incompleto o columnas inexistentes; revisar los campos enviados.
-- Para validar despliegue/redeploy de Functions y pruebas manuales usar:
-  ```bash
-  curl -i -X POST "$SITE/.netlify/functions/updateAttendance" \
-    -H "Content-Type: application/json" \
-    -d '{"week_id":1366,"bar_id":32,"add_user_ids":["<uuid1>","<uuid2>"],"recompute_total":true}'
-  ```
+#### Tabla: asistencias
+| Columna    | Tipo        | Nullable | Default                                    |
+|------------|-------------|----------|--------------------------------------------|
+| id         | bigint      | NO       | nextval('asistencias_id_seq'::regclass)     |
+| user_id    | uuid        | YES      |                                            |
+| semana_id  | bigint      | YES      |                                            |
+| confirmado | boolean     | YES      |                                            |
+| created_at | timestamptz | YES      | now()                                      |
 
-## Flujo de edición (UI)
-1. Abrir modal de edición en la UI y definir `data-week-id` con `row.id` de `semanas_cn`.
-2. Enviar payload `{ week_id, bar_id?, bar_nombre?, add_user_ids[], recompute_total: true }` a `/.netlify/functions/updateAttendance`.
-3. Validar respuesta `200` y refrescar la vista (re-fetch de semana y tablas).
+#### Tabla: bares
+| Columna        | Tipo        | Nullable | Default                                 |
+|----------------|-------------|----------|-----------------------------------------|
+| id             | bigint      | NO       | nextval('bares_id_seq'::regclass)       |
+| nombre         | text        | NO       |                                         |
+| instagram_url  | text        | YES      |                                         |
+| facebook_url   | text        | YES      |                                         |
+| activo         | boolean     | YES      | true                                    |
+| created_at     | timestamptz | YES      | now()                                   |
+| updated_at     | timestamptz | YES      | now()                                   |
 
-## SQL útiles (referencia)
-```sql
--- Ver últimas semanas
-SELECT id, fecha_martes, bar_ganador, total_votos, estado
-FROM public.semanas_cn
-ORDER BY id DESC
-LIMIT 10;
+#### Tabla: semanas_cn
+| Columna          | Tipo        | Nullable | Default                                       |
+|------------------|-------------|----------|-----------------------------------------------|
+| id               | bigint      | NO       | nextval('semanas_cn_id_seq'::regclass)        |
+| fecha_martes     | date        | YES      |                                               |
+| bar_ganador      | text        | YES      |                                               |
+| total_votos      | integer     | YES      |                                               |
+| total_asistentes | integer     | YES      |                                               |
+| hubo_quorum      | boolean     | YES      | false                                         |
+| estado           | text        | YES      |                                               |
+| created_at       | timestamptz | YES      | now()                                         |
+| updated_at       | timestamptz | YES      | now()                                         |
 
--- Ver asistentes de una semana
-SELECT u.nombre
-FROM public.asistencias a
-JOIN public.usuarios u ON u.id = a.user_id
-WHERE a.semana_id = 1366
-ORDER BY u.nombre;
+#### Tabla: usuarios
+| Columna    | Tipo        | Nullable | Default                               |
+|------------|-------------|----------|---------------------------------------|
+| id         | uuid        | NO       | uuid_generate_v4()                    |
+| nombre     | text        | YES      |                                       |
+| avatar_url | text        | YES      |                                       |
+| created_at | timestamptz | YES      | now()                                 |
 
--- Actualización manual de bar ganador
-UPDATE public.semanas_cn
-SET bar_ganador = 'Otro'
-WHERE id = 1366;
+#### Tabla: visitas_bares
+| Columna      | Tipo        | Nullable | Default                                       |
+|--------------|-------------|----------|-----------------------------------------------|
+| id           | bigint      | NO       | nextval('visitas_bares_id_seq'::regclass)     |
+| semana_id    | bigint      | YES      |                                               |
+| bar          | text        | YES      |                                               |
+| asistentes   | integer     | YES      |                                               |
+| fecha_visita | timestamptz | YES      |                                               |
+| created_at   | timestamptz | YES      | now()                                         |
 
-UPDATE public.visitas_bares
-SET bar = 'Otro'
-WHERE semana_id = 1366;
-```
+#### Tabla: votos
+| Columna    | Tipo        | Nullable | Default                                 |
+|------------|-------------|----------|-----------------------------------------|
+| id         | bigint      | NO       | nextval('votos_id_seq'::regclass)       |
+| user_id    | uuid        | YES      |                                         |
+| bar        | text        | YES      |                                         |
+| semana_id  | bigint      | YES      |                                         |
+| created_at | timestamptz | YES      | now()                                   |
+| origen     | text        | YES      |                                         |
 
-## Criterio de aceptación
-- README documentado con los contratos anteriores.
-- Desplegar nuevamente las Functions tras cambios de variables.
-- Pruebas manuales (curl) retornan `200 {"ok": true}`.
+#### Tabla: ganadores
+| Columna    | Tipo        | Nullable | Default |
+|------------|-------------|----------|---------|
+| semana_id  | bigint      | NO       |         |
+| bar        | text        | YES      |         |
+| created_at | timestamptz | YES      | now()   |
+
