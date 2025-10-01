@@ -1216,6 +1216,11 @@
           🔧 Admin
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="desktop-week-editor-tab" data-bs-toggle="pill" data-bs-target="#desktopWeekEditor" type="button" role="tab" style="display: none;">
+          🗂️ Semanas
+        </button>
+      </li>
     </ul>
 
     <div class="tab-content desktop-tab-content">
@@ -1299,7 +1304,7 @@
 
       <div class="tab-pane fade" id="desktopAdmin" role="tabpanel">
         <h4 class="text-light mb-3">🔧 Administración de Bares</h4>
-        
+
         <div class="row mb-4">
           <div class="col-12">
             <div class="stats-card">
@@ -1355,6 +1360,79 @@
           </div>
         </div>
       </div>
+
+      <div class="tab-pane fade" id="desktopWeekEditor" role="tabpanel">
+        <h4 class="text-light mb-3">🗂️ Editor de semanas anteriores</h4>
+
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="stats-card">
+              <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                  <label for="weekEditorSelect" class="form-label text-light">Selecciona una semana</label>
+                  <select id="weekEditorSelect" class="form-select">
+                    <option value="">Cargando semanas...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="weekEditorDate" class="form-label text-light">Fecha del martes</label>
+                  <input type="date" class="form-control" id="weekEditorDate" />
+                </div>
+                <div class="col-md-6">
+                  <label for="weekEditorBar" class="form-label text-light">Bar ganador</label>
+                  <select id="weekEditorBar" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                  <label for="weekEditorEstado" class="form-label text-light">Estado</label>
+                  <select id="weekEditorEstado" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                  <label for="weekEditorTotalAsistentes" class="form-label text-light">Total asistentes</label>
+                  <input type="number" class="form-control" id="weekEditorTotalAsistentes" min="0" step="1" />
+                </div>
+                <div class="col-md-6">
+                  <label for="weekEditorTotalVotos" class="form-label text-light">Total votos</label>
+                  <input type="number" class="form-control" id="weekEditorTotalVotos" min="0" step="1" />
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" id="weekEditorQuorum" />
+                    <label class="form-check-label text-light" for="weekEditorQuorum">Hubo quorum</label>
+                  </div>
+                </div>
+                <div class="col-md-12 d-flex justify-content-between flex-wrap" style="gap: 10px;">
+                  <button type="button" class="btn btn-outline-info" id="weekEditorAttendanceBtn">Editar asistentes...</button>
+                  <div class="d-flex" style="gap: 10px;">
+                    <button type="button" class="btn btn-outline-secondary" id="weekEditorRefreshBtn">Actualizar listado</button>
+                    <button type="button" class="btn btn-primary" id="weekEditorSaveBtn">Guardar cambios</button>
+                  </div>
+                </div>
+              </div>
+              <div id="weekEditorFeedback" class="alert mt-3" role="alert" style="display: none;"></div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="stats-card">
+              <h5 class="text-light">📅 Historial reciente</h5>
+              <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Bar</th>
+                      <th>Estado</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="weekEditorTableBody">
+                    <tr><td colspan="4" class="text-center text-muted">Cargando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1370,12 +1448,16 @@
 
     let currentUser = null;
     let currentWeek = null;
-    let userVotes = []; 
+    let userVotes = [];
     let userAttendance = false;
     let isMobile = false;
     let currentMobileSection = 'voting';
     let isAdmin = false;
     let currentUserProfile = null;
+    let weekEditorWeeks = [];
+    let weekEditorSelectedId = null;
+    let weekEditorLoading = false;
+    let weekEditorOriginal = null;
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -1537,6 +1619,11 @@
       if (adminTab) {
         adminTab.style.display = isAdmin ? 'inline-block' : 'none';
       }
+
+      const weekEditorTab = document.getElementById('desktop-week-editor-tab');
+      if (weekEditorTab) {
+        weekEditorTab.style.display = isAdmin ? 'inline-block' : 'none';
+      }
       
       if (isMobile) {
         const avatarEl = document.getElementById('mobileUserAvatar');
@@ -1621,6 +1708,8 @@
             loadDesktopStats(); // CORREGIDO: Llamar a loadDesktopStats()
           } else if (target === '#desktopAdmin') {
             loadAdminPanel();
+          } else if (target === '#desktopWeekEditor') {
+            loadWeekEditor();
           }
         });
       });
@@ -1917,8 +2006,8 @@
     async function loadBarsFromDatabase() {
       try {
         const selectCols = hasActivoColumn
-          ? 'nombre, instagram_url, facebook_url, activo'
-          : 'nombre, instagram_url, facebook_url';
+          ? 'id, nombre, instagram_url, facebook_url, activo'
+          : 'id, nombre, instagram_url, facebook_url';
 
         const { data, error } = await supabase
           .from('bares')
@@ -1937,6 +2026,7 @@
 
         // Convert database format to app format
         bars = (data || []).map(bar => ({
+          id: bar.id,
           name: bar.nombre,
           ig: bar.instagram_url || undefined,
           fb: bar.facebook_url || undefined,
@@ -1944,6 +2034,15 @@
         }));
 
         console.log('✅ Bares cargados desde BD:', bars.length);
+
+        if (isAdmin) {
+          if (weekEditorSelectedId) {
+            const currentWeek = weekEditorWeeks.find(week => Number(week.id) === Number(weekEditorSelectedId));
+            populateWeekEditorBarOptions(currentWeek || null);
+          } else {
+            populateWeekEditorBarOptions(null);
+          }
+        }
 
       } catch (error) {
         console.error('❌ Error cargando bares:', error);
@@ -1972,6 +2071,15 @@
           { name: "Maxi's by Ricky", ig: "https://www.instagram.com/maxisbyricky/", active: true },
           { name: "Bar La Playa", ig: "https://www.instagram.com/laplayasantaanacr/", active: true }
         ];
+
+        if (isAdmin) {
+          if (weekEditorSelectedId) {
+            const currentWeek = weekEditorWeeks.find(week => Number(week.id) === Number(weekEditorSelectedId));
+            populateWeekEditorBarOptions(currentWeek || null);
+          } else {
+            populateWeekEditorBarOptions(null);
+          }
+        }
       }
     }
 
@@ -3533,6 +3641,461 @@
       }
     }
 
+    // ========== WEEK EDITOR FUNCTIONS ==========
+    function escapeHtmlAttr(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatWeekEditorLabel(week) {
+      if (!week) return 'Semana';
+      const dateText = formatTuesdayDateLong(week.fecha_martes);
+      const barText = week.bar_ganador ? ` – ${week.bar_ganador}` : '';
+      return `${dateText}${barText}`;
+    }
+
+    function showWeekEditorFeedback(message, type = 'info') {
+      const feedback = document.getElementById('weekEditorFeedback');
+      if (!feedback) return;
+
+      if (!message) {
+        feedback.style.display = 'none';
+        feedback.textContent = '';
+        feedback.className = 'alert mt-3';
+        return;
+      }
+
+      feedback.textContent = message;
+      feedback.className = `alert mt-3 alert-${type}`;
+      feedback.style.display = 'block';
+    }
+
+    function updateWeekEditorButtonsState(disabled = false) {
+      const attendanceBtn = document.getElementById('weekEditorAttendanceBtn');
+      if (attendanceBtn) {
+        attendanceBtn.disabled = disabled || !weekEditorSelectedId;
+      }
+
+      const saveBtn = document.getElementById('weekEditorSaveBtn');
+      if (saveBtn && !saveBtn.dataset.originalText) {
+        saveBtn.dataset.originalText = saveBtn.textContent;
+      }
+      if (saveBtn) {
+        saveBtn.disabled = disabled || !weekEditorSelectedId;
+        if (!disabled && saveBtn.dataset.originalText) {
+          saveBtn.textContent = saveBtn.dataset.originalText;
+        }
+      }
+    }
+
+    function setWeekEditorSavingState(isSaving) {
+      const saveBtn = document.getElementById('weekEditorSaveBtn');
+      if (saveBtn) {
+        if (!saveBtn.dataset.originalText) {
+          saveBtn.dataset.originalText = saveBtn.textContent;
+        }
+        saveBtn.disabled = isSaving || !weekEditorSelectedId;
+        saveBtn.textContent = isSaving ? 'Guardando...' : saveBtn.dataset.originalText;
+      }
+
+      const refreshBtn = document.getElementById('weekEditorRefreshBtn');
+      if (refreshBtn) {
+        refreshBtn.disabled = isSaving;
+      }
+
+      updateWeekEditorButtonsState(isSaving);
+    }
+
+    function populateWeekEditorSelect() {
+      const select = document.getElementById('weekEditorSelect');
+      if (!select) return;
+
+      if (!weekEditorWeeks.length) {
+        select.innerHTML = '<option value="">No hay semanas registradas</option>';
+        select.value = '';
+        return;
+      }
+
+      const options = weekEditorWeeks
+        .map(week => `<option value="${week.id}">${escapeHtmlAttr(formatWeekEditorLabel(week))}</option>`)
+        .join('');
+
+      select.innerHTML = options;
+
+      if (weekEditorSelectedId) {
+        select.value = String(weekEditorSelectedId);
+      } else {
+        select.selectedIndex = 0;
+      }
+    }
+
+    function populateWeekEditorBarOptions(selectedWeek) {
+      const barSelect = document.getElementById('weekEditorBar');
+      if (!barSelect) return;
+
+      const seenNames = new Set();
+      const options = ['<option value="" data-bar-id="" data-bar-name="">Sin asignar</option>'];
+
+      (bars || []).forEach(bar => {
+        if (!bar) return;
+        seenNames.add(bar.name);
+        const value = bar.id != null ? `id:${bar.id}` : `name:${encodeURIComponent(bar.name)}`;
+        options.push(
+          `<option value="${value}" data-bar-id="${bar.id != null ? bar.id : ''}" data-bar-name="${escapeHtmlAttr(bar.name)}">${escapeHtmlAttr(bar.name)}</option>`
+        );
+      });
+
+      if (selectedWeek?.bar_ganador && !seenNames.has(selectedWeek.bar_ganador)) {
+        options.push(
+          `<option value="custom" data-bar-id="" data-bar-name="${escapeHtmlAttr(selectedWeek.bar_ganador)}">${escapeHtmlAttr(selectedWeek.bar_ganador)} (no listado)</option>`
+        );
+      }
+
+      barSelect.innerHTML = options.join('');
+
+      if (!selectedWeek) {
+        barSelect.value = '';
+        return;
+      }
+
+      if (selectedWeek.bar_id != null) {
+        const matchById = Array.from(barSelect.options).find(opt => opt.dataset.barId === String(selectedWeek.bar_id));
+        if (matchById) {
+          matchById.selected = true;
+          return;
+        }
+      }
+
+      if (selectedWeek.bar_ganador) {
+        const matchByName = Array.from(barSelect.options).find(opt => opt.dataset.barName === selectedWeek.bar_ganador);
+        if (matchByName) {
+          matchByName.selected = true;
+          return;
+        }
+      }
+
+      barSelect.value = '';
+    }
+
+    function buildWeekEditorEstadoOptions(selectedState) {
+      const estadoSelect = document.getElementById('weekEditorEstado');
+      if (!estadoSelect) return;
+
+      const defaults = ['activa', 'finalizada', 'programada', 'cancelada'];
+      const states = new Set(defaults);
+
+      weekEditorWeeks.forEach(week => {
+        if (week.estado) states.add(week.estado);
+      });
+
+      const options = ['<option value="">Sin estado</option>'];
+      states.forEach(state => {
+        const label = state.charAt(0).toUpperCase() + state.slice(1);
+        options.push(`<option value="${state}" ${state === selectedState ? 'selected' : ''}>${escapeHtmlAttr(label)}</option>`);
+      });
+
+      estadoSelect.innerHTML = options.join('');
+    }
+
+    function clearWeekEditorForm() {
+      const dateInput = document.getElementById('weekEditorDate');
+      if (dateInput) dateInput.value = '';
+
+      const totalAsistentes = document.getElementById('weekEditorTotalAsistentes');
+      if (totalAsistentes) totalAsistentes.value = '';
+
+      const totalVotos = document.getElementById('weekEditorTotalVotos');
+      if (totalVotos) totalVotos.value = '';
+
+      const quorum = document.getElementById('weekEditorQuorum');
+      if (quorum) quorum.checked = false;
+
+      populateWeekEditorBarOptions(null);
+      buildWeekEditorEstadoOptions('');
+      updateWeekEditorButtonsState(false);
+    }
+
+    function highlightWeekEditorSelection() {
+      const rows = document.querySelectorAll('#weekEditorTableBody tr');
+      rows.forEach(row => {
+        const rowId = Number(row.dataset.weekId);
+        row.classList.toggle('table-active', weekEditorSelectedId && rowId === Number(weekEditorSelectedId));
+      });
+    }
+
+    function renderWeekEditorTable() {
+      const tbody = document.getElementById('weekEditorTableBody');
+      if (!tbody) return;
+
+      if (!weekEditorWeeks.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay semanas registradas</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = weekEditorWeeks.map(week => `
+        <tr data-week-id="${week.id}" class="${Number(week.id) === Number(weekEditorSelectedId) ? 'table-active' : ''}">
+          <td>${escapeHtmlAttr(formatDate(week.fecha_martes))}</td>
+          <td>${escapeHtmlAttr(week.bar_ganador || '—')}</td>
+          <td>${escapeHtmlAttr(week.estado || '—')}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-info" data-action="select-week" data-week-id="${week.id}">Seleccionar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function populateWeekEditorForm(week) {
+      if (!week) {
+        clearWeekEditorForm();
+        return;
+      }
+
+      const dateInput = document.getElementById('weekEditorDate');
+      if (dateInput) {
+        if (week.fecha_martes) {
+          const dateOnly = week.fecha_martes.split('T')[0];
+          dateInput.value = dateOnly || '';
+        } else {
+          dateInput.value = '';
+        }
+      }
+
+      const totalAsistentes = document.getElementById('weekEditorTotalAsistentes');
+      if (totalAsistentes) {
+        totalAsistentes.value = week.total_asistentes != null ? week.total_asistentes : '';
+      }
+
+      const totalVotos = document.getElementById('weekEditorTotalVotos');
+      if (totalVotos) {
+        totalVotos.value = week.total_votos != null ? week.total_votos : '';
+      }
+
+      const quorum = document.getElementById('weekEditorQuorum');
+      if (quorum) {
+        quorum.checked = !!week.hubo_quorum;
+      }
+
+      populateWeekEditorBarOptions(week);
+      buildWeekEditorEstadoOptions(week.estado || '');
+
+      const estadoSelect = document.getElementById('weekEditorEstado');
+      if (estadoSelect) {
+        estadoSelect.value = week.estado || '';
+      }
+
+      updateWeekEditorButtonsState(false);
+    }
+
+    function setWeekEditorSelection(weekId) {
+      if (!weekId) {
+        weekEditorSelectedId = null;
+        weekEditorOriginal = null;
+        clearWeekEditorForm();
+        highlightWeekEditorSelection();
+        showWeekEditorFeedback('Selecciona una semana para editar.', 'info');
+        return;
+      }
+
+      const numericId = Number(weekId);
+      if (!Number.isFinite(numericId)) {
+        return;
+      }
+
+      const week = weekEditorWeeks.find(w => Number(w.id) === numericId);
+      if (!week) {
+        showWeekEditorFeedback('No se encontró la semana seleccionada.', 'warning');
+        return;
+      }
+
+      weekEditorSelectedId = numericId;
+      weekEditorOriginal = { ...week };
+      populateWeekEditorForm(week);
+
+      const select = document.getElementById('weekEditorSelect');
+      if (select && select.value !== String(numericId)) {
+        select.value = String(numericId);
+      }
+
+      highlightWeekEditorSelection();
+      showWeekEditorFeedback('Puedes actualizar los datos de la semana seleccionada.', 'info');
+    }
+
+    async function loadWeekEditor(force = false) {
+      if (!isAdmin) return;
+
+      if (weekEditorLoading && !force) return;
+
+      weekEditorLoading = true;
+      showWeekEditorFeedback('Cargando historial de semanas...', 'info');
+      updateWeekEditorButtonsState(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('semanas_cn')
+          .select('id, fecha_martes, bar_ganador, bar_id, total_votos, total_asistentes, hubo_quorum, estado, updated_at')
+          .order('fecha_martes', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+
+        weekEditorWeeks = data || [];
+
+        if (!weekEditorWeeks.length) {
+          weekEditorSelectedId = null;
+          weekEditorOriginal = null;
+          populateWeekEditorSelect();
+          renderWeekEditorTable();
+          clearWeekEditorForm();
+          showWeekEditorFeedback('No hay semanas registradas todavía.', 'warning');
+          return;
+        }
+
+        if (force || !weekEditorSelectedId || !weekEditorWeeks.some(week => Number(week.id) === Number(weekEditorSelectedId))) {
+          weekEditorSelectedId = weekEditorWeeks[0]?.id || null;
+        }
+
+        populateWeekEditorSelect();
+        renderWeekEditorTable();
+        setWeekEditorSelection(weekEditorSelectedId);
+      } catch (error) {
+        console.error('❌ Error cargando semanas para editor:', error);
+        weekEditorWeeks = [];
+        populateWeekEditorSelect();
+        renderWeekEditorTable();
+        clearWeekEditorForm();
+        showWeekEditorFeedback('Error al cargar las semanas: ' + (error.message || error), 'danger');
+      } finally {
+        weekEditorLoading = false;
+      }
+    }
+
+    async function saveWeekEditorChanges() {
+      if (!isAdmin || !weekEditorSelectedId || !weekEditorOriginal) {
+        showWeekEditorFeedback('Selecciona una semana para guardar cambios.', 'warning');
+        return;
+      }
+
+      const dateInput = document.getElementById('weekEditorDate');
+      const totalAsistentesInput = document.getElementById('weekEditorTotalAsistentes');
+      const totalVotosInput = document.getElementById('weekEditorTotalVotos');
+      const quorumInput = document.getElementById('weekEditorQuorum');
+      const estadoSelect = document.getElementById('weekEditorEstado');
+      const barSelect = document.getElementById('weekEditorBar');
+
+      const dateValue = dateInput?.value || null;
+      const totalAsistentesValue = totalAsistentesInput?.value ? Number(totalAsistentesInput.value) : null;
+      const totalVotosValue = totalVotosInput?.value ? Number(totalVotosInput.value) : null;
+      const quorumValue = quorumInput?.checked || false;
+      const estadoValue = estadoSelect?.value || null;
+
+      let selectedBarId = null;
+      let selectedBarName = null;
+
+      if (barSelect && barSelect.selectedIndex >= 0) {
+        const selectedOption = barSelect.options[barSelect.selectedIndex];
+        if (selectedOption) {
+          selectedBarName = selectedOption.dataset.barName || null;
+          if (selectedOption.dataset.barId) {
+            const parsed = Number(selectedOption.dataset.barId);
+            if (Number.isFinite(parsed)) {
+              selectedBarId = parsed;
+            }
+          }
+        }
+      }
+
+      const updates = {};
+      const normalizedDate = dateValue || null;
+      if ((normalizedDate || null) !== (weekEditorOriginal.fecha_martes || null)) {
+        updates.fecha_martes = normalizedDate;
+      }
+
+      const normalizedAsistentes = Number.isFinite(totalAsistentesValue) ? totalAsistentesValue : null;
+      if ((normalizedAsistentes ?? null) !== (weekEditorOriginal.total_asistentes ?? null)) {
+        updates.total_asistentes = normalizedAsistentes;
+      }
+
+      const normalizedVotos = Number.isFinite(totalVotosValue) ? totalVotosValue : null;
+      if ((normalizedVotos ?? null) !== (weekEditorOriginal.total_votos ?? null)) {
+        updates.total_votos = normalizedVotos;
+      }
+
+      if ((quorumValue ?? false) !== (weekEditorOriginal.hubo_quorum ?? false)) {
+        updates.hubo_quorum = quorumValue;
+      }
+
+      if ((estadoValue || null) !== (weekEditorOriginal.estado || null)) {
+        updates.estado = estadoValue || null;
+      }
+
+      const originalBarId = weekEditorOriginal.bar_id ?? null;
+      const originalBarName = weekEditorOriginal.bar_ganador || null;
+      const barChanged = (selectedBarId ?? null) !== (originalBarId ?? null) || (selectedBarName || null) !== (originalBarName || null);
+
+      if (!Object.keys(updates).length && !barChanged) {
+        showWeekEditorFeedback('No hay cambios para guardar.', 'info');
+        return;
+      }
+
+      setWeekEditorSavingState(true);
+      showWeekEditorFeedback('Guardando cambios...', 'info');
+
+      try {
+        if (Object.keys(updates).length) {
+          const { error } = await supabase
+            .from('semanas_cn')
+            .update(updates)
+            .eq('id', weekEditorSelectedId);
+
+          if (error) throw error;
+        }
+
+        if (barChanged) {
+          const payload = { week_id: weekEditorSelectedId, recompute_total: false };
+          if (selectedBarId != null) payload.bar_id = selectedBarId;
+          if (selectedBarName) payload.bar_nombre = selectedBarName;
+
+          const response = await fetch('/.netlify/functions/updateAttendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Error actualizando el bar de la semana');
+          }
+        }
+
+        const storedWeek = weekEditorWeeks.find(week => Number(week.id) === Number(weekEditorSelectedId));
+        if (storedWeek) {
+          if (updates.fecha_martes !== undefined) storedWeek.fecha_martes = updates.fecha_martes;
+          if (updates.total_asistentes !== undefined) storedWeek.total_asistentes = updates.total_asistentes;
+          if (updates.total_votos !== undefined) storedWeek.total_votos = updates.total_votos;
+          if (updates.hubo_quorum !== undefined) storedWeek.hubo_quorum = updates.hubo_quorum;
+          if (updates.estado !== undefined) storedWeek.estado = updates.estado;
+          if (barChanged) {
+            storedWeek.bar_id = selectedBarId;
+            storedWeek.bar_ganador = selectedBarName;
+          }
+          weekEditorOriginal = { ...storedWeek };
+        }
+
+        populateWeekEditorSelect();
+        renderWeekEditorTable();
+        highlightWeekEditorSelection();
+        showWeekEditorFeedback('Semana actualizada correctamente.', 'success');
+      } catch (error) {
+        console.error('❌ Error guardando cambios de la semana:', error);
+        showWeekEditorFeedback('Error al guardar los cambios: ' + (error.message || error), 'danger');
+      } finally {
+        setWeekEditorSavingState(false);
+      }
+    }
+
     // ========== UTILITY FUNCTIONS ==========
     function igIcon() {
       return `<svg class="ig-icon" viewBox="0 0 50 50"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="25" y1="3" x2="25" y2="47"><stop offset="0" stop-color="#f58529"/><stop offset="0.3" stop-color="#feda75"/><stop offset="0.6" stop-color="#dd2a7b"/><stop offset="1" stop-color="#515bd4"/></linearGradient><circle cx="25" cy="25" r="22" fill="url(#a)"/><path d="M25 17c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm0-3c-6.065 0-11 4.935-11 11s4.935 11 11 11 11-4.935 11-11-4.935-11-11-11zm10 2a2 2 0 110 4 2 2 0 010-4zm-10 5a6 6 0 100 12 6 6 0 000-12z" fill="#fff"/></svg>`;
@@ -3566,6 +4129,46 @@
           alert('Error al iniciar sesión: ' + error.message);
         }
       });
+
+      const weekSelect = document.getElementById('weekEditorSelect');
+      if (weekSelect) {
+        weekSelect.addEventListener('change', (event) => {
+          const value = event.target.value;
+          setWeekEditorSelection(value || null);
+        });
+      }
+
+      const weekSaveBtn = document.getElementById('weekEditorSaveBtn');
+      if (weekSaveBtn) {
+        weekSaveBtn.addEventListener('click', () => {
+          saveWeekEditorChanges();
+        });
+      }
+
+      const weekAttendanceBtn = document.getElementById('weekEditorAttendanceBtn');
+      if (weekAttendanceBtn) {
+        weekAttendanceBtn.addEventListener('click', () => {
+          if (weekEditorSelectedId) {
+            openEditWeek(weekEditorSelectedId);
+          }
+        });
+      }
+
+      const weekRefreshBtn = document.getElementById('weekEditorRefreshBtn');
+      if (weekRefreshBtn) {
+        weekRefreshBtn.addEventListener('click', () => loadWeekEditor(true));
+      }
+
+      const weekTableBody = document.getElementById('weekEditorTableBody');
+      if (weekTableBody) {
+        weekTableBody.addEventListener('click', (event) => {
+          const button = event.target.closest('button[data-action]');
+          if (!button) return;
+          const weekId = button.getAttribute('data-week-id');
+          if (!weekId) return;
+          setWeekEditorSelection(weekId);
+        });
+      }
 
       // Handle desktop table clicks
       document.addEventListener('click', (event) => {
