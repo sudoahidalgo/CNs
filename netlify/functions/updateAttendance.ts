@@ -1,148 +1,137 @@
+// netlify/functions/updateAttendance.ts
 const CORS = {
   'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Vary': 'Origin',
 };
 
-const urlBase = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
-const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+const URL = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/,'');
+const SRK = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
-export const handler = async (event: any) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
-
+export const handler = async (event) => {
   try {
-    if (!/^https:\/\//.test(urlBase) || !serviceKey) {
-      return json(500, { error: 'misconfigured env' });
+    if (event.httpMethod === 'OPTIONS') return ok('');
+
+    // Health mode (diagnóstico sin escribir)
+    if (event.queryStringParameters?.health === '1') {
+      return await health();
     }
 
-    let payload: any = {};
-    try {
-      payload = event.body ? JSON.parse(event.body) : {};
-    } catch {
-      return json(422, { error: 'Invalid JSON' });
-    }
+    if (!/^https:\/\//.test(URL) || !SRK) return err(500, 'misconfigured env');
 
-    const week_id = payload.week_id ?? payload.weekId ?? payload.id;
-    const bar_id = payload.bar_id ?? payload.barId ?? null;
-    let bar_nombre = payload.bar_nombre ?? payload.barNombre ?? payload.bar ?? null;
-    const add_user_ids: string[] = payload.add_user_ids ?? payload.user_ids ?? [];
-    const recompute_total = !!payload.recompute_total;
+    let body: any = {};
+    try { body = event.body ? JSON.parse(event.body) : {}; }
+    catch { return err(422, 'Invalid JSON'); }
 
-    if (!week_id) return json(422, { error: 'Missing week_id' });
+    const week_id = body.week_id ?? body.weekId ?? body.id;
+    const bar_id = body.bar_id ?? body.barId ?? null;
+    let bar_nombre = body.bar_nombre ?? body.barNombre ?? body.bar ?? null;
+    const add_user_ids: string[] = body.add_user_ids ?? body.user_ids ?? [];
+    const recompute_total = !!body.recompute_total;
 
-    const weekIdNum = Number(week_id);
-    if (!Number.isFinite(weekIdNum)) return json(422, { error: 'Invalid week_id' });
+    if (!week_id) return err(422, 'Missing week_id');
 
-    const barIdNum = bar_id != null ? Number(bar_id) : null;
-    if (barIdNum != null && !Number.isFinite(barIdNum)) return json(422, { error: 'Invalid bar_id' });
-
-    // Resolver bar_nombre si sólo viene bar_id
-    if (!bar_nombre && barIdNum != null) {
-      const r = await pgGet(`bares?id=eq.${barIdNum}&select=nombre&limit=1`);
-      if (!r.ok) return proxy(r);
-      const data = await r.json();
-      bar_nombre = data?.[0]?.nombre || null;
-      if (!bar_nombre) return json(422, { error: 'bar_id not found' });
+    // Resolver bar_nombre desde bar_id si hace falta
+    if (!bar_nombre && (bar_id ?? null) !== null) {
+      const r = await pgGET(`bares?id=eq.${Number(bar_id)}&select=nombre&limit=1`);
+      const js = await safeJSON(r);
+      if (!r.ok || !Array.isArray(js) || !js[0]?.nombre) {
+        return relay(r, js, 422, 'bar_id not found');
+      }
+      bar_nombre = js[0].nombre;
     }
 
     // 1) Actualizar bar_ganador en semanas_cn
     if (bar_nombre) {
-      const up1 = await pgPatch('semanas_cn', `id=eq.${weekIdNum}`, { bar_ganador: bar_nombre });
-      if (!up1.ok) return proxy(up1);
-
-      // 1b) Reflejar en visitas_bares
-      const up2 = await pgPatch('visitas_bares', `semana_id=eq.${weekIdNum}`, { bar: bar_nombre });
-      if (!up2.ok && ![404, 406].includes(up2.status)) return proxy(up2);
+      const r1 = await pgPATCH('semanas_cn', `id=eq.${Number(week_id)}`, { bar_ganador: bar_nombre });
+      const j1 = await safeJSON(r1);
+      if (!r1.ok) return relay(r1, j1);
+      // 1b) Reflejar en visitas_bares si hay filas
+      const r2 = await pgPATCH('visitas_bares', `semana_id=eq.${Number(week_id)}`, { bar: bar_nombre });
+      // si no hay filas, PostgREST devuelve 204; si 404/400, lo ignoramos
     }
 
-    // 2) Insertar asistencias
+    // 2) Insertar asistentes (si vienen)
     if (Array.isArray(add_user_ids) && add_user_ids.length > 0) {
       const rows = add_user_ids.map((uid: string) => ({
-        user_id: uid,
-        semana_id: weekIdNum,
-        confirmado: true,
-        created_at: new Date().toISOString(),
+        user_id: uid, semana_id: Number(week_id), confirmado: true, created_at: new Date().toISOString(),
       }));
-      const ins = await pgInsert('asistencias', rows, true);
-      if (!ins.ok) return proxy(ins);
+      const r3 = await pgPOST('asistencias', rows, true);  // ignore duplicates
+      const j3 = await safeJSON(r3);
+      if (!r3.ok) return relay(r3, j3);
     }
 
-    // 3) Recalcular total de asistentes (si aplica)
+    // 3) Recalcular total_asistentes (si aplica)
     if (recompute_total) {
-      const cntRes = await pgGet(`asistencias?semana_id=eq.${weekIdNum}`, 'count=exact');
-      if (!cntRes.ok) return proxy(cntRes);
-      const range = cntRes.headers.get('content-range') || '';
-      const total = Number(range.split('/')?.[1] || 0);
-      const candidates = ['total_asistentes', 'total_asist', 'total_asistertes'];
-      for (const col of candidates) {
-        const upd = await pgPatch('semanas_cn', `id=eq.${weekIdNum}`, { [col]: total });
-        if (upd.ok) break;
+      const rc = await pgGET(`asistencias?semana_id=eq.${Number(week_id)}`, 'count=exact');
+      const total = Number(rc.headers.get('content-range')?.split('/')?.[1] || 0);
+      // intenta variantes de nombre (columna puede variar entre envs)
+      for (const col of ['total_asistentes','total_asist','total_asistertes']) {
+        const r4 = await pgPATCH('semanas_cn', `id=eq.${Number(week_id)}`, { [col]: total });
+        if (r4.ok) break;
       }
     }
 
-    return json(200, { ok: true });
+    return ok({ ok: true });
   } catch (e: any) {
-    console.error('HANDLER ERROR', e?.message);
-    return json(500, { error: e?.message || 'server error' });
+    console.error('UNCAUGHT', e?.message, e?.stack);
+    return err(500, e?.message || 'server error');
   }
 };
 
-function json(status: number, body: any) {
-  return { statusCode: status, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+// ---------- helpers ----------
+function ok(body: any) {
+  return { statusCode: 200, headers: { ...CORS, 'Content-Type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) };
 }
-
-async function proxy(r: any) {
-  let text = '';
-  try {
-    text = await r.text();
-  } catch (err: any) {
-    text = err?.message || '';
-  }
-
-  let body: any;
-  if (text) {
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = { error: text };
-    }
-  }
-  const message = body?.message || body?.error || text || r.statusText || 'request failed';
-  if (r.status === 401 || r.status === 403) {
-    return json(403, { error: message });
-  }
-  if ([400, 404, 406, 409, 422].includes(r.status)) {
-    return json(422, { error: message });
-  }
-  return json(500, { error: message });
+function err(code: number, message: string) {
+  return { statusCode: code, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: message }) };
 }
-
-async function pgGet(pathQS: string, extraPrefer: string = '') {
-  const headers: Record<string, string> = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
-  if (extraPrefer) headers.Prefer = extraPrefer;
-  return fetch(`${urlBase}/rest/v1/${pathQS}`, { method: 'GET', headers });
+async function safeJSON(r: Response) {
+  try { return await r.clone().json(); } catch { return await r.text().catch(()=>''); }
 }
-
-async function pgPatch(table: string, filter: string, body: any) {
-  return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
+function relay(r: Response, payload: any, fallbackCode?: number, fallbackMsg?: string) {
+  const code = r?.status || fallbackCode || 500;
+  const body = typeof payload === 'string' ? { error: payload } : (payload || { error: fallbackMsg || 'upstream error' });
+  return { statusCode: code, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+}
+async function pgGET(pathQS: string, prefer?: string) {
+  const h: any = { apikey: SRK, Authorization: `Bearer ${SRK}` };
+  if (prefer) h.Prefer = prefer;
+  return fetch(`${URL}/rest/v1/${pathQS}`, { method: 'GET', headers: h });
+}
+async function pgPATCH(table: string, filter: string, data: any) {
+  return fetch(`${URL}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
+      apikey: SRK,
+      Authorization: `Bearer ${SRK}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=representation',
+      Prefer: 'return=minimal',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(data),
   });
 }
-
-async function pgInsert(table: string, rows: any[], ignoreDuplicates = false) {
-  const headers: Record<string, string> = {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
+async function pgPOST(table: string, rows: any[], ignoreDuplicates = false) {
+  const h: any = {
+    apikey: SRK,
+    Authorization: `Bearer ${SRK}`,
     'Content-Type': 'application/json',
     Prefer: 'return=minimal',
   };
-  if (ignoreDuplicates) headers.Prefer += ',resolution=ignore-duplicates';
-  return fetch(`${urlBase}/rest/v1/${table}`, { method: 'POST', headers, body: JSON.stringify(rows) });
+  if (ignoreDuplicates) h.Prefer += ',resolution=ignore-duplicates';
+  return fetch(`${URL}/rest/v1/${table}`, { method: 'POST', headers: h, body: JSON.stringify(rows) });
+}
+async function health() {
+  const envOK = { hasURL: !!URL, hasSRK: !!SRK, urlHost: URL.replace(/^https?:\/\//,'') };
+  let rest:any={}, auth:any={};
+  try {
+    const r1 = await fetch(`${URL}/rest/v1/`, { method: 'HEAD' });
+    rest = { ok: r1.ok, status: r1.status };
+  } catch (e:any) { rest = { ok:false, error: e.message }; }
+  try {
+    const r2 = await fetch(`${URL}/auth/v1/`, { method: 'HEAD' });
+    auth = { ok: r2.ok, status: r2.status };
+  } catch (e:any) { auth = { ok:false, error: e.message }; }
+  return ok({ envOK, rest, auth });
 }
