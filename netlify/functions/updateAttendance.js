@@ -38,11 +38,17 @@ const handler = async (event) => {
     return { statusCode: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }, body: '' }
   }
 
-  const url = process.env.SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const rawUrl = process.env.SUPABASE_URL || ''
+  const url = rawUrl.trim().replace(/\/+$/, '')
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
 
-  if (!url || !serviceRoleKey) {
-    console.error('Supabase env vars missing', { hasUrl: !!url, hasServiceRole: !!serviceRoleKey })
+  console.log('ENV SANITY', {
+    urlSample: url.replace(/^https?:\/\//, ''),
+    hasSrv: !!serviceRoleKey,
+    lenSrv: serviceRoleKey.length,
+  })
+
+  if (!/^https:\/\//.test(url) || !serviceRoleKey) {
     return jsonResponse(500, { error: 'misconfigured env' })
   }
 
@@ -69,8 +75,15 @@ const handler = async (event) => {
     return jsonResponse(422, { error: 'Missing week_id or fields' })
   }
 
+  const ping = await fetch(`${url}/rest/v1/`, { method: 'HEAD' }).catch((err) => err)
+  console.log('PING REST', {
+    ok: ping?.ok === true,
+    status: ping?.status,
+    err: ping instanceof Error ? ping.message : null,
+  })
+
   try {
-    const supabase = createClient(url, serviceRoleKey)
+    const supabase = createClient(url, serviceRoleKey, { auth: { persistSession: false } })
 
     const { data, error } = await supabase
       .from('asistencias')
@@ -79,13 +92,55 @@ const handler = async (event) => {
       .select()
 
     if (error) {
+      if (/fetch failed/i.test(String(error.message || error))) {
+        throw error
+      }
+
       return buildErrorResponse(error)
     }
 
     return jsonResponse(200, { ok: true, data })
   } catch (err) {
-    console.error('Unexpected handler failure', { message: err?.message })
-    return jsonResponse(500, { error: err?.message || 'server error' })
+    if (!/fetch failed/i.test(String(err?.message || err))) {
+      console.error('Unexpected handler failure', { message: err?.message })
+      return jsonResponse(500, { error: err?.message || 'server error' })
+    }
+
+    console.error('Supabase client fetch failed', { message: err?.message })
+
+    const resp = await fetch(`${url}/rest/v1/asistencias?id=eq.${week_id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify(fields),
+    }).catch((error) => error)
+
+    if (resp instanceof Error) {
+      console.error('POSTGREST FETCH ERROR', resp.message)
+      return jsonResponse(502, { error: `egress error: ${resp.message}` })
+    }
+
+    if (!resp.ok) {
+      const text = await resp.text()
+      console.error('POSTGREST ERROR', { status: resp.status, text })
+      const status = resp.status === 401 || resp.status === 403
+        ? 403
+        : resp.status === 422
+          ? 422
+          : 500
+      return {
+        statusCode: status,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        body: text,
+      }
+    }
+
+    const data = await resp.json().catch(() => null)
+    return jsonResponse(200, { ok: true, data })
   }
 }
 

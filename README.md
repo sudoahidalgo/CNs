@@ -17,6 +17,8 @@ Definir en Netlify → **Settings → Environment variables** (scopes: Builds, F
 - `SUPABASE_ANON_KEY = <anon key>` (solo frontend: usarlo en `config.js`, nunca en Functions ni prefijos `VITE_*`).
 - `SUPABASE_SERVICE_ROLE_KEY = <service_role key>` (solo Functions). **Nunca** exponer el `SERVICE_ROLE_KEY` en el frontend ni en variables `VITE_*`.
 
+> 🚿 Sanitizar antes de guardar: copiar/pegar sin espacios al inicio/fin y sin `/` final en la URL. La service_role key válida suele tener >150 caracteres.
+
 > 💡 Tras modificar variables, volver a desplegar (`Clear cache and deploy site`).
 
 ## 3) Contratos de API (payloads)
@@ -149,6 +151,7 @@ end $$;
 ## 7) Deploy y configuración
 - En Netlify, tras cambiar variables o el código de Functions, ejecutar **Clear cache and deploy site**.
 - Ubicación de variables: Netlify → **Settings → Environment variables → All scopes → Same value for all deploy contexts**.
+- Netlify Functions deben correr con **Node 18** y `node_bundler = "esbuild"` (ver `netlify.toml`). Versiones previas pueden romper `fetch` o el cliente de Supabase.
 - No usar prefijo `VITE_` para claves de servidor ni exponer el `service_role` al cliente.
 - Confirmar que el frontend lee `SUPABASE_URL`/`SUPABASE_ANON_KEY` desde `config.js` (no inyectar claves sensibles en HTML).
 
@@ -156,6 +159,11 @@ end $$;
 - **Frontend**: DevTools → pestaña *Network*. Deben verse `OPTIONS 200` y `POST 200/403/422` con JSON. Si aparece `TypeError: fetch failed`, revisar CORS/URL.
 - **Netlify**: Dashboard → *Functions* → `updateAttendance` → *Logs* (errores en tiempo real y `console.log`).
 - **Supabase**: Panel → *Logs → API* (PostgREST) y *Logs → Database* (errores SQL/RLS). Útil para validar policies y queries.
+
+> 🧪 Logs clave durante incidentes:
+> - `ENV SANITY` → muestra un extracto de la URL (sin protocolo), si existe la service role y la longitud de la clave. `hasSrv: false` o `lenSrv: 0` indican variables mal configuradas.
+> - `PING REST` → `ok: true` o `status` diferentes de `undefined` confirman salida a Internet y DNS correcto. Errores tipo `getaddrinfo ENOTFOUND` apuntan a URL inválida o sin protocolo `https://`.
+> - `POSTGREST ERROR/FETCH ERROR` → solo aparecen si el cliente de Supabase falla. Permiten distinguir entre error de red (`egress error`) y respuestas reales de PostgREST (`status 40x/422`).
 
 ## 9) Pruebas rápidas
 ### 9.1 cURL (sin frontend)
