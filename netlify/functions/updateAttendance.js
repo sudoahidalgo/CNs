@@ -36,27 +36,59 @@ const ResponseImpl = typeof FallbackResponse === 'function'
   ? FallbackResponse
   : (typeof globalThis.Response === 'function' ? globalThis.Response : require('node-fetch').Response);
 
+const sharedLookup = dnsModule && typeof dnsModule.lookup === 'function'
+  ? (hostname, options, callback) => {
+      if (typeof options === 'function') {
+        return dnsModule.lookup(hostname, { family: 4, all: false }, options);
+      }
+
+      const opts = typeof options === 'object' && options !== null ? options : {};
+      return dnsModule.lookup(
+        hostname,
+        { ...opts, family: 4, all: false },
+        callback,
+      );
+    }
+  : undefined;
+
 const httpsAgent = new https.Agent({
   keepAlive: true,
-  lookup: dnsModule && typeof dnsModule.lookup === 'function'
-    ? (hostname, options, callback) => {
-        if (typeof options === 'function') {
-          return dnsModule.lookup(hostname, { family: 4, all: false }, options);
-        }
-
-        const opts = typeof options === 'object' && options !== null ? options : {};
-        return dnsModule.lookup(
-          hostname,
-          { ...opts, family: 4, all: false },
-          callback,
-        );
-      }
-    : undefined,
+  lookup: sharedLookup,
 });
 
+let undiciAgent = null;
+const isUndiciFetch = fallbackFetch === globalThis.fetch;
+if (isUndiciFetch) {
+  try {
+    const { Agent } = require('undici');
+    undiciAgent = new Agent({
+      keepAliveTimeout: 10_000,
+      keepAliveMaxTimeout: 60_000,
+      connect: {
+        family: 4,
+        lookup: sharedLookup,
+      },
+    });
+  } catch (err) {
+    console.warn('Failed to initialise undici Agent', err);
+  }
+}
+
 function runtimeFetch(url, init = {}) {
-  const shouldAttachAgent = typeof init.agent === 'undefined' && /^https:\/\//.test(url);
-  const finalInit = shouldAttachAgent ? { ...init, agent: httpsAgent } : init;
+  if (!/^https:\/\//.test(url)) {
+    return fallbackFetch(url, init);
+  }
+
+  const finalInit = { ...init };
+
+  if (isUndiciFetch) {
+    if (!finalInit.dispatcher && undiciAgent) {
+      finalInit.dispatcher = undiciAgent;
+    }
+  } else if (typeof finalInit.agent === 'undefined') {
+    finalInit.agent = httpsAgent;
+  }
+
   return fallbackFetch(url, finalInit);
 }
 
