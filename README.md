@@ -1,209 +1,166 @@
-# CNs
+# CNs — Guía Técnica
 
-## 1) Resumen del proyecto
-- **¿Dónde vamos a la CN hoy?**: proyecto que organiza y publica la votación semanal para elegir el bar de la Comunidad de Ñoños.
-- **Frontend**: sitio estático en Netlify – https://corkys.netlify.app (HTML/JS plano con Supabase JS en el navegador).
-- **Backend**: Supabase proporciona autenticación, PostgREST y funciones RPC/Edge para operaciones críticas.
-- **Funciones serverless**: Netlify Functions (por ejemplo `/.netlify/functions/updateAttendance`) encapsulan la lógica administrativa.
-- **Base de datos (esquema `public`)**: tablas `asistencias`, `bares`, `estadisticas_bares`, `ganadores`, `semana_actual`, `semanas`, `semanas_cn`, `usuarios`, `visitas_bares`, `votos`.
-- **Flujo semanal**: cada martes se registran votos y asistencias; el proceso `process_weekly_reset` (RPC) cierra la semana, genera la siguiente y reinicia las métricas.
-- **Panel administrativo**: `admin.html` permite finalizar la semana, resetear votos y editar asistencias confirmadas consumiendo la función `updateAttendance`.
-- **Script auxiliar**: `scripts/updateWeekBar.js` sincroniza manualmente un bar ganador usando la RPC `update_week_and_visits`.
+## Arquitectura
+- **Frontend:** aplicación estática desplegada en Netlify (dominio público). Consume Supabase desde el navegador mediante la clave anónima.
+- **Backend:**
+  - **Netlify Functions** como capa serverless privada (`/.netlify/functions/*`).
+  - **Supabase** provee autenticación, PostgREST y acceso directo al esquema `public` de PostgreSQL.
+  - Las Functions utilizan la `SERVICE_ROLE_KEY` para ejecutar operaciones administrativas y coordinar PostgREST.
+- **Infraestructura compartida:**
+  - `netlify.toml` define builds y redirecciones.
+  - `config.js` expone `SUPABASE_URL` y `SUPABASE_ANON_KEY` en el navegador.
+  - `weekEdit.js`/`admin.html` orquestan la edición de semana consumiendo la función `updateAttendance`.
 
-## 2) Variables de entorno (obligatorias)
-Definir en Netlify → **Settings → Environment variables** (scopes: Builds, Functions, Runtime; context: Production) y repetir para todos los contextos de deploy:
+## Variables de entorno (Netlify → Environment variables)
+Configurar en Netlify (Settings → Environment variables) para todos los contexts (Production, Deploy previews, Branch deploys):
 
-- `SUPABASE_URL = https://<PROJECT>.supabase.co`
-- `SUPABASE_ANON_KEY = <anon key>` (solo frontend: usarlo en `config.js`, nunca en Functions ni prefijos `VITE_*`).
-- `SUPABASE_SERVICE_ROLE_KEY = <service_role key>` (solo Functions). **Nunca** exponer el `SERVICE_ROLE_KEY` en el frontend ni en variables `VITE_*`.
+| Variable | Scope | Uso |
+|----------|-------|-----|
+| `SUPABASE_URL` | Builds, Functions, Runtime | URL del proyecto Supabase **sin `/` final**. Ej: `https://<project>.supabase.co`. |
+| `SUPABASE_ANON_KEY` | Builds, Runtime | Clave pública usada por el frontend (no exponer en Functions). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Functions, Runtime | Clave con permisos elevados para Netlify Functions. **Nunca** exponer en frontend ni en variables `VITE_*`. |
 
-> 🚿 Sanitizar antes de guardar: copiar/pegar sin espacios al inicio/fin y sin `/` final en la URL. La service_role key válida suele tener >150 caracteres.
+> Tras editar variables, ejecutar **Clear cache and deploy site** en Netlify para que las Functions tomen el nuevo valor.
 
-> 💡 Tras modificar variables, volver a desplegar (`Clear cache and deploy site`).
+## Esquema de Base de Datos (schema `public`)
+### Tablas clave
+#### `semanas_cn`
+| columna | tipo | descripción |
+|---------|------|-------------|
+| `id` | `integer` (PK) | Identificador de semana. |
+| `fecha_martes` | `date` | Fecha del martes de esa semana de CN. |
+| `bar_ganador` | `text` | Bar ganador (nombre texto). |
+| `total_votos` | `integer` | Total de votos registrados. |
+| `total_asistentes` | `integer` (nullable) | Total de asistentes confirmados (si la columna existe). |
+| `estado` | `text` | Estado de la semana (abierta, cerrada, etc.). |
+| `created_at`, `updated_at` | `timestamp` | Timestamps de auditoría. |
 
-## 3) Contratos de API (payloads)
-### 3.1 `POST /.netlify/functions/updateAttendance`
-Actualiza la semana seleccionada resolviendo el bar ganador y agregando asistencias confirmadas.
+- Define el bar ganador por semana (`bar_ganador`).
 
-**Request (JSON)**
+#### `asistencias`
+| columna | tipo | descripción |
+|---------|------|-------------|
+| `id` | `integer` (PK) | Identificador del registro de asistencia. |
+| `user_id` | `uuid` | Usuario que confirma asistencia. |
+| `semana_id` | `integer` | FK hacia `semanas_cn.id`. |
+| `confirmado` | `boolean` | Marca asistencia confirmada (`true` cuando se agrega desde la función). |
+| `created_at` | `timestamp` | Fecha de creación del registro. |
+
+- Un registro por persona y semana.
+
+#### `visitas_bares`
+| columna | tipo | descripción |
+|---------|------|-------------|
+| `id` | `integer` (PK) | Identificador de la visita. |
+| `bar` | `text` | Nombre del bar visitado. |
+| `semana_id` | `integer` | Semana a la que corresponde la visita. |
+| `asistentes` | `integer` (nullable) | Conteo manual de asistentes. |
+| `fecha_visita` | `timestamp` | Fecha y hora de la visita. |
+| `created_at` | `timestamp` | Registro de creación. |
+
+- Histórico de bares (texto) por semana, usado para “⏰ Última vez que ganó”.
+
+#### `votos`
+| columna | tipo | descripción |
+|---------|------|-------------|
+| `id` | `integer` (PK) | Identificador del voto. |
+| `bar` | `text` | Bar votado (nombre texto). |
+| `user_id` | `uuid` | Usuario que votó. |
+| `semana_id` | `integer` | Semana asociada al voto. |
+| `created_at` | `timestamp` | Fecha del voto. |
+
+- Votos por bar y semana.
+
+#### `bares`
+| columna | tipo | descripción |
+|---------|------|-------------|
+| `id` | `integer` (PK) | Identificador del bar. |
+| `nombre` | `text` | Nombre canónico. |
+| `activo` | `boolean` | Indica si se puede mostrar en la UI. |
+| `created_at`, `updated_at` | `timestamp` | Auditoría. |
+
+- Fuente de bares disponibles. La UI usa `semanas_cn.bar_ganador` y/o `visitas_bares` para “⏰ Última vez que ganó”.
+
+### Relaciones destacadas
+- `asistencias.semana_id` ↔ `semanas_cn.id` (1:N).
+- `votos.semana_id` ↔ `semanas_cn.id` (1:N).
+- `visitas_bares.semana_id` ↔ `semanas_cn.id` (1:1 opcional).
+- `visitas_bares.bar` y `votos.bar` guardan texto, pero pueden mapearse con `bares.nombre` en la UI/Functions.
+
+## API interna (Function) — `POST /.netlify/functions/updateAttendance`
+### Request JSON
 ```json
 {
-  "week_id": 123,
-  "bar_id": 5,
-  "add_user_ids": ["uuid-1", "uuid-2"],
+  "week_id": 1366,
+  "bar_id": 32,
+  "bar_nombre": "Otro",
+  "add_user_ids": ["uuid1", "uuid2"],
   "recompute_total": true
 }
 ```
 
-Alias aceptados por compatibilidad:
+Alias aceptados: `weekId` — también `id`; `barId`; `bar` o `barNombre`; `user_ids` para `add_user_ids`.
 
-| parámetro | alias soportados |
-|-----------|------------------|
-| `week_id` | `weekId`, `id` |
-| `bar_id`  | `barId` |
-| `bar_nombre` | `barNombre`, `bar` |
-| `add_user_ids` | `user_ids` |
+### Efectos
+- `semanas_cn.bar_ganador` se actualiza a `<bar_nombre>`.
+- `visitas_bares.bar` se sincroniza con `<bar_nombre>` cuando existe fila para esa semana.
+- Inserta filas en `asistencias` para cada `user_id` con `confirmado=true` (evitar duplicados via `ON CONFLICT DO NOTHING`).
+- `semanas_cn.total_asistentes` se recalcula con el conteo de `asistencias` cuando `recompute_total` es `true` y la columna existe.
 
-- Si se envía `bar_id`, el backend resuelve el nombre del bar y lo guarda como `semanas_cn.bar_ganador`.
-- Si se envía `bar_nombre` directamente, se actualiza esa columna sin consultar la tabla `bares`.
-- Si se envían `add_user_ids`, se insertan filas en `public.asistencias` con `confirmado=true` y `ON CONFLICT DO NOTHING`.
-- Con `recompute_total=true` se recalcula `total_asistentes` (o variantes tipográficas) en `semanas_cn` contando las asistencias confirmadas.
+### Responses
+- `200 { "ok": true }`
+- `422 { "error": "Missing week_id" | "Invalid JSON" | "bar_id not found" }`
+- `403 { "error": "permission denied" }` (si falla por políticas RLS).
+- `500 { "error": "..." }` para errores inesperados.
 
-**Responses**
-- `200` → `{ "ok": true }`
-- `422` → `{ "error": "Missing week_id" | "Invalid JSON" | "bar_id not found" }`
-- `4xx/5xx` → Siempre JSON `{ "error": "..." }` con encabezados CORS.
+### CORS
+- Responder `OPTIONS 200`.
+- Incluir en **todas** las respuestas:
+  - `Access-Control-Allow-Origin: https://corkys.netlify.app`
+  - `Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type`
+  - `Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS`
 
-**Tablas afectadas**
-
-- `public.semanas_cn`: actualiza `bar_ganador` y, opcionalmente, `total_asistentes`.
-- `public.asistencias`: inserta confirmaciones (`confirmado=true`) con resolución de duplicados.
-
-### 3.2 CORS
-Todas las respuestas deben incluir:
-
-```
-Access-Control-Allow-Origin: https://corkys.netlify.app
-Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type
-Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-```
-
-La función debe responder `OPTIONS 200` con los mismos encabezados.
-
-## 4) Esquema de BD relevante
-### 4.1 Tabla correcta para actualizar: `asistencias`
-> Antes se usaba `attendance` (inexistente). Debe consultarse/actualizarse `public.asistencias`.
-
-| columna       | tipo                          | nullable | default                                   |
-|---------------|-------------------------------|----------|-------------------------------------------|
-| `id`          | `bigint` (PK, identity)       | ❌       | `generated always as identity`            |
-| `created_at`  | `timestamp with time zone`    | ❌       | `now()`                                    |
-| `semana_id`   | `bigint`                      | ❌       | — (FK a `semanas_cn.id`)                   |
-| `user_id`     | `uuid`                        | ❌       | — (FK a `auth.users.id`)                   |
-| `bar_id`      | `bigint`                      | ✅       | `null` (FK opcional a `bares.id`)          |
-| `asistentes`  | `integer`                     | ✅       | `null`                                     |
-| `confirmado`  | `boolean`                     | ✅       | `false`                                    |
-| `updated_at`  | `timestamp with time zone`    | ✅       | `null` (trigger de actualización opcional) |
-
-- **PK real (`<pk_real>`):** `id`.
-- Índice compuesto recomendado: `unique(user_id, semana_id)` para evitar duplicados por usuario-semana.
-
-### 4.2 Otras tablas usadas por el frontend
-- `bares`: columnas clave `id`, `nombre`, `instagram_url`, `facebook_url`, `activo boolean default true`, `created_at`.
-- `semanas_cn`: gestiona el histórico de semanas (`id`, `fecha_martes`, `estado`, `bar_id`, `bar_ganador`, `total_asistentes`, `hubo_quorum`, `created_at`).
-- `semana_actual`: vista materializada/señalador de la semana abierta.
-- `usuarios`: datos de perfiles (`id`, `nombre`, `avatar_url`, `created_at`, etc.).
-- `votos`, `visitas_bares`, `estadisticas_bares`, `ganadores`, `semanas`: proveen métricas complementarias para dashboards y gráficos.
-
-## 5) Políticas de seguridad (RLS)
-Activar y documentar las policies en `asistencias`:
-
-```sql
-create or replace function public.is_admin()
-returns boolean language sql stable as $$
-  select coalesce(auth.email() in ('ahidalgod@gmail.com'), false);
-$$;
-
-alter table public.asistencias enable row level security;
-
-do $$ begin
-  if not exists (select 1 from pg_policies where tablename='asistencias' and policyname='asistencias update own') then
-    create policy "asistencias update own"
-    on public.asistencias for update to authenticated
-    using (user_id = auth.uid())
-    with check (user_id = auth.uid());
-  end if;
-  if not exists (select 1 from pg_policies where tablename='asistencias' and policyname='asistencias admin can update all') then
-    create policy "asistencias admin can update all"
-    on public.asistencias for update to authenticated
-    using (public.is_admin())
-    with check (public.is_admin());
-  end if;
-end $$;
-```
-
-Para `bares` (lectura):
-
-```sql
-alter table public.bares enable row level security;
-do $$ begin
-  if not exists (select 1 from pg_policies where tablename='bares' and policyname='bares read') then
-    create policy "bares read" on public.bares for select to authenticated using (true);
-  end if;
-end $$;
-```
-
-## 6) Notas de implementación (Functions)
-- Crear el cliente admin **solo** con claves de servidor:
-  ```js
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-  ```
-- Manejar `OPTIONS`, parseo JSON y mapear errores (`422`/`403`/`500`) siempre con `Content-Type: application/json` y encabezados CORS en todas las ramas.
-- Query de actualización (usar la PK real `id`):
-  ```js
-  const { data, error } = await supabase
-    .from('asistencias')
-    .update(fields)
-    .eq('id', week_id)
-    .select();
-  ```
-- Validar alias (`weekId`, `id`, `asistencia_id`, `update`, `data`) antes de ejecutar la query.
-- Netlify CLI para entorno local:
+## Troubleshooting
+- `TypeError: fetch failed` → revisar `SUPABASE_URL` (https, sin espacios, sin slash final) y `SUPABASE_SERVICE_ROLE_KEY` válida.
+- Respuesta `422` → payload incompleto o columnas inexistentes; revisar los campos enviados.
+- Para validar despliegue/redeploy de Functions y pruebas manuales usar:
   ```bash
-  npm install
-  netlify dev
+  curl -i -X POST "$SITE/.netlify/functions/updateAttendance" \
+    -H "Content-Type: application/json" \
+    -d '{"week_id":1366,"bar_id":32,"add_user_ids":["<uuid1>","<uuid2>"],"recompute_total":true}'
   ```
-  Asegúrate de exportar `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` antes de iniciar. Las funciones deben ejecutarse bajo Netlify para respetar rutas `/.netlify/functions/*`.
-- Panel `admin.html` requiere inicio de sesión con correo autorizado; el modal **Editar** reutiliza la función `updateAttendance`.
-- Para correcciones complejas usar `scripts/updateWeekBar.js` (requiere `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`).
 
-## 7) Deploy y configuración
-- En Netlify, tras cambiar variables o el código de Functions, ejecutar **Clear cache and deploy site**.
-- Ubicación de variables: Netlify → **Settings → Environment variables → All scopes → Same value for all deploy contexts**.
-- Netlify Functions deben correr con **Node 18** y `node_bundler = "esbuild"` (ver `netlify.toml`). Versiones previas pueden romper `fetch` o el cliente de Supabase.
-- No usar prefijo `VITE_` para claves de servidor ni exponer el `service_role` al cliente.
-- Confirmar que el frontend lee `SUPABASE_URL`/`SUPABASE_ANON_KEY` desde `config.js` (no inyectar claves sensibles en HTML).
+## Flujo de edición (UI)
+1. Abrir modal de edición en la UI y definir `data-week-id` con `row.id` de `semanas_cn`.
+2. Enviar payload `{ week_id, bar_id?, bar_nombre?, add_user_ids[], recompute_total: true }` a `/.netlify/functions/updateAttendance`.
+3. Validar respuesta `200` y refrescar la vista (re-fetch de semana y tablas).
 
-## 8) Diagnóstico y logs
-- **Frontend**: DevTools → pestaña *Network*. Deben verse `OPTIONS 200` y `POST 200/403/422` con JSON. Si aparece `TypeError: fetch failed`, revisar CORS/URL.
-- **Netlify**: Dashboard → *Functions* → `updateAttendance` → *Logs* (errores en tiempo real y `console.log`).
-- **Supabase**: Panel → *Logs → API* (PostgREST) y *Logs → Database* (errores SQL/RLS). Útil para validar policies y queries.
-
-> 🧪 Logs clave durante incidentes:
-> - `ENV SANITY` → muestra un extracto de la URL (sin protocolo), si existe la service role y la longitud de la clave. `hasSrv: false` o `lenSrv: 0` indican variables mal configuradas.
-> - `PING REST` → `ok: true` o `status` diferentes de `undefined` confirman salida a Internet y DNS correcto. Errores tipo `getaddrinfo ENOTFOUND` apuntan a URL inválida o sin protocolo `https://`.
-> - `POSTGREST ERROR/FETCH ERROR` → solo aparecen si el cliente de Supabase falla. Permiten distinguir entre error de red (`egress error`) y respuestas reales de PostgREST (`status 40x/422`).
-
-## 9) Pruebas rápidas
-### 9.1 cURL (sin frontend)
-```bash
-curl -i -X POST "https://corkys.netlify.app/.netlify/functions/updateAttendance" \
-  -H "Content-Type: application/json" \
-  -d '{"week_id": <ID>, "fields": {"bar_id": 5, "asistentes": 42}}'
-```
-
-### 9.2 Ver columnas (SQL)
+## SQL útiles (referencia)
 ```sql
-SELECT column_name, data_type, is_nullable, column_default
-FROM information_schema.columns
-WHERE table_name = 'asistencias'
-ORDER BY ordinal_position;
+-- Ver últimas semanas
+SELECT id, fecha_martes, bar_ganador, total_votos, estado
+FROM public.semanas_cn
+ORDER BY id DESC
+LIMIT 10;
+
+-- Ver asistentes de una semana
+SELECT u.nombre
+FROM public.asistencias a
+JOIN public.usuarios u ON u.id = a.user_id
+WHERE a.semana_id = 1366
+ORDER BY u.nombre;
+
+-- Actualización manual de bar ganador
+UPDATE public.semanas_cn
+SET bar_ganador = 'Otro'
+WHERE id = 1366;
+
+UPDATE public.visitas_bares
+SET bar = 'Otro'
+WHERE semana_id = 1366;
 ```
 
-## 10) Cambios históricos que rompieron producción (lecciones)
-- Tabla mal nombrada: el backend apuntaba a `attendance` (inexistente) → se cambió a `asistencias`.
-- Columna faltante: el frontend pedía `bares.activo` que no existía → se creó `activo boolean default true`.
-- Variables de entorno ausentes: faltaba `SUPABASE_SERVICE_ROLE_KEY` → agregada en Netlify.
-- CORS incompleto: la Function no respondía `OPTIONS` ni enviaba CORS en errores → ahora responde siempre con CORS + JSON.
-
-## 11) Checklist de salud (pre-deploy)
-- [ ] `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` configuradas en Netlify.
-- [ ] Tabla destino correcta: `asistencias` (no `attendance`).
-- [ ] Policies RLS (`update own` y `admin can update all`) creadas y probadas.
-- [ ] Function responde `OPTIONS 200` y errores con JSON + CORS.
-- [ ] `curl` de prueba devuelve `200/403/422` (no “fetch failed”).
-- [ ] Front envía `{ week_id, fields }` con nombres de columna válidos y valores sanitizados.
-- [ ] Después de cambios críticos, ejecutar `Clear cache and deploy site` en Netlify.
+## Criterio de aceptación
+- README documentado con los contratos anteriores.
+- Desplegar nuevamente las Functions tras cambios de variables.
+- Pruebas manuales (curl) retornan `200 {"ok": true}`.
