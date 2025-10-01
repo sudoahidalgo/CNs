@@ -1489,6 +1489,34 @@
     let weekEditorSelectedId = null;
     let weekEditorLoading = false;
     let weekEditorOriginal = null;
+    let weekEditorSupportsBarId = true;
+
+    function isWeekEditorMissingBarIdError(error) {
+      if (!error || typeof error !== 'object') return false;
+
+      const code = String(error.code || '').trim();
+      if (code === '42703') {
+        const detail = [error.message, error.details, error.hint].filter(Boolean).join(' ').toLowerCase();
+        if (!detail) return true;
+        return detail.includes('semanas_cn.bar_id') || detail.includes('bar_id');
+      }
+
+      const haystack = [error.message, error.details, error.hint]
+        .filter(Boolean)
+        .map(value => String(value).toLowerCase())
+        .join(' ');
+
+      if (!haystack) return false;
+
+      const mentionsBarId = haystack.includes('semanas_cn.bar_id') || haystack.includes('bar_id');
+      const mentionsMissing =
+        haystack.includes('does not exist') ||
+        haystack.includes('no existe') ||
+        haystack.includes('undefined column') ||
+        haystack.includes('columna indefinida');
+
+      return mentionsBarId && mentionsMissing;
+    }
 
     // ========== DEVICE DETECTION ==========
     function detectDevice() {
@@ -3988,15 +4016,31 @@
       updateWeekEditorButtonsState(true);
 
       try {
-        const { data, error } = await supabase
+        const baseColumns = 'id, fecha_martes, bar_ganador, total_votos, total_asistentes, hubo_quorum, estado, updated_at';
+        let columns = weekEditorSupportsBarId ? `${baseColumns}, bar_id` : baseColumns;
+
+        let { data, error } = await supabase
           .from('semanas_cn')
-          .select('id, fecha_martes, bar_ganador, bar_id, total_votos, total_asistentes, hubo_quorum, estado, updated_at')
+          .select(columns)
           .order('fecha_martes', { ascending: false })
           .limit(50);
 
+        if (error && weekEditorSupportsBarId && isWeekEditorMissingBarIdError(error)) {
+          console.warn('⚠️ semanas_cn.bar_id no disponible, reintentando sin la columna.', error);
+          weekEditorSupportsBarId = false;
+          columns = baseColumns;
+          ({ data, error } = await supabase
+            .from('semanas_cn')
+            .select(columns)
+            .order('fecha_martes', { ascending: false })
+            .limit(50));
+        }
+
         if (error) throw error;
 
-        weekEditorWeeks = data || [];
+        weekEditorWeeks = (data || []).map(week =>
+          weekEditorSupportsBarId ? week : { ...week, bar_id: week?.bar_id ?? null }
+        );
 
         if (!weekEditorWeeks.length) {
           weekEditorSelectedId = null;
