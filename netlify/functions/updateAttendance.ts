@@ -7,7 +7,7 @@ const CORS = {
 const urlBase = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
 const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
-const handler = async (event) => {
+export const handler = async (event: any) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: CORS, body: '' };
   }
@@ -16,21 +16,25 @@ const handler = async (event) => {
       return resp(500, { error: 'misconfigured env' });
     }
 
-    let payload = {};
+    let payload: any = {};
     try {
       payload = event.body ? JSON.parse(event.body) : {};
-    } catch (err) {
+    } catch {
       return resp(422, { error: 'Invalid JSON' });
     }
 
+    // Payload esperado (acepta alias por compat):
+    // week_id (required), bar_id OR bar_nombre (opcional),
+    // add_user_ids: string[] (optional), recompute_total: boolean (optional)
     const week_id = payload.week_id ?? payload.weekId ?? payload.id;
     const bar_id = payload.bar_id ?? payload.barId;
     let bar_nombre = payload.bar_nombre ?? payload.barNombre ?? payload.bar;
-    const add_user_ids = payload.add_user_ids ?? payload.user_ids ?? [];
+    const add_user_ids: string[] = payload.add_user_ids ?? payload.user_ids ?? [];
     const recompute_total = !!payload.recompute_total;
 
     if (!week_id) return resp(422, { error: 'Missing week_id' });
 
+    // 1) Resolver bar_nombre si sólo vino bar_id
     if (!bar_nombre && bar_id) {
       const r = await pgGetOne('bares', `id=eq.${Number(bar_id)}`, 'nombre');
       if (!r.ok) return proxy(r);
@@ -38,11 +42,13 @@ const handler = async (event) => {
       if (!bar_nombre) return resp(422, { error: 'bar_id not found' });
     }
 
+    // 2) Actualizar bar_ganador si hay bar_nombre
     if (bar_nombre) {
       const up = await pgPatch('semanas_cn', `id=eq.${Number(week_id)}`, { bar_ganador: bar_nombre });
       if (!up.ok) return proxy(up);
     }
 
+    // 3) Insertar asistentes si vienen user_ids
     if (Array.isArray(add_user_ids) && add_user_ids.length > 0) {
       const rows = add_user_ids.map((uid) => ({
         user_id: uid,
@@ -50,15 +56,17 @@ const handler = async (event) => {
         confirmado: true,
         created_at: new Date().toISOString(),
       }));
-      const ins = await pgInsert('asistencias', rows, 'ignore');
+      const ins = await pgInsert('asistencias', rows, 'ignore'); // usa ON CONFLICT DO NOTHING
       if (!ins.ok) return proxy(ins);
     }
 
+    // 4) Recalcular total_asistentes (si la columna existe y flag on)
     if (recompute_total) {
       const c = await pgGet('asistencias', `semana_id=eq.${Number(week_id)}`, 'select=id');
       if (!c.ok) return proxy(c);
       const total = Number(c.headers.get('content-range')?.split('/')?.[1] || 0);
 
+      // intenta varias columnas posibles; si ninguna existe, ignora
       const tryCols = ['total_asistentes', 'total_asistertes', 'total_asist', 'total_asistentes_cn'];
       for (const col of tryCols) {
         const upd = await pgPatch('semanas_cn', `id=eq.${Number(week_id)}`, { [col]: total });
@@ -67,13 +75,13 @@ const handler = async (event) => {
     }
 
     return resp(200, { ok: true });
-  } catch (e) {
+  } catch (e: any) {
     console.error('HANDLER ERROR', e?.message);
     return resp(500, { error: e?.message || 'server error' });
   }
 };
 
-function resp(status, body) {
+function resp(status: number, body: any) {
   return {
     statusCode: status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -81,19 +89,19 @@ function resp(status, body) {
   };
 }
 
-async function proxy(r) {
-  let text;
+async function proxy(r: any) {
+  let text: string | undefined;
   try {
     text = await r.text();
-  } catch (err) {
+  } catch (err: any) {
     text = err?.message;
   }
 
-  let body = undefined;
+  let body: any = undefined;
   if (text) {
     try {
       body = JSON.parse(text);
-    } catch (err) {
+    } catch {
       body = { error: text };
     }
   }
@@ -107,7 +115,8 @@ async function proxy(r) {
   return resp(r.status || 500, body);
 }
 
-async function pgPatch(table, filter, data) {
+// --- PostgREST helpers ---
+async function pgPatch(table: string, filter: string, data: any) {
   return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
@@ -120,8 +129,8 @@ async function pgPatch(table, filter, data) {
   });
 }
 
-async function pgInsert(table, rows, onConflict = 'error') {
-  const headers = {
+async function pgInsert(table: string, rows: any[], onConflict: 'ignore' | 'error' = 'error') {
+  const headers: Record<string, string> = {
     apikey: serviceKey,
     Authorization: `Bearer ${serviceKey}`,
     'Content-Type': 'application/json',
@@ -135,19 +144,17 @@ async function pgInsert(table, rows, onConflict = 'error') {
   });
 }
 
-async function pgGetOne(table, filter, select) {
+async function pgGetOne(table: string, filter: string, select: string) {
   return fetch(`${urlBase}/rest/v1/${table}?${filter}&select=${encodeURIComponent(select)}&limit=1`, {
     method: 'GET',
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
 }
 
-async function pgGet(table, filter, extraQuery = '') {
+async function pgGet(table: string, filter: string, extraQuery: string = '') {
   const qs = `${filter}${extraQuery ? `&${extraQuery}` : ''}`;
   return fetch(`${urlBase}/rest/v1/${table}?${qs}`, {
     method: 'GET',
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'count=exact' },
   });
 }
-
-module.exports = { handler };
