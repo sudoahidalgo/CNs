@@ -18,10 +18,6 @@ Configurar en *Site settings → Environment variables* para production, deploy 
 
 > Tras modificar variables se recomienda **Clear cache and deploy site** para que Netlify vuelva a construir Functions con los valores actualizados.
 
-### Diagnóstico rápido (errores `ENOTFOUND`)
-- Visitar `https://corkys.netlify.app/.netlify/functions/updateAttendance?health=1` (o el dominio del deploy) verifica si las variables `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` están presentes y si Netlify puede resolver a Supabase vía IPv4.
-- Si aparece `{ "error": "upstream fetch failed" }`, reintentar luego de unos segundos suele funcionar porque la Function ahora fuerza `lookup` IPv4 y reintenta 2 veces las llamadas internas. Si persiste, validar que la URL de Supabase sea correcta y accesible desde redes públicas.
-
 ## Tablas principales (resumen funcional)
 - **`semanas_cn`**: Define cada semana (fecha, bar ganador, estado, totales). Columna clave: `bar_ganador` (texto del bar ganador).
 - **`asistencias`**: Registro de cada usuario confirmado por semana (`user_id`, `semana_id`).
