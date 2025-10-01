@@ -1022,6 +1022,27 @@
       padding: 12px 8px;
     }
 
+    #adminBarsTable .form-check-input {
+      cursor: pointer;
+    }
+
+    #adminBarsTable .form-check-label {
+      cursor: pointer;
+      color: #dee2e6;
+    }
+
+    .bar-excluded-row {
+      opacity: 0.6;
+    }
+
+    .bar-excluded-row .form-check-label {
+      color: #adb5bd;
+    }
+
+    .bar-excluded-row .bar-name-display {
+      color: #ced4da;
+    }
+
     .desktop-week-info {
       font-size: 1.2rem;
     }
@@ -1328,6 +1349,16 @@
                     <input type="url" class="form-control" id="socialUrl" required placeholder="https://...">
                   </div>
                 </div>
+                <div class="row">
+                  <div class="col-12 mb-2">
+                    <div class="form-check form-switch text-light d-flex align-items-center" style="gap: 10px;">
+                      <input class="form-check-input" type="checkbox" role="switch" id="barIncludeVoting" checked>
+                      <label class="form-check-label" for="barIncludeVoting">
+                        Incluir en la votación semanal
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 <button type="submit" class="btn btn-success">
                   <span id="addBarBtnText">➕ Agregar Bar</span>
                   <span id="addBarSpinner" style="display: none;">⏳ Agregando...</span>
@@ -1348,7 +1379,7 @@
                       <th style="width: 25%;">Nombre</th>
                       <th style="width: 20%;">Instagram</th>
                       <th style="width: 20%;">Facebook</th>
-                      <th style="width: 15%;">Estado</th>
+                      <th style="width: 15%;">En votación</th>
                       <th style="width: 20%;">Acciones</th>
                     </tr>
                   </thead>
@@ -2032,6 +2063,21 @@
           fb: bar.facebook_url || undefined,
           active: hasActivoColumn ? bar.activo !== false : true
         }));
+
+        bars.sort((a, b) => {
+          const aActive = a.active !== false;
+          const bActive = b.active !== false;
+          if (aActive !== bActive) return aActive ? -1 : 1;
+          if (typeof a.name?.localeCompare === 'function') {
+            try {
+              return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+            } catch (sortError) {
+              console.warn('localeCompare with locale failed, falling back to default comparison', sortError);
+              return a.name.localeCompare(b.name);
+            }
+          }
+          return 0;
+        });
 
         console.log('✅ Bares cargados desde BD:', bars.length);
 
@@ -3258,31 +3304,44 @@
       const tbody = document.getElementById('adminBarsTable');
       if (!tbody) return;
 
-      tbody.innerHTML = bars.map((bar, index) => {
-        const statusDisplay = hasActivoColumn
-          ? (bar.active !== false
-              ? '<span class="badge bg-success">Abierto</span>'
-              : '<span class="badge bg-secondary">Cerrado</span>')
+      const rowsHtml = bars.map((bar, index) => {
+        const includeInVoting = bar.active !== false;
+        const rowClassAttr = includeInVoting ? '' : ' class="bar-excluded-row"';
+        const igDisplay = bar.ig
+          ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>`
+          : '<span class="text-muted">—</span>';
+        const fbDisplay = bar.fb
+          ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>`
+          : '<span class="text-muted">—</span>';
+
+        const votingControl = hasActivoColumn
+          ? `
+            <div class="form-check form-switch mb-1">
+              <input class="form-check-input bar-voting-checkbox" type="checkbox" id="barInclude-${index}" data-index="${index}" ${includeInVoting ? 'checked' : ''}>
+              <label class="form-check-label" for="barInclude-${index}">
+                ${includeInVoting ? 'Incluido en votación' : 'Fuera de votación'}
+              </label>
+            </div>
+            ${includeInVoting ? '' : '<div class="text-muted small">No aparece en la lista de votación</div>'}
+          `
           : '<span class="text-muted">N/A</span>';
-        const toggleButton = hasActivoColumn
-          ? `<button class="btn btn-sm btn-outline-${bar.active !== false ? 'warning' : 'success'} bar-toggle-btn" onclick="toggleBarStatus('${bar.name.replace(/'/g, "\\'")}', ${bar.active !== false})">${bar.active !== false ? 'Cerrar' : 'Reabrir'}</button>`
-          : '';
+
         return `
-        <tr id="bar-row-${index}">
+        <tr id="bar-row-${index}"${rowClassAttr}>
           <td style="font-weight: 600;">
             <span class="bar-name-display">${bar.name}</span>
             <input type="text" class="form-control bar-name-edit" value="${bar.name}" style="display: none;">
           </td>
           <td>
-            <span class="bar-ig-display">${bar.ig ? `<a href="${bar.ig}" target="_blank" class="text-info">Ver IG</a>` : '<span class="text-muted">—</span>'}</span>
+            <span class="bar-ig-display">${igDisplay}</span>
             <input type="url" class="form-control bar-ig-edit" value="${bar.ig || ''}" placeholder="URL Instagram" style="display: none;">
           </td>
           <td>
-            <span class="bar-fb-display">${bar.fb ? `<a href="${bar.fb}" target="_blank" class="text-info">Ver FB</a>` : '<span class="text-muted">—</span>'}</span>
+            <span class="bar-fb-display">${fbDisplay}</span>
             <input type="url" class="form-control bar-fb-edit" value="${bar.fb || ''}" placeholder="URL Facebook" style="display: none;">
           </td>
           <td>
-            <span class="bar-status-display">${statusDisplay}</span>
+            ${votingControl}
           </td>
           <td>
             <div class="btn-group" style="gap: 5px;">
@@ -3295,7 +3354,6 @@
               <button class="btn btn-sm btn-secondary bar-cancel-btn" onclick="cancelBarEdit(${index})" style="display: none;">
                 ❌ Cancelar
               </button>
-              ${toggleButton}
               <button class="btn btn-sm btn-danger bar-delete-btn" onclick="deleteBar('${bar.name.replace(/'/g, "\\'")}')">
                 🗑️ Eliminar
               </button>
@@ -3304,6 +3362,19 @@
         </tr>
         `;
       }).join('');
+
+      tbody.innerHTML = rowsHtml;
+
+      if (hasActivoColumn) {
+        tbody.querySelectorAll('.bar-voting-checkbox').forEach((checkbox) => {
+          checkbox.addEventListener('change', async (event) => {
+            const idx = Number(event.target.dataset.index);
+            const bar = bars[idx];
+            if (!bar) return;
+            await updateBarVotingParticipation(bar.name, event.target.checked, event.target);
+          });
+        });
+      }
     }
 
     function setupAddBarForm() {
@@ -3316,7 +3387,8 @@
         const barName = document.getElementById('barName').value.trim();
         const socialType = document.getElementById('socialType').value;
         const socialUrl = document.getElementById('socialUrl').value.trim();
-        
+        const includeInVoting = document.getElementById('barIncludeVoting').checked;
+
         if (!barName || !socialType || !socialUrl) {
           alert('Todos los campos son obligatorios');
           return;
@@ -3336,11 +3408,11 @@
           return;
         }
         
-        await addBar(barName, socialType, socialUrl);
+        await addBar(barName, socialType, socialUrl, includeInVoting);
       });
     }
 
-    async function addBar(name, socialType, socialUrl) {
+    async function addBar(name, socialType, socialUrl, includeInVoting = true) {
       if (!isAdmin) {
         alert('No tienes permisos de administrador');
         return;
@@ -3360,7 +3432,7 @@
           facebook_url: socialType === 'fb' ? socialUrl : null
         };
         if (hasActivoColumn) {
-          barData.activo = true;
+          barData.activo = includeInVoting;
         }
 
         // Insert into database
@@ -3379,26 +3451,9 @@
 
         if (error) throw error;
 
-        // Ensure the new bar is marked as active so it appears immediately in the voting list
-        if (hasActivoColumn) {
-          const { error: activateError } = await supabase
-            .from('bares')
-            .update({ activo: true })
-            .eq('nombre', name);
-
-          if (activateError) {
-            if (activateError.message && activateError.message.includes("'activo'")) {
-              console.warn('Columna "activo" no disponible durante la activación del bar.');
-              hasActivoColumn = false;
-            } else {
-              throw activateError;
-            }
-          }
-        }
-
         // Reload bars from database
         await loadBarsFromDatabase();
-        
+
         // Clear form
         document.getElementById('addBarForm').reset();
         
@@ -3423,26 +3478,25 @@
       }
     }
 
-    async function toggleBarStatus(barName, isActive) {
+    async function updateBarVotingParticipation(barName, shouldInclude, checkboxEl) {
       if (!isAdmin) {
         alert('No tienes permisos de administrador');
+        if (checkboxEl) checkboxEl.checked = !shouldInclude;
         return;
       }
 
       if (!hasActivoColumn) {
         alert('La columna "activo" no está disponible en la base de datos');
-        return;
-      }
-
-      const action = isActive ? 'cerrar' : 'reabrir';
-      if (!confirm(`¿Seguro que deseas ${action} el bar "${barName}"?`)) {
+        if (checkboxEl) checkboxEl.checked = !shouldInclude;
         return;
       }
 
       try {
+        if (checkboxEl) checkboxEl.disabled = true;
+
         const { error } = await supabase
           .from('bares')
-          .update({ activo: !isActive, updated_at: new Date() })
+          .update({ activo: shouldInclude, updated_at: new Date() })
           .eq('nombre', barName);
 
         if (error) throw error;
@@ -3450,11 +3504,12 @@
         await loadBarsFromDatabase();
         loadAdminBarsTable();
         await loadVotingData();
-
-        alert(`Bar "${barName}" ${isActive ? 'cerrado' : 'reabierto'} exitosamente`);
       } catch (error) {
-        console.error('Error toggling bar:', error);
-        alert('Error al cambiar estado del bar: ' + error.message);
+        console.error('Error updating voting participation:', error);
+        alert('Error al actualizar la participación en votación: ' + error.message);
+        if (checkboxEl) checkboxEl.checked = !shouldInclude;
+      } finally {
+        if (checkboxEl) checkboxEl.disabled = false;
       }
     }
 
@@ -4201,7 +4256,7 @@
     window.editBar = editBar;
     window.saveBarEdit = saveBarEdit;
     window.cancelBarEdit = cancelBarEdit;
-    window.toggleBarStatus = toggleBarStatus;
+    window.updateBarVotingParticipation = updateBarVotingParticipation;
     window.signOut = signOut;
   </script>
   <div class="modal fade" id="editWeekModal" tabindex="-1">
