@@ -1490,15 +1490,19 @@
     let weekEditorLoading = false;
     let weekEditorOriginal = null;
     let weekEditorSupportsBarId = true;
+    let weekEditorSupportsUpdatedAt = true;
 
-    function isWeekEditorMissingBarIdError(error) {
+    function isWeekEditorMissingColumnError(error, columnName) {
       if (!error || typeof error !== 'object') return false;
+
+      const normalizedColumn = String(columnName || '').trim().toLowerCase();
+      if (!normalizedColumn) return false;
 
       const code = String(error.code || '').trim();
       if (code === '42703') {
         const detail = [error.message, error.details, error.hint].filter(Boolean).join(' ').toLowerCase();
         if (!detail) return true;
-        return detail.includes('semanas_cn.bar_id') || detail.includes('bar_id');
+        return detail.includes(`semanas_cn.${normalizedColumn}`) || detail.includes(normalizedColumn);
       }
 
       const haystack = [error.message, error.details, error.hint]
@@ -1508,14 +1512,21 @@
 
       if (!haystack) return false;
 
-      const mentionsBarId = haystack.includes('semanas_cn.bar_id') || haystack.includes('bar_id');
+      const mentionsColumn =
+        haystack.includes(`semanas_cn.${normalizedColumn}`) ||
+        haystack.includes(`semanas_cn_${normalizedColumn}`) ||
+        haystack.includes(normalizedColumn);
       const mentionsMissing =
         haystack.includes('does not exist') ||
         haystack.includes('no existe') ||
         haystack.includes('undefined column') ||
         haystack.includes('columna indefinida');
 
-      return mentionsBarId && mentionsMissing;
+      return mentionsColumn && mentionsMissing;
+    }
+
+    function isWeekEditorMissingBarIdError(error) {
+      return isWeekEditorMissingColumnError(error, 'bar_id');
     }
 
     // ========== DEVICE DETECTION ==========
@@ -4006,6 +4017,28 @@
       showWeekEditorFeedback('Puedes actualizar los datos de la semana seleccionada.', 'info');
     }
 
+    function getWeekEditorColumns() {
+      const columns = [
+        'id',
+        'fecha_martes',
+        'bar_ganador',
+        'total_votos',
+        'total_asistentes',
+        'hubo_quorum',
+        'estado'
+      ];
+
+      if (weekEditorSupportsUpdatedAt) {
+        columns.push('updated_at');
+      }
+
+      if (weekEditorSupportsBarId) {
+        columns.push('bar_id');
+      }
+
+      return columns.join(', ');
+    }
+
     async function loadWeekEditor(force = false) {
       if (!isAdmin) return;
 
@@ -4016,8 +4049,7 @@
       updateWeekEditorButtonsState(true);
 
       try {
-        const baseColumns = 'id, fecha_martes, bar_ganador, total_votos, total_asistentes, hubo_quorum, estado, updated_at';
-        let columns = weekEditorSupportsBarId ? `${baseColumns}, bar_id` : baseColumns;
+        let columns = getWeekEditorColumns();
 
         let { data, error } = await supabase
           .from('semanas_cn')
@@ -4028,7 +4060,18 @@
         if (error && weekEditorSupportsBarId && isWeekEditorMissingBarIdError(error)) {
           console.warn('⚠️ semanas_cn.bar_id no disponible, reintentando sin la columna.', error);
           weekEditorSupportsBarId = false;
-          columns = baseColumns;
+          columns = getWeekEditorColumns();
+          ({ data, error } = await supabase
+            .from('semanas_cn')
+            .select(columns)
+            .order('fecha_martes', { ascending: false })
+            .limit(50));
+        }
+
+        if (error && weekEditorSupportsUpdatedAt && isWeekEditorMissingColumnError(error, 'updated_at')) {
+          console.warn('⚠️ semanas_cn.updated_at no disponible, reintentando sin la columna.', error);
+          weekEditorSupportsUpdatedAt = false;
+          columns = getWeekEditorColumns();
           ({ data, error } = await supabase
             .from('semanas_cn')
             .select(columns)
@@ -4039,7 +4082,13 @@
         if (error) throw error;
 
         weekEditorWeeks = (data || []).map(week =>
-          weekEditorSupportsBarId ? week : { ...week, bar_id: week?.bar_id ?? null }
+          weekEditorSupportsBarId && weekEditorSupportsUpdatedAt
+            ? week
+            : {
+                ...week,
+                ...(weekEditorSupportsBarId ? {} : { bar_id: week?.bar_id ?? null }),
+                ...(weekEditorSupportsUpdatedAt ? {} : { updated_at: week?.updated_at ?? null })
+              }
         );
 
         if (!weekEditorWeeks.length) {
