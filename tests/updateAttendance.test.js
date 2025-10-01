@@ -1,150 +1,137 @@
 /** @jest-environment node */
 
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
-}))
-
-const { createClient } = require('@supabase/supabase-js')
-const { handler } = require('../netlify/functions/updateAttendance.js')
-
-const buildSupabase = ({ selectResult, selectError } = {}) => {
-  const selectMock = jest.fn()
-  if (selectError) {
-    selectMock.mockRejectedValue(selectError)
-  } else {
-    selectMock.mockResolvedValue(selectResult ?? { data: [{ id: 10 }], error: null })
-  }
-
-  const eqMock = jest.fn(() => ({ select: selectMock }))
-  const updateMock = jest.fn(() => ({ eq: eqMock }))
-  const fromMock = jest.fn((table) => {
-    if (table !== 'asistencias') {
-      throw new Error(`Unexpected table: ${table}`)
-    }
-    return { update: updateMock }
-  })
-
-  createClient.mockReturnValue({ from: fromMock })
-
-  return { selectMock, eqMock, updateMock, fromMock }
-}
-
 describe('updateAttendance handler', () => {
-  const ORIGINAL_URL = process.env.SUPABASE_URL
-  const ORIGINAL_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const originalUrl = process.env.SUPABASE_URL;
+  const originalKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let handler;
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    process.env.SUPABASE_URL = 'https://test.supabase.co'
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role'
-  })
+    jest.resetModules();
+    jest.resetAllMocks();
+    process.env.SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role';
+    global.fetch = jest.fn();
+    ({ handler } = require('../netlify/functions/updateAttendance.js'));
+  });
+
+  afterEach(() => {
+    delete global.fetch;
+  });
 
   afterAll(() => {
-    if (ORIGINAL_URL) {
-      process.env.SUPABASE_URL = ORIGINAL_URL
-    } else {
-      delete process.env.SUPABASE_URL
-    }
-
-    if (ORIGINAL_KEY) {
-      process.env.SUPABASE_SERVICE_ROLE_KEY = ORIGINAL_KEY
-    } else {
-      delete process.env.SUPABASE_SERVICE_ROLE_KEY
-    }
-  })
+    if (originalUrl) process.env.SUPABASE_URL = originalUrl; else delete process.env.SUPABASE_URL;
+    if (originalKey) process.env.SUPABASE_SERVICE_ROLE_KEY = originalKey; else delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  });
 
   test('responds to OPTIONS with CORS headers', async () => {
-    const response = await handler({ httpMethod: 'OPTIONS' })
-    expect(response.statusCode).toBe(200)
-    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app')
-    expect(response.headers['Content-Type']).toBe('application/json')
-    expect(createClient).not.toHaveBeenCalled()
-  })
+    const response = await handler({ httpMethod: 'OPTIONS' });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['Access-Control-Allow-Origin']).toBe('https://corkys.netlify.app');
+    expect(response.body).toBe('');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 
-  test('returns 405 for non-POST methods', async () => {
-    const response = await handler({ httpMethod: 'GET' })
-    expect(response.statusCode).toBe(405)
-    expect(JSON.parse(response.body).error).toBe('Method Not Allowed')
-    expect(createClient).not.toHaveBeenCalled()
-  })
+  test('returns 500 when env vars are invalid', async () => {
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    jest.resetModules();
+    ({ handler } = require('../netlify/functions/updateAttendance.js'));
 
-  test('returns 422 for invalid JSON payload', async () => {
-    const response = await handler({ httpMethod: 'POST', body: '{ invalid' })
-    expect(response.statusCode).toBe(422)
-    expect(JSON.parse(response.body).error).toBe('Invalid JSON')
-    expect(createClient).not.toHaveBeenCalled()
-  })
+    const response = await handler({ httpMethod: 'POST', body: JSON.stringify({ week_id: 1 }) });
+    expect(response.statusCode).toBe(500);
+    expect(JSON.parse(response.body).error).toBe('misconfigured env');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 
-  test('returns 422 when week_id or fields are missing', async () => {
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify({}) })
-    expect(response.statusCode).toBe(422)
-    expect(JSON.parse(response.body).error).toBe('Missing week_id or fields')
-    expect(createClient).not.toHaveBeenCalled()
-  })
+  test('returns 422 for invalid JSON or missing week_id', async () => {
+    let response = await handler({ httpMethod: 'POST', body: '{' });
+    expect(response.statusCode).toBe(422);
+    expect(JSON.parse(response.body).error).toBe('Invalid JSON');
 
-  test('updates asistencias row using primary key', async () => {
-    const { selectMock, eqMock, updateMock, fromMock } = buildSupabase()
-    const payload = { week_id: 42, fields: { bar_id: 5, asistentes: 10 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+    response = await handler({ httpMethod: 'POST', body: JSON.stringify({}) });
+    expect(response.statusCode).toBe(422);
+    expect(JSON.parse(response.body).error).toBe('Missing week_id');
+  });
 
-    expect(createClient).toHaveBeenCalled()
-    expect(fromMock).toHaveBeenCalledWith('asistencias')
-    expect(updateMock).toHaveBeenCalledWith({ bar_id: 5, asistentes: 10 })
-    expect(eqMock).toHaveBeenCalledWith('id', 42)
-    expect(selectMock).toHaveBeenCalled()
+  test('updates bar, inserts attendees and recomputes totals', async () => {
+    const baresResponse = {
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([{ nombre: 'Bar Demo' }]),
+      text: () => Promise.resolve(JSON.stringify([{ nombre: 'Bar Demo' }])),
+    };
+    const patchBarResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const insertResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
+    const countResponse = {
+      ok: true,
+      status: 200,
+      headers: { get: () => '0-1/2' },
+      text: () => Promise.resolve('[]'),
+    };
+    const patchTotalResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
 
-    expect(response.statusCode).toBe(200)
-    const body = JSON.parse(response.body)
-    expect(body.ok).toBe(true)
-    expect(body.data).toEqual([{ id: 10 }])
-  })
+    global.fetch
+      .mockResolvedValueOnce(baresResponse)
+      .mockResolvedValueOnce(patchBarResponse)
+      .mockResolvedValueOnce(insertResponse)
+      .mockResolvedValueOnce(countResponse)
+      .mockResolvedValueOnce(patchTotalResponse);
 
-  test('accepts legacy aliases for payload keys', async () => {
-    const { eqMock, updateMock } = buildSupabase()
-    const payload = { weekId: 99, update: { asistentes: 3 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+    const body = {
+      week_id: 10,
+      bar_id: 5,
+      add_user_ids: ['u1', 'u2'],
+      recompute_total: true,
+    };
 
-    expect(updateMock).toHaveBeenCalledWith({ asistentes: 3 })
-    expect(eqMock).toHaveBeenCalledWith('id', 99)
-    expect(response.statusCode).toBe(200)
-  })
+    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(body) });
 
-  test('maps constraint errors to 422', async () => {
-    buildSupabase({ selectResult: { data: null, error: { message: 'violates unique constraint', status: 400 } } })
-    const payload = { week_id: 5, fields: { asistentes: 1 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body).ok).toBe(true);
 
-    expect(response.statusCode).toBe(422)
-    expect(JSON.parse(response.body).error).toContain('violates unique constraint')
-  })
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://test.supabase.co/rest/v1/bares?id=eq.5&select=nombre&limit=1',
+      expect.objectContaining({ method: 'GET' })
+    );
 
-  test('maps policy errors to 403', async () => {
-    buildSupabase({ selectResult: { data: null, error: { message: 'permission denied for policy "asistencias"', status: 401 } } })
-    const payload = { week_id: 7, fields: { asistentes: 1 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://test.supabase.co/rest/v1/semanas_cn?id=eq.10',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ bar_ganador: 'Bar Demo' }),
+      })
+    );
 
-    expect(response.statusCode).toBe(403)
-    expect(JSON.parse(response.body).error).toContain('permission denied')
-  })
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      'https://test.supabase.co/rest/v1/asistencias',
+      expect.objectContaining({ method: 'POST' })
+    );
 
-  test('returns 500 on unexpected Supabase failure', async () => {
-    buildSupabase({ selectError: new Error('network down') })
-    const payload = { week_id: 8, fields: { asistentes: 4 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+    const insertCall = global.fetch.mock.calls[2][1];
+    expect(insertCall.headers.Prefer).toContain('resolution=ignore-duplicates');
 
-    expect(response.statusCode).toBe(500)
-    expect(JSON.parse(response.body).error).toBe('network down')
-  })
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      4,
+      'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.10&select=id',
+      expect.objectContaining({ method: 'GET' })
+    );
 
-  test('returns 500 when env vars are missing', async () => {
-    delete process.env.SUPABASE_URL
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      5,
+      'https://test.supabase.co/rest/v1/semanas_cn?id=eq.10',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+  });
 
-    const payload = { week_id: 3, fields: { asistentes: 2 } }
-    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(payload) })
+  test('bubbles up PostgREST error payloads', async () => {
+    global.fetch.mockResolvedValueOnce({ ok: false, status: 500, statusText: 'boom', text: () => Promise.resolve('fail') });
 
-    expect(response.statusCode).toBe(500)
-    expect(JSON.parse(response.body).error).toBe('misconfigured env')
-    expect(createClient).not.toHaveBeenCalled()
-  })
-})
+    const response = await handler({ httpMethod: 'POST', body: JSON.stringify({ week_id: 99, bar_nombre: 'Bar X' }) });
+
+    expect(response.statusCode).toBe(500);
+    expect(JSON.parse(response.body).error).toBe('fail');
+  });
+});

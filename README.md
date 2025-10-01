@@ -23,29 +23,41 @@ Definir en Netlify → **Settings → Environment variables** (scopes: Builds, F
 
 ## 3) Contratos de API (payloads)
 ### 3.1 `POST /.netlify/functions/updateAttendance`
+Actualiza la semana seleccionada resolviendo el bar ganador y agregando asistencias confirmadas.
+
 **Request (JSON)**
 ```json
 {
   "week_id": 123,
-  "fields": {
-    "bar_id": 5,
-    "asistentes": 42
-    // ...otras columnas válidas de 'asistencias'
-  }
+  "bar_id": 5,
+  "add_user_ids": ["uuid-1", "uuid-2"],
+  "recompute_total": true
 }
 ```
+
 Alias aceptados por compatibilidad:
 
-| parámetro | alias |
-|-----------|-------|
-| `week_id` | `weekId` · `id` · `asistencia_id` |
-| `fields`  | `update` · `data` |
+| parámetro | alias soportados |
+|-----------|------------------|
+| `week_id` | `weekId`, `id` |
+| `bar_id`  | `barId` |
+| `bar_nombre` | `barNombre`, `bar` |
+| `add_user_ids` | `user_ids` |
+
+- Si se envía `bar_id`, el backend resuelve el nombre del bar y lo guarda como `semanas_cn.bar_ganador`.
+- Si se envía `bar_nombre` directamente, se actualiza esa columna sin consultar la tabla `bares`.
+- Si se envían `add_user_ids`, se insertan filas en `public.asistencias` con `confirmado=true` y `ON CONFLICT DO NOTHING`.
+- Con `recompute_total=true` se recalcula `total_asistentes` (o variantes tipográficas) en `semanas_cn` contando las asistencias confirmadas.
 
 **Responses**
-- `200` → `{ "ok": true, "data": [...] }`
-- `422` → `{ "error": "Missing week_id or fields" | "Invalid JSON" | "violates ..." }`
-- `403` → `{ "error": "permission denied (RLS/Policy)" }`
-- `500` → `{ "error": "server error" | "misconfigured env" }`
+- `200` → `{ "ok": true }`
+- `422` → `{ "error": "Missing week_id" | "Invalid JSON" | "bar_id not found" }`
+- `4xx/5xx` → Siempre JSON `{ "error": "..." }` con encabezados CORS.
+
+**Tablas afectadas**
+
+- `public.semanas_cn`: actualiza `bar_ganador` y, opcionalmente, `total_asistentes`.
+- `public.asistencias`: inserta confirmaciones (`confirmado=true`) con resolución de duplicados.
 
 ### 3.2 CORS
 Todas las respuestas deben incluir:

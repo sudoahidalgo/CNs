@@ -8,10 +8,9 @@ describe('saveWeekChanges', () => {
     document.body.innerHTML = `
       <div id="editWeekModal" data-week-id="1">
         <select id="editBarSelect"><option value="3">Bar1</option></select>
-        <input id="editAsistentes" type="number" value="5" />
         <div id="editWeekUsers">
-          <input type="checkbox" value="u1" checked>
-          <input type="checkbox" value="u2">
+          <input class="chk-usuario" type="checkbox" value="u1" checked>
+          <input class="chk-usuario" type="checkbox" value="u2">
         </div>
       </div>
     `;
@@ -26,7 +25,7 @@ describe('saveWeekChanges', () => {
     global.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ success: true })
+        text: () => Promise.resolve(JSON.stringify({ ok: true })),
       })
     );
 
@@ -54,10 +53,9 @@ describe('saveWeekChanges', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           week_id: 1,
-          fields: {
-            bar_id: 3,
-            asistentes: 5,
-          }
+          bar_id: 3,
+          add_user_ids: ['u1'],
+          recompute_total: true,
         })
       })
     );
@@ -70,7 +68,7 @@ describe('saveWeekChanges', () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
-      json: () => Promise.resolve({ error: 'Bad request' }),
+      text: () => Promise.resolve('Bad request'),
     });
 
     await saveWeekChanges();

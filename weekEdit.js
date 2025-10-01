@@ -112,7 +112,7 @@ async function openEditWeek(weekId) {
     const usersContainer = document.getElementById('editWeekUsers');
     usersContainer.innerHTML = (usersRes.data || []).map(u => `
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="${u.id}" id="editUser-${u.id}" ${attendees.has(u.id) ? 'checked' : ''}>
+        <input class="form-check-input chk-usuario" type="checkbox" value="${u.id}" id="editUser-${u.id}" ${attendees.has(u.id) ? 'checked' : ''}>
         <label class="form-check-label" for="editUser-${u.id}">${u.nombre}</label>
       </div>
     `).join('');
@@ -159,50 +159,14 @@ async function saveWeekChanges() {
     return;
   }
 
-  const barSelect = modalEl?.querySelector('#editBarSelect');
-  const asistentesInput = modalEl?.querySelector('#editAsistentes');
-  const selectedCount = modalEl ? modalEl.querySelectorAll('#editWeekUsers input:checked').length : 0;
+  const barSelect = document.getElementById('editBarSelect');
+  const bar_id = barSelect ? Number(barSelect.value) || null : null;
 
-  let bar_id = null;
-  if (barSelect) {
-    const rawBar = barSelect.value;
-    if (rawBar !== '') {
-      const parsedBar = Number(rawBar);
-      if (Number.isNaN(parsedBar)) {
-        alert('El bar seleccionado es inválido');
-        return;
-      }
-      bar_id = parsedBar;
-    }
-  }
+  const add_user_ids = Array.from(document.querySelectorAll('.chk-usuario:checked')).map((el) => el.value);
 
-  let asistentes;
-  if (asistentesInput) {
-    const rawAsistentes = asistentesInput.value.trim();
-    if (rawAsistentes === '') {
-      asistentes = selectedCount;
-    } else {
-      const parsedAsistentes = Number(rawAsistentes);
-      if (Number.isNaN(parsedAsistentes) || parsedAsistentes < 0) {
-        alert('El total de asistentes es inválido');
-        return;
-      }
-      asistentes = parsedAsistentes;
-    }
-  } else {
-    asistentes = selectedCount;
-  }
+  const payload = { week_id, bar_id, add_user_ids, recompute_total: true };
 
-  const fields = {};
-  fields.bar_id = bar_id;
-  fields.asistentes = asistentes;
-
-  if (!fields || typeof fields !== 'object') {
-    alert('Faltan datos: week_id o fields');
-    return;
-  }
-
-  const payload = { week_id, fields };
+  console.log('REQUEST updateAttendance', payload);
 
   if (typeof isAdmin !== 'undefined' && !isAdmin) {
     return;
@@ -215,9 +179,9 @@ async function saveWeekChanges() {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const txt = await res.text();
     if (!res.ok) {
-      throw new Error(`${res.status}: ${data.error || 'Request failed'}`);
+      throw new Error(`${res.status}: ${txt}`);
     }
 
     const modalInstance = bootstrap.Modal.getInstance(modalEl);
