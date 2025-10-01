@@ -3,14 +3,33 @@ const https = require('https');
 // Netlify ejecuta Functions sobre Node 18/20 con IPv6 preferido; Supabase aún no
 // ofrece registros AAAA para todos los proyectos, lo cual deriva en errores
 // `ENOTFOUND` intermitentes. Forzamos IPv4 primero para estabilizar la resolución.
+let dnsModule = null;
 try {
-  const dns = require('dns');
-  if (typeof dns.setDefaultResultOrder === 'function') {
-    dns.setDefaultResultOrder('ipv4first');
+  dnsModule = require('dns');
+  if (typeof dnsModule.setDefaultResultOrder === 'function') {
+    dnsModule.setDefaultResultOrder('ipv4first');
   }
 } catch (err) {
   console.warn('Failed to set DNS result order', err);
+  dnsModule = null;
 }
+
+const ipv4Lookup = dnsModule
+  ? (hostname, options, callback) => {
+      const hasOptionsObject = options && typeof options === 'object';
+      const cb = typeof options === 'function' ? options : callback;
+      const opts = hasOptionsObject ? { ...options } : {};
+
+      const hints = opts.hints ?? 0;
+      if (dnsModule.ADDRCONFIG && (hints & dnsModule.ADDRCONFIG) === 0) {
+        opts.hints = hints | dnsModule.ADDRCONFIG;
+      }
+
+      opts.family = 4;
+
+      return dnsModule.lookup(hostname, opts, cb);
+    }
+  : undefined;
 
 const CORS = {
   'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
@@ -35,7 +54,11 @@ const ResponseImpl = typeof FallbackResponse === 'function'
   ? FallbackResponse
   : (typeof globalThis.Response === 'function' ? globalThis.Response : require('node-fetch').Response);
 
-const httpsAgent = new https.Agent({ keepAlive: true });
+const agentOptions = { keepAlive: true };
+if (ipv4Lookup) {
+  agentOptions.lookup = ipv4Lookup;
+}
+const httpsAgent = new https.Agent(agentOptions);
 
 function runtimeFetch(url, init = {}) {
   const shouldAttachAgent = typeof init.agent === 'undefined' && /^https:\/\//.test(url);
