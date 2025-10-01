@@ -8,15 +8,20 @@
 - **Base de datos:** Supabase (PostgreSQL) usando exclusivamente el esquema `public`.
 
 ## Variables de entorno en Netlify
-Configurar en *Site settings → Environment variables* para production, deploy previews y branch deploys:
+Configurar en *Site settings → Environment variables* para production, deploy previews y branch deploys. **Verifica que no tengan espacios en blanco antes/después y que `SUPABASE_URL` incluya el prefijo `https://`.**
 
 | Variable | Uso sugerido | Nota |
 |----------|--------------|------|
-| `SUPABASE_URL` | URL base del proyecto Supabase (sin `/` final). | Ejemplo: `https://xxx.supabase.co`. |
+| `SUPABASE_URL` | URL base del proyecto Supabase (sin `/` final). | Ejemplo válido: `https://xxx.supabase.co`. |
 | `SUPABASE_ANON_KEY` | Clave pública expuesta en el frontend. | Disponible para llamadas desde el navegador. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave con permisos elevados usada **solo** en Functions. | No exponer jamás en el frontend. |
 
 > Tras modificar variables se recomienda **Clear cache and deploy site** para que Netlify vuelva a construir Functions con los valores actualizados.
+
+### Checklist rápido de validación
+- Ejecuta `https://<tu-sitio>.netlify.app/.netlify/functions/updateAttendance?health=1` para confirmar que las credenciales de Supabase están bien configuradas (`env.url`, `env.srk`, `rest.ok` y `auth.ok` deben ser `true`).
+- Si el `health` responde con `503` revisa que las variables estén definidas y sin errores tipográficos.
+- Un error `{"error":"upstream fetch failed","code":"ENOTFOUND"}` suele indicar problemas de resolución DNS del lado de Netlify o una URL mal escrita. Desde marzo 2024 la Function fuerza IPv4, por lo que si persiste revisa que el dominio de Supabase sea correcto y accesible.
 
 ## Tablas principales (resumen funcional)
 - **`semanas_cn`**: Define cada semana (fecha, bar ganador, estado, totales). Columna clave: `bar_ganador` (texto del bar ganador).

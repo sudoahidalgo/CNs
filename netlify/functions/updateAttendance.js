@@ -3,10 +3,11 @@ const https = require('https');
 // Netlify ejecuta Functions sobre Node 18/20 con IPv6 preferido; Supabase aún no
 // ofrece registros AAAA para todos los proyectos, lo cual deriva en errores
 // `ENOTFOUND` intermitentes. Forzamos IPv4 primero para estabilizar la resolución.
+let dnsModule = null;
 try {
-  const dns = require('dns');
-  if (typeof dns.setDefaultResultOrder === 'function') {
-    dns.setDefaultResultOrder('ipv4first');
+  dnsModule = require('dns');
+  if (typeof dnsModule.setDefaultResultOrder === 'function') {
+    dnsModule.setDefaultResultOrder('ipv4first');
   }
 } catch (err) {
   console.warn('Failed to set DNS result order', err);
@@ -35,7 +36,23 @@ const ResponseImpl = typeof FallbackResponse === 'function'
   ? FallbackResponse
   : (typeof globalThis.Response === 'function' ? globalThis.Response : require('node-fetch').Response);
 
-const httpsAgent = new https.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  lookup: dnsModule && typeof dnsModule.lookup === 'function'
+    ? (hostname, options, callback) => {
+        if (typeof options === 'function') {
+          return dnsModule.lookup(hostname, { family: 4, all: false }, options);
+        }
+
+        const opts = typeof options === 'object' && options !== null ? options : {};
+        return dnsModule.lookup(
+          hostname,
+          { ...opts, family: 4, all: false },
+          callback,
+        );
+      }
+    : undefined,
+});
 
 function runtimeFetch(url, init = {}) {
   const shouldAttachAgent = typeof init.agent === 'undefined' && /^https:\/\//.test(url);
