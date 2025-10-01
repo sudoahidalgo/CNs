@@ -1,12 +1,35 @@
+const https = require('https');
+
 const CORS = {
   'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Vary': 'Origin',
+  Vary: 'Origin',
 };
 
 const urlBase = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
 const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+
+const { fetch: fallbackFetch, Response: FallbackResponse } = (() => {
+  if (typeof globalThis.fetch === 'function') {
+    return { fetch: globalThis.fetch.bind(globalThis), Response: globalThis.Response };
+  }
+
+  // Lazy require to avoid bundling when the runtime already provides fetch
+  const nodeFetch = require('node-fetch');
+  return { fetch: nodeFetch, Response: nodeFetch.Response };
+})();
+const ResponseImpl = typeof FallbackResponse === 'function'
+  ? FallbackResponse
+  : (typeof globalThis.Response === 'function' ? globalThis.Response : require('node-fetch').Response);
+
+const httpsAgent = new https.Agent({ keepAlive: true });
+
+function runtimeFetch(url, init = {}) {
+  const shouldAttachAgent = typeof init.agent === 'undefined' && /^https:\/\//.test(url);
+  const finalInit = shouldAttachAgent ? { ...init, agent: httpsAgent } : init;
+  return fallbackFetch(url, finalInit);
+}
 
 const handler = async (event) => {
   // CORS preflight
@@ -137,7 +160,7 @@ async function proxy(r) {
 
 // ----- PostgREST helpers -----
 async function pgPatch(table, filter, data) {
-  return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
+  return runtimeFetch(`${urlBase}/rest/v1/${table}?${filter}`, {
     method: 'PATCH',
     headers: {
       apikey: serviceKey,
@@ -157,11 +180,11 @@ async function pgInsert(table, rows, onConflict = 'error') {
     Prefer: 'return=minimal',
   };
   if (onConflict === 'ignore') headers.Prefer += ',resolution=ignore-duplicates';
-  return fetch(`${urlBase}/rest/v1/${table}`, { method: 'POST', headers, body: JSON.stringify(rows) });
+  return runtimeFetch(`${urlBase}/rest/v1/${table}`, { method: 'POST', headers, body: JSON.stringify(rows) });
 }
 
 async function pgDelete(table, filter) {
-  return fetch(`${urlBase}/rest/v1/${table}?${filter}`, {
+  return runtimeFetch(`${urlBase}/rest/v1/${table}?${filter}`, {
     method: 'DELETE',
     headers: {
       apikey: serviceKey,
@@ -172,7 +195,7 @@ async function pgDelete(table, filter) {
 }
 
 async function pgGetOne(table, filter, select) {
-  return fetch(`${urlBase}/rest/v1/${table}?${filter}&select=${encodeURIComponent(select)}&limit=1`, {
+  return runtimeFetch(`${urlBase}/rest/v1/${table}?${filter}&select=${encodeURIComponent(select)}&limit=1`, {
     method: 'GET',
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
@@ -180,7 +203,7 @@ async function pgGetOne(table, filter, select) {
 
 async function pgGet(table, filter, extraQuery = '') {
   const qs = `${filter}${extraQuery ? `&${extraQuery}` : ''}`;
-  return fetch(`${urlBase}/rest/v1/${table}?${qs}`, {
+  return runtimeFetch(`${urlBase}/rest/v1/${table}?${qs}`, {
     method: 'GET',
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'count=exact' },
   });
@@ -207,8 +230,21 @@ async function safeFetch(call, attempt = 0) {
 }
 
 function buildFetchErrorResponse(error) {
-  return new Response(
-    JSON.stringify({ error: 'upstream fetch failed', detail: String(error?.message || error) }),
+  const payload = {
+    error: 'upstream fetch failed',
+    detail: String(error?.message || error),
+  };
+
+  if (error && typeof error === 'object') {
+    const cause = error.cause && typeof error.cause === 'object' ? error.cause : error;
+    if (cause.code) payload.code = cause.code;
+    if (cause.errno && cause.errno !== cause.code) payload.errno = cause.errno;
+    if (cause.address) payload.address = cause.address;
+    if (cause.port) payload.port = cause.port;
+  }
+
+  return new ResponseImpl(
+    JSON.stringify(payload),
     {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
@@ -242,7 +278,7 @@ async function checkEndpoint(endpointUrl) {
   }
 
   try {
-    const response = await fetch(endpointUrl, {
+    const response = await runtimeFetch(endpointUrl, {
       method: 'HEAD',
       headers: {
         apikey: serviceKey,

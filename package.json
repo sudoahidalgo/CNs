@@ -4,7 +4,8 @@
   "description": "A voting web app for deciding where to go out with friends",
   "main": "index.js",
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
+    "@supabase/supabase-js": "^2.45.0",
+    "node-fetch": "^2.6.12"
   },
   "scripts": {
     "test": "jest"
