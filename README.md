@@ -53,13 +53,6 @@ Configurar en *Site settings → Environment variables* para production, deploy 
 - `403 { error: "permission denied" }`
 - `500 { error: "..." }`
 
-### Diagnóstico de errores comunes
-- **`{"error":"upstream fetch failed","code":"ENOTFOUND"}`**
-  1. Revisa en Netlify (`Site settings → Environment variables`) que `SUPABASE_URL` apunte exactamente a tu proyecto, con formato `https://<ref>.supabase.co` y sin `/` final.
-  2. Verifica que `SUPABASE_SERVICE_ROLE_KEY` esté definido para **Production**, **Deploy previews** y **Branch deploys**.
-  3. Ejecuta `https://<tu-sitio>/.netlify/functions/updateAttendance?health=1` y confirma que `env.url`, `env.srk`, `rest.ok` y `auth.ok` sean `true`. Si falla, limpia el caché desde Netlify (`Clear cache and deploy site`).
-  4. Si todo está correcto y persiste el error, vuelve a desplegar: la función ahora fuerza la resolución IPv4 para evitar fallas de DNS intermitentes en Netlify.
-
 ## 🔍 Diccionario de datos (anexo técnico)
 Salida basada en `SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;`
 
