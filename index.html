@@ -4229,7 +4229,14 @@
       const originalBarName = weekEditorOriginal.bar_ganador || null;
       const barChanged = (selectedBarId ?? null) !== (originalBarId ?? null) || (selectedBarName || null) !== (originalBarName || null);
 
-      if (!Object.keys(updates).length && !barChanged) {
+      if (barChanged) {
+        updates.bar_ganador = selectedBarName || null;
+        if (weekEditorSupportsBarId) {
+          updates.bar_id = Number.isFinite(selectedBarId) ? selectedBarId : null;
+        }
+      }
+
+      if (!Object.keys(updates).length) {
         showWeekEditorFeedback('No hay cambios para guardar.', 'info');
         return;
       }
@@ -4238,31 +4245,12 @@
       showWeekEditorFeedback('Guardando cambios...', 'info');
 
       try {
-        if (Object.keys(updates).length) {
-          const { error } = await supabase
-            .from('semanas_cn')
-            .update(updates)
-            .eq('id', weekEditorSelectedId);
+        const { error } = await supabase
+          .from('semanas_cn')
+          .update(updates)
+          .eq('id', weekEditorSelectedId);
 
-          if (error) throw error;
-        }
-
-        if (barChanged) {
-          const payload = { week_id: weekEditorSelectedId, recompute_total: false };
-          if (weekEditorSupportsBarId && selectedBarId != null) payload.bar_id = selectedBarId;
-          if (selectedBarName) payload.bar_nombre = selectedBarName;
-
-          const response = await fetch('/.netlify/functions/updateAttendance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            const text = await response.text();
-            throw new Error(text || 'Error actualizando el bar de la semana');
-          }
-        }
+        if (error) throw error;
 
         const storedWeek = weekEditorWeeks.find(week => Number(week.id) === Number(weekEditorSelectedId));
         if (storedWeek) {
@@ -4271,10 +4259,8 @@
           if (updates.total_votos !== undefined) storedWeek.total_votos = updates.total_votos;
           if (updates.hubo_quorum !== undefined) storedWeek.hubo_quorum = updates.hubo_quorum;
           if (updates.estado !== undefined) storedWeek.estado = updates.estado;
-          if (barChanged) {
-            storedWeek.bar_id = weekEditorSupportsBarId ? selectedBarId : null;
-            storedWeek.bar_ganador = selectedBarName;
-          }
+          if (updates.bar_id !== undefined) storedWeek.bar_id = updates.bar_id;
+          if (updates.bar_ganador !== undefined) storedWeek.bar_ganador = updates.bar_ganador;
           weekEditorOriginal = { ...storedWeek };
         }
 
