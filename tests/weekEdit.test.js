@@ -54,7 +54,7 @@ describe('saveWeekChanges', () => {
         body: JSON.stringify({
           week_id: 1,
           bar_id: 3,
-          add_user_ids: ['u1'],
+          set_user_ids: ['u1'],
           recompute_total: true,
         })
       })

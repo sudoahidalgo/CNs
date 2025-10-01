@@ -162,9 +162,9 @@ async function saveWeekChanges() {
   const barSelect = document.getElementById('editBarSelect');
   const bar_id = barSelect ? Number(barSelect.value) || null : null;
 
-  const add_user_ids = Array.from(document.querySelectorAll('.chk-usuario:checked')).map((el) => el.value);
+  const set_user_ids = Array.from(document.querySelectorAll('.chk-usuario:checked')).map((el) => el.value);
 
-  const payload = { week_id, bar_id, add_user_ids, recompute_total: true };
+  const payload = { week_id, bar_id, set_user_ids, recompute_total: true };
 
   console.log('REQUEST updateAttendance', payload);
 

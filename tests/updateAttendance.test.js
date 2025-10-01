@@ -53,7 +53,7 @@ describe('updateAttendance handler', () => {
     expect(JSON.parse(response.body).error).toBe('Missing week_id');
   });
 
-  test('updates bar, inserts attendees and recomputes totals', async () => {
+  test('updates bar, replaces attendees and recomputes totals', async () => {
     const baresResponse = {
       ok: true,
       status: 200,
@@ -61,6 +61,8 @@ describe('updateAttendance handler', () => {
       text: () => Promise.resolve(JSON.stringify([{ nombre: 'Bar Demo' }])),
     };
     const patchBarResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const patchVisitResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const deleteResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
     const insertResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
     const countResponse = {
       ok: true,
@@ -73,6 +75,8 @@ describe('updateAttendance handler', () => {
     global.fetch
       .mockResolvedValueOnce(baresResponse)
       .mockResolvedValueOnce(patchBarResponse)
+      .mockResolvedValueOnce(patchVisitResponse)
+      .mockResolvedValueOnce(deleteResponse)
       .mockResolvedValueOnce(insertResponse)
       .mockResolvedValueOnce(countResponse)
       .mockResolvedValueOnce(patchTotalResponse);
@@ -80,7 +84,7 @@ describe('updateAttendance handler', () => {
     const body = {
       week_id: 10,
       bar_id: 5,
-      add_user_ids: ['u1', 'u2'],
+      set_user_ids: ['u1', 'u2'],
       recompute_total: true,
     };
 
@@ -100,29 +104,151 @@ describe('updateAttendance handler', () => {
       'https://test.supabase.co/rest/v1/semanas_cn?id=eq.10',
       expect.objectContaining({
         method: 'PATCH',
-        body: JSON.stringify({ bar_ganador: 'Bar Demo' }),
+        body: JSON.stringify({ bar_ganador: 'Bar Demo', bar_id: 5 }),
       })
     );
 
     expect(global.fetch).toHaveBeenNthCalledWith(
       3,
+      'https://test.supabase.co/rest/v1/visitas_bares?semana_id=eq.10',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ bar: 'Bar Demo' }),
+      })
+    );
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      4,
+      'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.10',
+      expect.objectContaining({ method: 'DELETE' })
+    );
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      5,
       'https://test.supabase.co/rest/v1/asistencias',
       expect.objectContaining({ method: 'POST' })
     );
 
-    const insertCall = global.fetch.mock.calls[2][1];
+    const insertCall = global.fetch.mock.calls[4][1];
     expect(insertCall.headers.Prefer).toContain('resolution=ignore-duplicates');
 
     expect(global.fetch).toHaveBeenNthCalledWith(
-      4,
+      6,
       'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.10&select=id',
       expect.objectContaining({ method: 'GET' })
     );
 
     expect(global.fetch).toHaveBeenNthCalledWith(
-      5,
+      7,
       'https://test.supabase.co/rest/v1/semanas_cn?id=eq.10',
       expect.objectContaining({ method: 'PATCH' })
+    );
+  });
+
+  test('clears attendance when set_user_ids is an empty array', async () => {
+    const patchWeekResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const patchVisitResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const deleteResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
+    const countResponse = {
+      ok: true,
+      status: 200,
+      headers: { get: () => '0-0/0' },
+      text: () => Promise.resolve('[]'),
+    };
+    const patchTotalResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+
+    global.fetch
+      .mockResolvedValueOnce(patchWeekResponse)
+      .mockResolvedValueOnce(patchVisitResponse)
+      .mockResolvedValueOnce(deleteResponse)
+      .mockResolvedValueOnce(countResponse)
+      .mockResolvedValueOnce(patchTotalResponse);
+
+    const body = {
+      week_id: 20,
+      bar_nombre: 'Bar Demo',
+      set_user_ids: [],
+      recompute_total: true,
+    };
+
+    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(body) });
+
+    expect(response.statusCode).toBe(200);
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://test.supabase.co/rest/v1/semanas_cn?id=eq.20',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://test.supabase.co/rest/v1/visitas_bares?semana_id=eq.20',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.20',
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      4,
+      'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.20&select=id',
+      expect.objectContaining({ method: 'GET' })
+    );
+    const hasPostInsert = global.fetch.mock.calls.some(
+      ([url, options]) =>
+        url === 'https://test.supabase.co/rest/v1/asistencias' && options?.method === 'POST'
+    );
+    expect(hasPostInsert).toBe(false);
+  });
+
+  test('falls back to additive mode when only add_user_ids is provided', async () => {
+    const patchWeekResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const patchVisitResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+    const insertResponse = { ok: true, status: 204, text: () => Promise.resolve('') };
+    const countResponse = {
+      ok: true,
+      status: 200,
+      headers: { get: () => '0-1/1' },
+      text: () => Promise.resolve('[]'),
+    };
+    const patchTotalResponse = { ok: true, status: 200, text: () => Promise.resolve('[]') };
+
+    global.fetch
+      .mockResolvedValueOnce(patchWeekResponse)
+      .mockResolvedValueOnce(patchVisitResponse)
+      .mockResolvedValueOnce(insertResponse)
+      .mockResolvedValueOnce(countResponse)
+      .mockResolvedValueOnce(patchTotalResponse);
+
+    const body = {
+      week_id: 30,
+      bar_nombre: 'Bar Demo',
+      add_user_ids: ['user-1'],
+      recompute_total: true,
+    };
+
+    const response = await handler({ httpMethod: 'POST', body: JSON.stringify(body) });
+
+    expect(response.statusCode).toBe(200);
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://test.supabase.co/rest/v1/semanas_cn?id=eq.30',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://test.supabase.co/rest/v1/visitas_bares?semana_id=eq.30',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      'https://test.supabase.co/rest/v1/asistencias',
+      expect.objectContaining({ method: 'POST' })
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      4,
+      'https://test.supabase.co/rest/v1/asistencias?semana_id=eq.30&select=id',
+      expect.objectContaining({ method: 'GET' })
     );
   });
 
