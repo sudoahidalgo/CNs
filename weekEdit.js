@@ -95,6 +95,8 @@ async function openEditWeek(weekId) {
       .map((b) => `<option value="${b.id}">${b.nombre}</option>`)
       .join('');
 
+    const supportsBarIdColumn = Object.prototype.hasOwnProperty.call(weekRes.data || {}, 'bar_id');
+
     const initialBarId = (() => {
       if (weekRes.data?.bar_id) return String(weekRes.data.bar_id);
       if (weekRes.data?.bar_ganador) {
@@ -133,6 +135,7 @@ async function openEditWeek(weekId) {
     }
 
     modalEl.dataset.weekId = String(weekId);
+    modalEl.dataset.supportsBarId = supportsBarIdColumn ? '1' : '0';
 
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
@@ -164,7 +167,14 @@ async function saveWeekChanges() {
 
   const set_user_ids = Array.from(document.querySelectorAll('.chk-usuario:checked')).map((el) => el.value);
 
-  const payload = { week_id, bar_id, set_user_ids, recompute_total: true };
+  const supportsBarId = modalEl.dataset?.supportsBarId === '1';
+
+  const selectedOption = barSelect?.selectedOptions?.[0] || null;
+  const bar_nombre = selectedOption ? selectedOption.textContent.trim() : null;
+
+  const payload = { week_id, set_user_ids, recompute_total: true };
+  if (supportsBarId && bar_id != null) payload.bar_id = bar_id;
+  if (bar_nombre) payload.bar_nombre = bar_nombre;
 
   console.log('REQUEST updateAttendance', payload);
 

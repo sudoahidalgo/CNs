@@ -6,7 +6,7 @@ describe('saveWeekChanges', () => {
 
   beforeEach(() => {
     document.body.innerHTML = `
-      <div id="editWeekModal" data-week-id="1">
+      <div id="editWeekModal" data-week-id="1" data-supports-bar-id="1">
         <select id="editBarSelect"><option value="3">Bar1</option></select>
         <div id="editWeekUsers">
           <input class="chk-usuario" type="checkbox" value="u1" checked>
@@ -51,17 +51,44 @@ describe('saveWeekChanges', () => {
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          week_id: 1,
-          bar_id: 3,
-          set_user_ids: ['u1'],
-          recompute_total: true,
-        })
+        body: expect.any(String)
       })
     );
 
+    const [, requestInit] = global.fetch.mock.calls[0];
+    expect(JSON.parse(requestInit.body)).toEqual({
+      week_id: 1,
+      set_user_ids: ['u1'],
+      recompute_total: true,
+      bar_id: 3,
+      bar_nombre: 'Bar1'
+    });
+
     expect(hideMock).toHaveBeenCalled();
     expect(_getEditingWeekId()).toBeNull();
+  });
+
+  test('falls back to bar_nombre when bar_id column is unavailable', async () => {
+    document.getElementById('editWeekModal').dataset.supportsBarId = '0';
+
+    await saveWeekChanges();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/.netlify/functions/updateAttendance',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.any(String)
+      })
+    );
+
+    const [, requestInit] = global.fetch.mock.calls[0];
+    expect(JSON.parse(requestInit.body)).toEqual({
+      week_id: 1,
+      set_user_ids: ['u1'],
+      recompute_total: true,
+      bar_nombre: 'Bar1'
+    });
   });
 
   test('shows status code and error message when request fails', async () => {
