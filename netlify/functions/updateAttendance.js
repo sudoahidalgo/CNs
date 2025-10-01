@@ -1,5 +1,17 @@
 const https = require('https');
 
+// Netlify ejecuta Functions sobre Node 18/20 con IPv6 preferido; Supabase aún no
+// ofrece registros AAAA para todos los proyectos, lo cual deriva en errores
+// `ENOTFOUND` intermitentes. Forzamos IPv4 primero para estabilizar la resolución.
+try {
+  const dns = require('dns');
+  if (typeof dns.setDefaultResultOrder === 'function') {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+} catch (err) {
+  console.warn('Failed to set DNS result order', err);
+}
+
 const CORS = {
   'Access-Control-Allow-Origin': 'https://corkys.netlify.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
