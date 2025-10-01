@@ -53,15 +53,6 @@ Configurar en *Site settings → Environment variables* para production, deploy 
 - `403 { error: "permission denied" }`
 - `500 { error: "..." }`
 
-### Troubleshooting
-- **`ENOTFOUND` al guardar cambios:** indica que la Function no puede resolver el dominio de Supabase. Netlify ejecuta las
-  Functions con preferencia IPv6, mientras que muchos proyectos Supabase solo publican registros A. Desde el deploy `>=2024-05`
-  el runtime fuerza IPv4 automáticamente, pero si el problema persiste:
-  1. Confirma que `SUPABASE_URL` incluye el prefijo `https://` y no tiene espacios finales.
-  2. Verifica conectividad ejecutando `/.netlify/functions/updateAttendance?health=1`; el JSON resultante debe mostrar `env.url`
-     y `env.srk` en `true`, y los chequeos `rest`/`auth` con `ok: true`.
-  3. Si usas un proxy corporativo, habilita salida IPv4 hacia `*.supabase.co`.
-
 ## 🔍 Diccionario de datos (anexo técnico)
 Salida basada en `SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;`
 
