@@ -187,16 +187,37 @@ async function pgGet(table, filter, extraQuery = '') {
 }
 
 // ----- convierte "TypeError: fetch failed" en JSON -----
-async function safeFetch(call) {
+const MAX_FETCH_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 150;
+
+async function safeFetch(call, attempt = 0) {
   try {
     return await call();
   } catch (e) {
+    const nextAttempt = attempt + 1;
+    if (nextAttempt <= MAX_FETCH_RETRIES) {
+      const waitTime = RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+      await delay(waitTime);
+      return safeFetch(call, nextAttempt);
+    }
+
     console.error('NETWORK/FETCH ERROR', e?.message || e);
-    return new Response(JSON.stringify({ error: 'upstream fetch failed', detail: String(e?.message || e) }), {
+    return buildFetchErrorResponse(e);
+  }
+}
+
+function buildFetchErrorResponse(error) {
+  return new Response(
+    JSON.stringify({ error: 'upstream fetch failed', detail: String(error?.message || error) }),
+    {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
-    });
-  }
+    },
+  );
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ----- health -----
