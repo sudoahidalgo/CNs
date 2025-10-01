@@ -1032,13 +1032,6 @@
       color: var(--color-accent);
     }
 
-    .edit-week-btn {
-      margin-left: 8px;
-    }
-
-    @media (max-width: 768px) {
-      .edit-week-btn { display: none !important; }
-    }
   </style>
 </head>
 <body>
@@ -3131,7 +3124,6 @@
                 <div class="d-flex justify-content-between align-items-center py-1">
                   <span>${bar.name}</span>
                   <span class="${visitClass}">${visitText}</span>
-                  ${isAdmin && bar.weekId ? `<button class="btn btn-sm btn-outline-info edit-week-btn" onclick="openEditWeek(${bar.weekId})">Editar</button>` : ''}
                 </div>`;
             }).join('');
           }
