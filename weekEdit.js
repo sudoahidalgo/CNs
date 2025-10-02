@@ -172,26 +172,78 @@ async function saveWeekChanges() {
   const selectedOption = barSelect?.selectedOptions?.[0] || null;
   const bar_nombre = selectedOption ? selectedOption.textContent.trim() : null;
 
-  const payload = { week_id, set_user_ids, recompute_total: true };
-  if (supportsBarId && bar_id != null) payload.bar_id = bar_id;
-  if (bar_nombre) payload.bar_nombre = bar_nombre;
+  const asistentesInput = document.getElementById('editAsistentes');
+  const asistentesRaw = asistentesInput ? asistentesInput.value : '';
+  let totalAsistentes = Number.parseInt(asistentesRaw, 10);
+  if (
+    asistentesRaw === '' ||
+    Number.isNaN(totalAsistentes) ||
+    !Number.isFinite(totalAsistentes) ||
+    totalAsistentes < 0
+  ) {
+    totalAsistentes = set_user_ids.length;
+  }
 
-  console.log('REQUEST updateAttendance', payload);
+  const huboQuorum = totalAsistentes > 0;
+  const totalVotos = totalAsistentes;
+
+  const updatePayload = {};
+  if (supportsBarId && bar_id != null) updatePayload.bar_id = bar_id;
+  if (bar_nombre) updatePayload.bar_ganador = bar_nombre;
+  if (Number.isFinite(totalAsistentes)) updatePayload.total_asistentes = totalAsistentes;
+  if (Number.isFinite(totalVotos)) updatePayload.total_votos = totalVotos;
+  updatePayload.hubo_quorum = huboQuorum;
 
   if (typeof isAdmin !== 'undefined' && !isAdmin) {
     return;
   }
 
   try {
-    const res = await fetch('/.netlify/functions/updateAttendance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    const supabase = getSupabaseClient();
 
-    const txt = await res.text();
-    if (!res.ok) {
-      throw new Error(`${res.status}: ${txt}`);
+    if (!supabase) {
+      throw new Error('Supabase client no está inicializado.');
+    }
+
+    const { error: deleteError } = await supabase
+      .from('asistencias')
+      .delete()
+      .eq('semana_id', week_id);
+    if (deleteError) {
+      throw new Error('No se pudieron limpiar las asistencias: ' + deleteError.message);
+    }
+
+    if (set_user_ids.length > 0) {
+      const rows = set_user_ids.map((userId) => ({
+        user_id: userId,
+        semana_id: week_id,
+        confirmado: true,
+      }));
+
+      const { error: insertError } = await supabase.from('asistencias').insert(rows);
+      if (insertError) {
+        throw new Error('No se pudieron guardar las asistencias: ' + insertError.message);
+      }
+    }
+
+    if (bar_nombre) {
+      const { error: visitasError } = await supabase
+        .from('visitas_bares')
+        .update({ bar: bar_nombre })
+        .eq('semana_id', week_id);
+      if (visitasError) {
+        throw new Error('No se pudo actualizar el historial de visitas: ' + visitasError.message);
+      }
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      const { error: updateError } = await supabase
+        .from('semanas_cn')
+        .update(updatePayload)
+        .eq('id', week_id);
+      if (updateError) {
+        throw new Error('No se pudo actualizar la semana: ' + updateError.message);
+      }
     }
 
     const modalInstance = bootstrap.Modal.getInstance(modalEl);

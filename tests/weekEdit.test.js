@@ -1,8 +1,21 @@
 /** @jest-environment jsdom */
-const { saveWeekChanges, _setEditingWeekId, _getEditingWeekId } = require('../weekEdit');
+const {
+  saveWeekChanges,
+  _setEditingWeekId,
+  _getEditingWeekId,
+  _setSupabaseClient,
+} = require('../weekEdit');
 
 describe('saveWeekChanges', () => {
   let hideMock;
+  let supabaseMock;
+  let semanasUpdateMock;
+  let semanasEqMock;
+  let asistenciasDeleteMock;
+  let asistenciasDeleteEqMock;
+  let asistenciasInsertMock;
+  let visitasUpdateMock;
+  let visitasEqMock;
 
   beforeEach(() => {
     document.body.innerHTML = `
@@ -12,6 +25,7 @@ describe('saveWeekChanges', () => {
           <input class="chk-usuario" type="checkbox" value="u1" checked>
           <input class="chk-usuario" type="checkbox" value="u2">
         </div>
+        <input id="editAsistentes" value="" />
       </div>
     `;
 
@@ -22,12 +36,36 @@ describe('saveWeekChanges', () => {
       }
     };
 
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        text: () => Promise.resolve(JSON.stringify({ ok: true })),
-      })
-    );
+    semanasEqMock = jest.fn(() => Promise.resolve({ error: null }));
+    semanasUpdateMock = jest.fn(() => ({ eq: semanasEqMock }));
+
+    asistenciasDeleteEqMock = jest.fn(() => Promise.resolve({ error: null }));
+    asistenciasDeleteMock = jest.fn(() => ({ eq: asistenciasDeleteEqMock }));
+
+    asistenciasInsertMock = jest.fn(() => Promise.resolve({ error: null }));
+
+    visitasEqMock = jest.fn(() => Promise.resolve({ error: null }));
+    visitasUpdateMock = jest.fn(() => ({ eq: visitasEqMock }));
+
+    supabaseMock = {
+      from: jest.fn((table) => {
+        if (table === 'semanas_cn') {
+          return { update: semanasUpdateMock };
+        }
+        if (table === 'asistencias') {
+          return {
+            delete: asistenciasDeleteMock,
+            insert: asistenciasInsertMock,
+          };
+        }
+        if (table === 'visitas_bares') {
+          return { update: visitasUpdateMock };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    };
+
+    _setSupabaseClient(supabaseMock);
 
     global.isAdmin = true;
 
@@ -37,7 +75,7 @@ describe('saveWeekChanges', () => {
   });
 
   afterEach(() => {
-    delete global.fetch;
+    _setSupabaseClient(null);
     delete global.isAdmin;
     delete global.bootstrap;
     delete global.showAlert;
@@ -46,23 +84,25 @@ describe('saveWeekChanges', () => {
   test('updates week and attendees then resets editingWeekId', async () => {
     await saveWeekChanges();
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/.netlify/functions/updateAttendance',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: expect.any(String)
-      })
-    );
+    expect(supabaseMock.from).toHaveBeenCalledWith('asistencias');
+    expect(asistenciasDeleteMock).toHaveBeenCalled();
+    expect(asistenciasDeleteEqMock).toHaveBeenCalledWith('semana_id', 1);
+    expect(asistenciasInsertMock).toHaveBeenCalledWith([
+      { user_id: 'u1', semana_id: 1, confirmado: true },
+    ]);
 
-    const [, requestInit] = global.fetch.mock.calls[0];
-    expect(JSON.parse(requestInit.body)).toEqual({
-      week_id: 1,
-      set_user_ids: ['u1'],
-      recompute_total: true,
+    expect(supabaseMock.from).toHaveBeenCalledWith('semanas_cn');
+    expect(semanasUpdateMock).toHaveBeenCalledWith({
       bar_id: 3,
-      bar_nombre: 'Bar1'
+      bar_ganador: 'Bar1',
+      total_asistentes: 1,
+      total_votos: 1,
+      hubo_quorum: true,
     });
+    expect(semanasEqMock).toHaveBeenCalledWith('id', 1);
+
+    expect(visitasUpdateMock).toHaveBeenCalledWith({ bar: 'Bar1' });
+    expect(visitasEqMock).toHaveBeenCalledWith('semana_id', 1);
 
     expect(hideMock).toHaveBeenCalled();
     expect(_getEditingWeekId()).toBeNull();
@@ -73,35 +113,21 @@ describe('saveWeekChanges', () => {
 
     await saveWeekChanges();
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/.netlify/functions/updateAttendance',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: expect.any(String)
-      })
-    );
-
-    const [, requestInit] = global.fetch.mock.calls[0];
-    expect(JSON.parse(requestInit.body)).toEqual({
-      week_id: 1,
-      set_user_ids: ['u1'],
-      recompute_total: true,
-      bar_nombre: 'Bar1'
+    expect(semanasUpdateMock).toHaveBeenCalledWith({
+      bar_ganador: 'Bar1',
+      total_asistentes: 1,
+      total_votos: 1,
+      hubo_quorum: true,
     });
   });
 
   test('shows status code and error message when request fails', async () => {
-    global.fetch.mockResolvedValueOnce({
-      ok: false,
-      status: 400,
-      text: () => Promise.resolve('Bad request'),
-    });
+    semanasEqMock.mockResolvedValueOnce({ error: { message: 'falló' } });
 
     await saveWeekChanges();
 
     expect(global.showAlert).toHaveBeenCalledWith(
-      'Error actualizando semana: 400: Bad request',
+      'Error actualizando semana: No se pudo actualizar la semana: falló',
       'danger'
     );
     expect(_getEditingWeekId()).toBeNull();
