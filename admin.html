@@ -438,7 +438,7 @@
                   ${week.estado}
                 </span>
               </td>
-              <td>${week.bar_ganador || '-'}</td>
+              <td>${week.hubo_quorum ? (week.bar_ganador || '—') : 'Sin quorum'}</td>
               <td>${week.total_votos || 0}</td>
               <td>${week.total_asistentes || 0}</td>
               <td>${week.hubo_quorum ? '✅' : '❌'}</td>
