@@ -3826,8 +3826,15 @@
     function formatWeekEditorLabel(week) {
       if (!week) return 'Semana';
       const dateText = formatTuesdayDateLong(week.fecha_martes);
-      const barText = week.bar_ganador ? ` – ${week.bar_ganador}` : '';
-      return `${dateText}${barText}`;
+      let detailText = '';
+
+      if (week.hubo_quorum === false) {
+        detailText = ' – Sin quorum';
+      } else if (week.bar_ganador) {
+        detailText = ` – ${week.bar_ganador}`;
+      }
+
+      return `${dateText}${detailText}`;
     }
 
     function showWeekEditorFeedback(message, type = 'info') {
@@ -4008,16 +4015,19 @@
         return;
       }
 
-      tbody.innerHTML = weekEditorWeeks.map(week => `
+      tbody.innerHTML = weekEditorWeeks.map(week => {
+        const barDisplay = week.hubo_quorum === false ? 'Sin quorum' : (week.bar_ganador || '—');
+        return `
         <tr data-week-id="${week.id}" class="${Number(week.id) === Number(weekEditorSelectedId) ? 'table-active' : ''}">
           <td>${escapeHtmlAttr(formatDate(week.fecha_martes))}</td>
-          <td>${escapeHtmlAttr(week.bar_ganador || '—')}</td>
+          <td>${escapeHtmlAttr(barDisplay)}</td>
           <td>${escapeHtmlAttr(week.estado || '—')}</td>
           <td class="text-end">
             <button type="button" class="btn btn-sm btn-outline-info" data-action="select-week" data-week-id="${week.id}">Seleccionar</button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function populateWeekEditorForm(week) {
