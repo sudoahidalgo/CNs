@@ -2248,7 +2248,6 @@
         const { data, error } = await supabase
           .from('semanas_cn')
           .select('bar_ganador, fecha_martes')
-          .eq('estado', 'finalizada')
           .not('bar_ganador', 'is', null)
           .order('fecha_martes', { ascending: false });
 
@@ -2769,7 +2768,7 @@
           { data: weeksData, error: weeksError },
           { data: userRankingData, error: userRankingError }
         ] = await Promise.all([
-          supabase.from('semanas_cn').select('bar_ganador, total_asistentes').eq('estado', 'finalizada'),
+          supabase.from('semanas_cn').select('bar_ganador, total_asistentes'),
           supabase.from('asistencias')
             .select('user_id, semana_id, usuarios!inner(nombre), semanas_cn!inner(fecha_martes, estado)')
             .eq('confirmado', true)
@@ -2937,7 +2936,6 @@
             const { data: allWeeks, error: allWeeksError } = await supabase
               .from('semanas_cn')
               .select('bar_ganador, fecha_martes')
-              .eq('estado', 'finalizada')
               .not('bar_ganador', 'is', null)
               .order('fecha_martes', { ascending: false });
             
@@ -3155,7 +3153,6 @@
         const { data: weeks, error } = await supabase
           .from('semanas_cn')
           .select('*')
-          .eq('estado', 'finalizada')
           .order('fecha_martes', { ascending: false })
           .limit(20);
         
@@ -3213,7 +3210,6 @@
           supabase
             .from('semanas_cn')
             .select('id, bar_ganador, fecha_martes, total_asistentes')
-            .eq('estado', 'finalizada')
             .order('fecha_martes', { ascending: false }),
           supabase
             .from('asistencias')
