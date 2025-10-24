@@ -2949,13 +2949,28 @@
             }
             
             // Show all bars with their last visit status
-            const barsWithVisits = bars.map(bar => {
-              const lastVisit = lastVisits[bar.name];
-              return {
+            const barsWithVisitsMap = new Map();
+
+            bars.forEach(bar => {
+              barsWithVisitsMap.set(bar.name, {
                 name: bar.name,
-                lastVisit: lastVisit
-              };
-            }).sort((a, b) => {
+                lastVisit: lastVisits[bar.name] || null
+              });
+            });
+
+            Object.entries(lastVisits).forEach(([barName, visitDate]) => {
+              if (!barsWithVisitsMap.has(barName)) {
+                barsWithVisitsMap.set(barName, {
+                  name: barName,
+                  lastVisit: visitDate || null
+                });
+              } else if (visitDate) {
+                const entry = barsWithVisitsMap.get(barName);
+                entry.lastVisit = visitDate;
+              }
+            });
+
+            const barsWithVisits = Array.from(barsWithVisitsMap.values()).sort((a, b) => {
               if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
               if (!a.lastVisit) return 1;
               if (!b.lastVisit) return -1;
@@ -3365,10 +3380,32 @@
               }
             });
 
-            const barsWithVisits = bars.map(bar => {
+            const barsWithVisitsMap = new Map();
+
+            bars.forEach(bar => {
               const visit = lastVisits[bar.name];
-              return { name: bar.name, lastVisit: visit?.date, weekId: visit?.id };
-            }).sort((a, b) => {
+              barsWithVisitsMap.set(bar.name, {
+                name: bar.name,
+                lastVisit: visit?.date || null,
+                weekId: visit?.id || null
+              });
+            });
+
+            Object.entries(lastVisits).forEach(([barName, visit]) => {
+              if (!barsWithVisitsMap.has(barName)) {
+                barsWithVisitsMap.set(barName, {
+                  name: barName,
+                  lastVisit: visit?.date || null,
+                  weekId: visit?.id || null
+                });
+              } else if (visit?.date) {
+                const entry = barsWithVisitsMap.get(barName);
+                entry.lastVisit = visit.date;
+                entry.weekId = visit.id || null;
+              }
+            });
+
+            const barsWithVisits = Array.from(barsWithVisitsMap.values()).sort((a, b) => {
               if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name);
               if (!a.lastVisit) return 1;
               if (!b.lastVisit) return -1;
